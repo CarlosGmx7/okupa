@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="es-CO">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Okupa · Pruebas</title>
+  <style>
+    body { font: 14px/1.5 system-ui, sans-serif; margin: 16px; background: #fff; color: #222; }
+    #resumen { font-size: 18px; font-weight: 700; margin-bottom: 12px; }
+    .ok { color: #1b7f3b; }
+    .falla { color: #b3261e; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <div id="resumen">Corriendo…</div>
+  <ol id="resultados"></ol>
+  <script type="module">
+    const archivos = [
+      './pruebas/corredor.prueba.js',
+    ];
+    const { correr, registrarErrorDeCarga } = await import('./pruebas/corredor.js');
+    for (const archivo of archivos) {
+      try { await import(archivo); }
+      catch (e) { registrarErrorDeCarga(archivo, e); }
+    }
+    await correr();
+  </script>
+</body>
+</html>
