@@ -308,7 +308,7 @@ export function crearPantallas(estado, { alOcultar } = {}) {
         acceso('preguntas/sesiones', '❖', 'Sesiones guiadas', `${estado.contenido.sesiones.length} recorridos`),
         acceso('preguntas/categorias', '✦', 'Categorías', `${estado.contenido.categorias.length} temas`),
         acceso('preguntas/azar', '✧', 'Al azar', 'Una carta sorpresa'),
-        acceso('preguntas/mis', '✎︎', 'Mis preguntas', 'Creen las suyas')),
+        acceso('preguntas/mis', '✐', 'Mis preguntas', 'Creen las suyas')),
     ].filter(Boolean);
   }
 
