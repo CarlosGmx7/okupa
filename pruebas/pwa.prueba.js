@@ -1,0 +1,44 @@
+import { prueba, igual, verdadero } from './corredor.js';
+
+const ESPERADOS = [
+  './', 'index.html', 'modulos.json', 'manifest.webmanifest',
+  'css/base.css', 'css/componentes.css',
+  'js/nucleo/app.js', 'js/nucleo/almacen.js', 'js/nucleo/rutas.js', 'js/nucleo/ui.js', 'js/nucleo/inicio.js',
+  'js/modulos/preguntas/modulo.js', 'js/modulos/preguntas/datos.js', 'js/modulos/preguntas/progreso.js',
+  'js/modulos/preguntas/propio.js', 'js/modulos/preguntas/pantallas.js', 'js/modulos/preguntas/editor.js',
+  'data/preguntas/categorias.json', 'data/preguntas/fuentes.json', 'data/preguntas/preguntas.json', 'data/preguntas/sesiones.json',
+  'fuentes-tipograficas/fraunces.woff2', 'fuentes-tipograficas/fraunces-italica.woff2', 'fuentes-tipograficas/inter.woff2',
+  'iconos/icono-192.png', 'iconos/icono-512.png', 'iconos/icono-maskable-512.png', 'iconos/apple-touch-180.png',
+  'iconos/favicon-48.png', 'iconos/portada-circular.png',
+];
+
+async function listaPrecache() {
+  const texto = await (await fetch('sw.js')).text();
+  const m = texto.match(/const PRECACHE = (\[[\s\S]*?\]);/);
+  if (!m) throw new Error('sw.js no define PRECACHE');
+  return JSON.parse(m[1]);
+}
+
+prueba('pwa: PRECACHE incluye todos los archivos de la app', async () => {
+  const lista = await listaPrecache();
+  const faltan = ESPERADOS.filter((r) => !lista.includes(r));
+  igual(faltan, []);
+});
+
+prueba('pwa: cada archivo de PRECACHE existe', async () => {
+  const lista = await listaPrecache();
+  const rotos = [];
+  for (const ruta of lista) {
+    const r = await fetch(ruta, { cache: 'no-store' });
+    if (!r.ok) rotos.push(`${ruta} (${r.status})`);
+  }
+  igual(rotos, []);
+});
+
+prueba('pwa: manifest con nombre, colores e íconos', async () => {
+  const m = await (await fetch('manifest.webmanifest')).json();
+  igual([m.name, m.short_name, m.lang, m.display, m.start_url, m.theme_color, m.background_color],
+    ['Okupa', 'Okupa', 'es-CO', 'standalone', './', '#140a0e', '#140a0e']);
+  verdadero(m.icons.some((i) => i.sizes === '512x512' && i.purpose === 'maskable'), 'falta ícono maskable');
+  verdadero(m.icons.some((i) => i.sizes === '192x192'), 'falta 192');
+});
