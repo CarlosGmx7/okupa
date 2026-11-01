@@ -5,8 +5,12 @@ const CLAVE_VISTAS = 'okupa:preguntas:vistas';
 const CLAVE_SESIONES = 'okupa:preguntas:sesiones';
 
 export function crearProgreso(alm) {
-  let vistas = new Set(alm.leer(CLAVE_VISTAS, []));
-  let sesiones = { ...alm.leer(CLAVE_SESIONES, {}) };
+  // Tolera datos dañados: lo que no tenga la forma esperada se toma como vacío.
+  const crudasVistas = alm.leer(CLAVE_VISTAS, []);
+  const crudasSesiones = alm.leer(CLAVE_SESIONES, {});
+  let vistas = new Set(Array.isArray(crudasVistas) ? crudasVistas : []);
+  let sesiones = crudasSesiones && typeof crudasSesiones === 'object' && !Array.isArray(crudasSesiones)
+    ? { ...crudasSesiones } : {};
   const guardarVistas = () => alm.escribir(CLAVE_VISTAS, [...vistas]);
   const guardarSesiones = () => alm.escribir(CLAVE_SESIONES, sesiones);
 

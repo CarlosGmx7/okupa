@@ -76,6 +76,13 @@ prueba('propio: ids únicos aunque se creen muchos seguidos', () => {
   igual(new Set(ids).size, 400);
 });
 
+prueba('propio: datos guardados dañados se leen como listas vacías', () => {
+  const alm = almacenFalso();
+  alm.escribir('okupa:preguntas:propio', { preguntas: 5, categorias: 'x', sesiones: null });
+  const d = crearPropio(alm, () => CATS).obtener();
+  igual([d.preguntas, d.categorias, d.sesiones, d.ocultas], [[], [], [], []]);
+});
+
 prueba('propio: ocultar y restaurar sin duplicados', () => {
   const propio = crearPropio(almacenFalso(), () => CATS);
   propio.ocultar('fid-001');

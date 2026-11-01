@@ -312,8 +312,19 @@ export function crearPantallas(estado, { alOcultar } = {}) {
     ].filter(Boolean);
   }
 
-  function acerca() {
+  function acerca(ctx) {
     return el('div', {},
+      el('section', { clase: 'bloque-texto' },
+        el('h2', {}, 'Volver a empezar las preguntas'),
+        el('p', {}, 'Olvida qué preguntas ya salieron y dónde iban las sesiones. Sus preguntas, categorías y sesiones propias se conservan.'),
+        el('button', {
+          clase: 'boton', type: 'button',
+          onclick: () => {
+            if (!confirm('¿Reiniciar el progreso? Las preguntas volverán a salir como nuevas.')) return;
+            estado.progreso.reiniciar();
+            ctx?.refrescar();
+          },
+        }, 'Reiniciar progreso')),
       el('section', { clase: 'bloque-texto' },
         el('h2', {}, 'De dónde salen las preguntas'),
         el('p', {}, 'Son redacciones originales inspiradas en estos autores y enfoques:'),

@@ -35,6 +35,45 @@ prueba('pwa: cada archivo de PRECACHE existe', async () => {
   igual(rotos, []);
 });
 
+// Ejecuta sw.js con un `self` y un `caches` falsos y devuelve sus manejadores de eventos.
+async function cargarSW({ claves = [] } = {}) {
+  const codigo = await (await fetch('sw.js', { cache: 'no-store' })).text();
+  const manejadores = {};
+  const registro = { borradas: [], agregadas: null };
+  const cachesFalsas = {
+    keys: async () => claves,
+    delete: async (k) => { registro.borradas.push(k); return true; },
+    open: async () => ({ addAll: async (reqs) => { registro.agregadas = reqs; } }),
+    match: async () => undefined,
+  };
+  const selfFalso = {
+    location: new URL('https://ejemplo.github.io/okupa/sw.js'),
+    addEventListener: (tipo, fn) => { manejadores[tipo] = fn; },
+    skipWaiting: async () => {},
+    clients: { claim: async () => {} },
+  };
+  new Function('self', 'caches', codigo)(selfFalso, cachesFalsas);
+  const disparar = async (tipo) => {
+    let espera = Promise.resolve();
+    manejadores[tipo]({ waitUntil: (p) => { espera = p; } });
+    await espera;
+  };
+  return { disparar, registro };
+}
+
+prueba('pwa: al activar solo borra cachés viejas de Okupa, no las de otras apps', async () => {
+  const { disparar, registro } = await cargarSW({ claves: ['okupa-v0', 'reverso-v1', 'okupa-v1', 'otra'] });
+  await disparar('activate');
+  igual(registro.borradas, ['okupa-v0']);
+});
+
+prueba('pwa: al instalar pide los archivos saltándose la caché HTTP', async () => {
+  const { disparar, registro } = await cargarSW();
+  await disparar('install');
+  verdadero(registro.agregadas?.length > 0, 'no precacheó nada');
+  verdadero(registro.agregadas.every((r) => r instanceof Request && r.cache === 'reload'), 'debe usar cache: reload');
+});
+
 prueba('pwa: manifest con nombre, colores e íconos', async () => {
   const m = await (await fetch('manifest.webmanifest')).json();
   igual([m.name, m.short_name, m.lang, m.display, m.start_url, m.theme_color, m.background_color],

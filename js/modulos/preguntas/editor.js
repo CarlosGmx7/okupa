@@ -2,6 +2,7 @@
 import { el } from '../../nucleo/ui.js';
 import { exportarRespaldo, importarRespaldo, validarRespaldo } from '../../nucleo/almacen.js';
 import { fechaLocalISO } from './datos.js';
+import { VALIDADORES_RESPALDO } from './propio.js';
 
 const FORMATOS = [['abierta', 'Pregunta abierta'], ['corta', 'Respuesta rápida'], ['dilema', '¿Qué harías si…?'], ['postura', 'Tu postura']];
 const SUBTIPOS = [['si_no', 'Sí o no'], ['escala', 'Escala del 1 al 10'], ['esto_o_aquello', 'Esto o aquello']];
@@ -293,12 +294,12 @@ export function crearEditor(estado, { alCambiar = () => {}, alImportar = () => {
       let copia;
       try { copia = JSON.parse(await f.text()); }
       catch { mensaje.textContent = 'Ese archivo no se pudo leer. ¿Es una copia de Okupa?'; return; }
-      const problema = validarRespaldo(copia);
+      const problema = validarRespaldo(copia, VALIDADORES_RESPALDO);
       if (problema) { opciones.hidden = true; mensaje.textContent = problema; return; }
       mensaje.textContent = '';
       opciones.hidden = false;
       const aplicar = (modo) => {
-        const r = importarRespaldo(ctx.almacen, copia, modo);
+        const r = importarRespaldo(ctx.almacen, copia, modo, VALIDADORES_RESPALDO);
         opciones.hidden = true;
         if (!r.ok) { mensaje.textContent = r.error; return; }
         alImportar();

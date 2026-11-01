@@ -64,6 +64,15 @@ prueba('progreso: sin almacenamiento funciona en memoria', () => {
   igual(p.avance('s'), { bloque: 0, indice: 2 });
 });
 
+prueba('progreso: datos guardados dañados no rompen', () => {
+  const alm = almacenFalso();
+  alm.escribir('okupa:preguntas:vistas', 5);
+  alm.escribir('okupa:preguntas:sesiones', [1, 2]);
+  const p = crearProgreso(alm);
+  igual([...p.vistas()], []);
+  igual(p.avance('0'), null);
+});
+
 const sesion = { bloques: [{ preguntas: ['a', 'x', 'b'] }, { preguntas: ['y', 'c'] }] };
 
 prueba('progreso: posicionValida salta ids que ya no existen', () => {

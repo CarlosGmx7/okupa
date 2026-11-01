@@ -39,20 +39,26 @@ const PRECACHE = [
 const DESARROLLO = ['localhost', '127.0.0.1'].includes(self.location.hostname);
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(PRECACHE)).then(() => self.skipWaiting()));
+  // cache: 'reload' evita guardar copias viejas que tenga la caché HTTP (GitHub Pages cachea 10 min).
+  const pedidos = PRECACHE.map((url) => new Request(url, { cache: 'reload' }));
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(pedidos)).then(() => self.skipWaiting()));
 });
 
+// Otras apps del mismo dominio (p. ej. Reverso en usuario.github.io) comparten las cachés:
+// solo se borran las versiones viejas de Okupa.
 self.addEventListener('activate', (e) => {
   e.waitUntil(caches.keys()
-    .then((claves) => Promise.all(claves.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+    .then((claves) => Promise.all(claves
+      .filter((k) => k.startsWith('okupa-') && k !== CACHE)
+      .map((k) => caches.delete(k))))
     .then(() => self.clients.claim()));
 });
 
 async function desdeCache(req) {
-  const guardada = await caches.match(req, { ignoreSearch: true });
+  const guardada = await caches.match(req, { ignoreSearch: true, cacheName: CACHE });
   if (guardada) return guardada;
   if (req.mode === 'navigate') {
-    const inicio = await caches.match('index.html');
+    const inicio = await caches.match('index.html', { cacheName: CACHE });
     if (inicio) return inicio;
   }
   return null;

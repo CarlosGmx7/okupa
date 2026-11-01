@@ -2,7 +2,6 @@
 import { problemaDePregunta } from './datos.js';
 
 const CLAVE = 'okupa:preguntas:propio';
-const VACIO = { preguntas: [], categorias: [], sesiones: [], ocultas: [] };
 const MAX_TEXTO = 500;
 const MAX_OPCION = 80;
 const MAX_NOMBRE = 60;
@@ -13,6 +12,32 @@ function nuevoId() {
   contadorIds = (contadorIds + 1) % 1296;
   const azar = Math.floor(Math.random() * 1296).toString(36).padStart(2, '0');
   return `n-${Date.now().toString(36)}${contadorIds.toString(36).padStart(2, '0')}${azar}`;
+}
+
+const esObjeto = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
+const listaConIds = (v) => v === undefined || (Array.isArray(v) && v.every((x) => esObjeto(x) && typeof x.id === 'string'));
+const listaDeTextos = (v) => Array.isArray(v) && v.every((x) => typeof x === 'string');
+
+// Qué forma debe tener cada dato de este módulo dentro de una copia de seguridad.
+export const VALIDADORES_RESPALDO = {
+  'okupa:preguntas:propio': (v) => esObjeto(v) && listaConIds(v.preguntas) && listaConIds(v.categorias) &&
+    listaConIds(v.sesiones) && (v.ocultas === undefined || listaDeTextos(v.ocultas)),
+  'okupa:preguntas:vistas': listaDeTextos,
+  'okupa:preguntas:sesiones': esObjeto,
+  'okupa:preguntas:intensidad': (v) => [1, 2, 3].includes(v),
+};
+
+// Lee lo guardado tolerando datos dañados: lo que no sea una lista se toma como vacío.
+function leerDatos(alm) {
+  const crudo = alm.leer(CLAVE, {});
+  const d = esObjeto(crudo) ? crudo : {};
+  const lista = (v) => (Array.isArray(v) ? v.filter(esObjeto) : []);
+  return {
+    preguntas: lista(d.preguntas),
+    categorias: lista(d.categorias),
+    sesiones: lista(d.sesiones),
+    ocultas: Array.isArray(d.ocultas) ? d.ocultas.filter((x) => typeof x === 'string') : [],
+  };
 }
 
 function limpiar(texto) {
@@ -34,7 +59,7 @@ export function validarPreguntaPropia(p, categoriasValidas) {
 }
 
 export function crearPropio(alm, categoriasValidas = () => new Set()) {
-  let datos = { ...VACIO, ...alm.leer(CLAVE, {}) };
+  let datos = leerDatos(alm);
   const guardar = () => alm.escribir(CLAVE, datos);
   const reemplazar = (lista, item) => {
     const i = lista.findIndex((x) => x.id === item.id);
@@ -44,9 +69,6 @@ export function crearPropio(alm, categoriasValidas = () => new Set()) {
   return {
     obtener() {
       return structuredClone(datos);
-    },
-    recargar() {
-      datos = { ...VACIO, ...alm.leer(CLAVE, {}) };
     },
     guardarPregunta(p) {
       const error = validarPreguntaPropia(p, categoriasValidas());

@@ -67,12 +67,14 @@ function esObjeto(v) {
 }
 
 // Devuelve el problema de una copia de seguridad, o null si se puede importar.
-export function validarRespaldo(respaldo) {
+// `validadores` (clave → fn(valor) → boolean) los aporta cada módulo para revisar su contenido.
+export function validarRespaldo(respaldo, validadores = {}) {
   if (!esObjeto(respaldo) || respaldo.app !== 'okupa') return 'Este archivo no es una copia de Okupa.';
   if (respaldo.version !== 1) return 'Esta copia es de una versión de Okupa que esta app no reconoce.';
   if (!esObjeto(respaldo.datos)) return 'La copia está incompleta o dañada.';
-  for (const clave of Object.keys(respaldo.datos)) {
+  for (const [clave, valor] of Object.entries(respaldo.datos)) {
     if (!clave.startsWith(PREFIJO)) return 'La copia trae datos que no son de Okupa.';
+    if (validadores[clave] && !validadores[clave](valor)) return 'La copia está incompleta o dañada.';
   }
   return null;
 }
@@ -98,15 +100,23 @@ function combinarValor(local, importado) {
   return resultado;
 }
 
-export function importarRespaldo(alm, respaldo, modo = 'reemplazar') {
-  const error = validarRespaldo(respaldo);
+export function importarRespaldo(alm, respaldo, modo = 'reemplazar', validadores = {}) {
+  const error = validarRespaldo(respaldo, validadores);
   if (error) return { ok: false, error };
+  const anterior = exportarRespaldo(alm).datos;
+  const restaurar = () => {
+    for (const clave of alm.claves(PREFIJO)) alm.borrar(clave);
+    for (const [clave, valor] of Object.entries(anterior)) alm.escribir(clave, valor);
+  };
   if (modo === 'reemplazar') {
     for (const clave of alm.claves(PREFIJO)) alm.borrar(clave);
   }
   for (const [clave, valor] of Object.entries(respaldo.datos)) {
     const final = modo === 'combinar' ? combinarValor(alm.leer(clave), valor) : valor;
-    if (!alm.escribir(clave, final)) return { ok: false, error: 'No se pudo guardar: el navegador no deja almacenar datos.' };
+    if (!alm.escribir(clave, final)) {
+      restaurar();
+      return { ok: false, error: 'No se pudo guardar la copia (¿el celular no tiene espacio?). Sus datos quedaron como estaban.' };
+    }
   }
   return { ok: true };
 }

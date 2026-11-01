@@ -56,6 +56,8 @@ body {
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
   overflow-x: hidden;
+  /* Contexto de apilamiento propio: sin esto el fondo orgánico (z-index -1) queda detrás del body. */
+  isolation: isolate;
 }
 
 /* Fondo orgánico: manchas de color difusas y grano suave. */

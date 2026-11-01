@@ -1,5 +1,6 @@
 import { prueba, igual, verdadero } from './corredor.js';
 import { crearAlmacen, exportarRespaldo, importarRespaldo } from '../js/nucleo/almacen.js';
+import { VALIDADORES_RESPALDO } from '../js/modulos/preguntas/propio.js';
 
 function storageFalso() {
   const m = new Map();
@@ -72,6 +73,41 @@ prueba('respaldo: importar algo inválido no toca nada', () => {
   }
   igual(alm.leer('okupa:preguntas:vistas'), ['a']);
   igual(alm.claves('okupa:'), ['okupa:preguntas:vistas']);
+});
+
+prueba('respaldo: sobre bueno con contenido dañado se rechaza sin tocar nada', () => {
+  const alm = crearAlmacen(storageFalso());
+  alm.escribir('okupa:preguntas:vistas', ['a']);
+  const malos = [
+    { 'okupa:preguntas:propio': { preguntas: 5 } },
+    { 'okupa:preguntas:propio': { preguntas: [{ texto: 'sin id' }] } },
+    { 'okupa:preguntas:propio': 'texto' },
+    { 'okupa:preguntas:vistas': 5 },
+    { 'okupa:preguntas:sesiones': [] },
+  ];
+  for (const datos of malos) {
+    const r = importarRespaldo(alm, { app: 'okupa', version: 1, fecha: '', datos }, 'reemplazar', VALIDADORES_RESPALDO);
+    igual(r.ok, false, JSON.stringify(datos));
+  }
+  igual(alm.claves('okupa:'), ['okupa:preguntas:vistas']);
+  igual(alm.leer('okupa:preguntas:vistas'), ['a']);
+});
+
+prueba('respaldo: si falla una escritura a mitad, se restaura lo anterior', () => {
+  const s = storageFalso();
+  const alm = crearAlmacen(s);
+  alm.escribir('okupa:preguntas:vistas', ['a']);
+  let escrituras = 0;
+  const original = s.setItem;
+  s.setItem = (k, v) => { if (++escrituras === 2) throw new Error('lleno'); original(k, v); };
+  const r = importarRespaldo(alm, {
+    app: 'okupa', version: 1, fecha: '',
+    datos: { 'okupa:preguntas:sesiones': {}, 'okupa:preguntas:vistas': ['x', 'y'] },
+  }, 'reemplazar');
+  s.setItem = original;
+  igual(r.ok, false);
+  igual(alm.claves('okupa:'), ['okupa:preguntas:vistas']);
+  igual(alm.leer('okupa:preguntas:vistas'), ['a']);
 });
 
 prueba('respaldo: reemplazar borra lo que no viene en la copia', () => {

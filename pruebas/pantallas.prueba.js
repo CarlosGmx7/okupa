@@ -61,6 +61,22 @@ prueba('pantallas: al ocultar una pregunta sale otra distinta', () => {
   }
 });
 
+prueba('pantallas: Acerca de ofrece reiniciar solo el progreso', () => {
+  const { estado, ctx } = estadoDePrueba([preguntaX('x-001')]);
+  estado.progreso.marcarVista('x-001');
+  estado.progreso.guardarAvance('s', { bloque: 0, indice: 1 });
+  const original = window.confirm;
+  window.confirm = () => true;
+  try {
+    const seccion = crearPantallas(estado).acerca(ctx);
+    [...seccion.querySelectorAll('button')].find((b) => b.textContent === 'Reiniciar progreso').click();
+  } finally {
+    window.confirm = original;
+  }
+  igual([...estado.progreso.vistas()], []);
+  igual(estado.progreso.avance('s'), null);
+});
+
 prueba('pantallas: categoría sin preguntas muestra "No quedan preguntas aquí"', () => {
   const { estado, ctx } = estadoDePrueba([]);
   const div = document.createElement('div');
