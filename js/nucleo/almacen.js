@@ -1,0 +1,111 @@
+// Acceso seguro a localStorage: si el navegador lo bloquea o está lleno,
+// la app sigue funcionando sin recordar.
+
+const PREFIJO = 'okupa:';
+const LISTAS_POR_ID = ['preguntas', 'categorias', 'sesiones'];
+
+function storagePorDefecto() {
+  try { return globalThis.localStorage; } catch { return null; }
+}
+
+export function crearAlmacen(storage = storagePorDefecto()) {
+  return {
+    leer(clave, defecto = null) {
+      try {
+        const crudo = storage.getItem(clave);
+        return crudo === null ? defecto : JSON.parse(crudo);
+      } catch {
+        return defecto;
+      }
+    },
+    escribir(clave, valor) {
+      try {
+        storage.setItem(clave, JSON.stringify(valor));
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    borrar(clave) {
+      try { storage.removeItem(clave); } catch { /* sin almacenamiento */ }
+    },
+    disponible() {
+      try {
+        const k = `${PREFIJO}__prueba`;
+        storage.setItem(k, '1');
+        storage.removeItem(k);
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    claves(prefijo = PREFIJO) {
+      try {
+        const lista = [];
+        for (let i = 0; i < storage.length; i++) {
+          const k = storage.key(i);
+          if (k && k.startsWith(prefijo)) lista.push(k);
+        }
+        return lista;
+      } catch {
+        return [];
+      }
+    },
+  };
+}
+
+export const almacen = crearAlmacen();
+
+export function exportarRespaldo(alm, prefijo = PREFIJO) {
+  const datos = {};
+  for (const clave of alm.claves(prefijo)) datos[clave] = alm.leer(clave);
+  return { app: 'okupa', version: 1, fecha: new Date().toISOString(), datos };
+}
+
+function esObjeto(v) {
+  return v !== null && typeof v === 'object' && !Array.isArray(v);
+}
+
+function validarRespaldo(respaldo) {
+  if (!esObjeto(respaldo) || respaldo.app !== 'okupa') return 'Este archivo no es una copia de Okupa.';
+  if (respaldo.version !== 1) return 'Esta copia es de una versión de Okupa que esta app no reconoce.';
+  if (!esObjeto(respaldo.datos)) return 'La copia está incompleta o dañada.';
+  for (const clave of Object.keys(respaldo.datos)) {
+    if (!clave.startsWith(PREFIJO)) return 'La copia trae datos que no son de Okupa.';
+  }
+  return null;
+}
+
+function unirPorId(local = [], importado = []) {
+  const mapa = new Map();
+  for (const x of local) mapa.set(x?.id, x);
+  for (const x of importado) mapa.set(x?.id, x);
+  return [...mapa.values()];
+}
+
+function combinarValor(local, importado) {
+  if (!esObjeto(local) || !esObjeto(importado)) return importado;
+  const resultado = { ...local, ...importado };
+  for (const lista of LISTAS_POR_ID) {
+    if (Array.isArray(local[lista]) || Array.isArray(importado[lista])) {
+      resultado[lista] = unirPorId(local[lista], importado[lista]);
+    }
+  }
+  if (Array.isArray(local.ocultas) || Array.isArray(importado.ocultas)) {
+    resultado.ocultas = [...new Set([...(local.ocultas || []), ...(importado.ocultas || [])])];
+  }
+  return resultado;
+}
+
+export function importarRespaldo(alm, respaldo, modo = 'reemplazar') {
+  const error = validarRespaldo(respaldo);
+  if (error) return { ok: false, error };
+  if (modo === 'reemplazar') {
+    for (const clave of alm.claves(PREFIJO)) alm.borrar(clave);
+  }
+  for (const [clave, valor] of Object.entries(respaldo.datos)) {
+    const final = modo === 'combinar' ? combinarValor(alm.leer(clave), valor) : valor;
+    if (!alm.escribir(clave, final)) return { ok: false, error: 'No se pudo guardar: el navegador no deja almacenar datos.' };
+  }
+  return { ok: true };
+}
