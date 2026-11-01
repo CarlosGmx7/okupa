@@ -1,0 +1,9 @@
+[
+  { "id": "aron", "nombre": "Inspirada en Arthur Aron", "referencia": "Aron, A., Melinat, E., Aron, E. N., Vallone, R. D. y Bator, R. J. (1997). The experimental generation of interpersonal closeness: A procedure and some preliminary findings. Personality and Social Psychology Bulletin, 23(4), 363–377." },
+  { "id": "gottman", "nombre": "Inspirada en John Gottman", "referencia": "Gottman, J. y Silver, N. (1999). The Seven Principles for Making Marriage Work. Mapas del amor, sueños dentro del conflicto y reparación." },
+  { "id": "johnson", "nombre": "Inspirada en Sue Johnson", "referencia": "Johnson, S. (2008). Hold Me Tight: Seven Conversations for a Lifetime of Love. Terapia focalizada en las emociones y apego." },
+  { "id": "perel", "nombre": "Inspirada en Esther Perel", "referencia": "Perel, E. (2006). Mating in Captivity: Unlocking Erotic Intelligence; y (2017). The State of Affairs: Rethinking Infidelity." },
+  { "id": "glass", "nombre": "Inspirada en Shirley Glass", "referencia": "Glass, S. (2003). Not \"Just Friends\": Rebuilding Trust and Recovering Your Sanity After Infidelity. Muros y ventanas." },
+  { "id": "rya", "nombre": "Inspirada en R&A Psicólogos", "referencia": "Argüello, R. R&A Psicólogos: Preguntas psicológicas para parejas. ryapsicologos.net" },
+  { "id": "nuestra", "nombre": "Pregunta nuestra", "referencia": "Preguntas que ustedes mismos agregaron en la app." }
+]

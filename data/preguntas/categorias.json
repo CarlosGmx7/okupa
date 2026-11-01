@@ -1,0 +1,13 @@
+[
+  { "id": "conocernos", "prefijo": "con", "nombre": "Conocernos de verdad", "descripcion": "Identidad, infancia, miedos, lo que nunca se ha dicho", "icono": "✦", "color": "#c9a45c" },
+  { "id": "fidelidad", "prefijo": "fid", "nombre": "Fidelidad y confianza", "descripcion": "Qué es infidelidad, perdón, secretos", "icono": "⚭", "color": "#d4566f" },
+  { "id": "sexo", "prefijo": "sex", "nombre": "Sexo y deseo", "descripcion": "Fantasías, frecuencia, límites, lo no dicho", "icono": "❦", "color": "#e0627a" },
+  { "id": "celos", "prefijo": "cel", "nombre": "Celos y límites", "descripcion": "Amistades, redes sociales, el celular", "icono": "◐", "color": "#b07ad1" },
+  { "id": "pasado", "prefijo": "pas", "nombre": "Pasado y exparejas", "descripcion": "Lo que vivimos antes de encontrarnos", "icono": "☾", "color": "#8f9fd6" },
+  { "id": "dinero", "prefijo": "din", "nombre": "Dinero", "descripcion": "Cuentas, deudas, prioridades, la plata", "icono": "◈", "color": "#d6b46a" },
+  { "id": "familia", "prefijo": "fam", "nombre": "Familia, hijos y suegros", "descripcion": "De dónde venimos y qué familia queremos", "icono": "⌂", "color": "#e39a6b" },
+  { "id": "peleas", "prefijo": "pel", "nombre": "Peleas y conflictos", "descripcion": "Cómo peleamos y cómo nos reconciliamos", "icono": "ϟ", "color": "#e07b5a" },
+  { "id": "valores", "prefijo": "val", "nombre": "Valores y temas polémicos", "descripcion": "Religión, política, aborto, roles de género", "icono": "⚖", "color": "#7fb7a8" },
+  { "id": "nosotros", "prefijo": "nos", "nombre": "Nosotros", "descripcion": "Qué funciona y qué no en esta relación", "icono": "∞", "color": "#e8a0b4" },
+  { "id": "futuro", "prefijo": "fut", "nombre": "Futuro y sueños", "descripcion": "Hacia dónde vamos, juntos y por separado", "icono": "✧", "color": "#9fc5e0" }
+]
