@@ -1,0 +1,176 @@
+[
+  {
+    "id": "las-36",
+    "nombre": "Las 36",
+    "descripcion": "Adaptadas del estudio de Arthur Aron (1997). Tres bloques que van de lo suave a lo profundo. Túrnense: los dos responden cada pregunta.",
+    "minutos": 50,
+    "bloques": [
+      {
+        "nombre": "Bloque I",
+        "preguntas": [
+          "con-001",
+          "con-002",
+          "con-003",
+          "con-004",
+          "con-005",
+          "con-006",
+          "con-007",
+          "con-008",
+          "con-009",
+          "con-010",
+          "nos-001",
+          "nos-002"
+        ]
+      },
+      {
+        "nombre": "Bloque II",
+        "preguntas": [
+          "con-011",
+          "con-012",
+          "con-013",
+          "con-014",
+          "con-015",
+          "con-016",
+          "con-017",
+          "con-018",
+          "con-019",
+          "nos-003",
+          "nos-004",
+          "nos-005"
+        ]
+      },
+      {
+        "nombre": "Bloque III",
+        "preguntas": [
+          "con-020",
+          "con-021",
+          "con-022",
+          "con-023",
+          "con-024",
+          "con-025",
+          "nos-006",
+          "nos-007",
+          "nos-008",
+          "nos-009",
+          "nos-010",
+          "nos-011"
+        ]
+      }
+    ],
+    "cierre": {
+      "tipo": "mirada",
+      "segundos": 240,
+      "texto": "Para cerrar, como en el estudio original: mírense a los ojos en silencio durante cuatro minutos. Sin hablar, sin reírse de los nervios… o riéndose, si pasa."
+    }
+  },
+  {
+    "id": "mapa-del-amor",
+    "nombre": "Mapa del amor",
+    "descripcion": "Inspirada en los mapas del amor de John Gottman: ¿qué tanto conoces el mundo de tu pareja hoy?",
+    "instrucciones": "Antes de que tu pareja responda, intenta adivinar lo que va a decir. Luego comparen.",
+    "minutos": 20,
+    "bloques": [
+      {
+        "nombre": "Mapa del amor",
+        "preguntas": [
+          "con-026",
+          "nos-012",
+          "nos-015",
+          "nos-019",
+          "nos-025",
+          "nos-027",
+          "fut-001",
+          "fut-007",
+          "fut-015",
+          "fut-022",
+          "pas-019",
+          "din-016",
+          "fam-017",
+          "fam-027",
+          "pel-001"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "lo-que-nunca-hablamos",
+    "nombre": "Lo que nunca hablamos",
+    "descripcion": "Fidelidad, celos y pasado. Las preguntas que casi todas las parejas esquivan.",
+    "minutos": 30,
+    "bloques": [
+      {
+        "nombre": "Lo que nunca hablamos",
+        "preguntas": [
+          "fid-001",
+          "cel-001",
+          "cel-002",
+          "pas-001",
+          "pas-002",
+          "fid-002",
+          "cel-004",
+          "pas-004",
+          "fid-005",
+          "fid-006",
+          "cel-007",
+          "cel-010",
+          "fid-008",
+          "fid-013",
+          "pas-017"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "noche-de-deseo",
+    "nombre": "Noche de deseo",
+    "descripcion": "Inspirada en Esther Perel: hablar de deseo sin pena, de lo suave a lo atrevido.",
+    "minutos": 20,
+    "bloques": [
+      {
+        "nombre": "Noche de deseo",
+        "preguntas": [
+          "sex-001",
+          "sex-016",
+          "sex-002",
+          "sex-004",
+          "sex-027",
+          "sex-007",
+          "sex-003",
+          "sex-014",
+          "sex-008",
+          "sex-024",
+          "sex-010",
+          "sex-005"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "plata-familia-futuro",
+    "nombre": "Plata, familia y futuro",
+    "descripcion": "Dinero, hijos, suegros y planes: lo práctico que define una vida juntos.",
+    "minutos": 30,
+    "bloques": [
+      {
+        "nombre": "Plata, familia y futuro",
+        "preguntas": [
+          "din-001",
+          "din-002",
+          "fut-003",
+          "fam-005",
+          "din-003",
+          "din-004",
+          "din-005",
+          "din-010",
+          "fut-004",
+          "fut-005",
+          "fut-008",
+          "fam-001",
+          "fam-002",
+          "fam-003",
+          "fam-004"
+        ]
+      }
+    ]
+  }
+]
