@@ -23,8 +23,16 @@ export async function transicion(fn) {
     await fn();
     return;
   }
-  const t = document.startViewTransition(fn);
-  try { await t.updateCallbackDone; } catch { /* la pantalla igual se pinta */ }
+  // Si el navegador no llega a ejecutar la transición (pestaña en segundo plano),
+  // se pinta igual a los 400 ms; `una` garantiza que fn corra una sola vez.
+  let promesa = null;
+  const una = () => (promesa ??= Promise.resolve().then(fn));
+  const t = document.startViewTransition(una);
+  t.ready.catch(() => {});
+  t.finished.catch(() => {});
+  await Promise.race([t.updateCallbackDone.catch(() => {}), new Promise((r) => setTimeout(r, 400))]);
+  if (!promesa) t.skipTransition?.();
+  await una();
 }
 
 const NOMBRE_FORMATO = {
