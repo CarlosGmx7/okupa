@@ -41,12 +41,14 @@ function cartaDe(estado, pregunta) {
 function recorrido(contenedor, estado, { generar, total, encabezado, alMostrar, alTerminar, alOcultar }) {
   const historial = [];
   let pos = -1;
+  let generadas = 0; // no baja al ocultar, así `generar` nunca repite una posición
+  let ocultadas = 0;
   const zona = el('div', { clase: 'recorrido' });
   contenedor.append(zona);
 
   const siguiente = () => {
     if (pos < historial.length - 1) { pos++; pintar(); return; }
-    const p = generar(historial.length);
+    const p = generar(generadas++);
     if (!p) { alTerminar(); return; }
     historial.push(p);
     pos++;
@@ -67,7 +69,7 @@ function recorrido(contenedor, estado, { generar, total, encabezado, alMostrar, 
       mazo(carta),
       el('div', { clase: 'controles-carta' },
         el('button', { clase: 'boton', type: 'button', onclick: anterior, disabled: pos === 0 }, '← Anterior'),
-        total ? el('span', { clase: 'contador' }, `${pos + 1} de ${total}`) : null,
+        total ? el('span', { clase: 'contador' }, `${pos + 1} de ${total - ocultadas}`) : null,
         el('button', { clase: 'boton boton-principal', type: 'button', onclick: siguiente }, 'Siguiente →')),
       alOcultar ? el('div', { clase: 'acciones-secundarias' },
         el('button', {
@@ -75,6 +77,7 @@ function recorrido(contenedor, estado, { generar, total, encabezado, alMostrar, 
           onclick: () => {
             if (!confirm('¿Ocultar esta pregunta? No volverá a salir. Pueden recuperarla en Mis preguntas.')) return;
             alOcultar(p);
+            ocultadas++;
             historial.splice(pos, 1);
             if (pos >= historial.length) { pos = historial.length - 1; siguiente(); }
             else pintar();

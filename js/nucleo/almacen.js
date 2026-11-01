@@ -66,7 +66,8 @@ function esObjeto(v) {
   return v !== null && typeof v === 'object' && !Array.isArray(v);
 }
 
-function validarRespaldo(respaldo) {
+// Devuelve el problema de una copia de seguridad, o null si se puede importar.
+export function validarRespaldo(respaldo) {
   if (!esObjeto(respaldo) || respaldo.app !== 'okupa') return 'Este archivo no es una copia de Okupa.';
   if (respaldo.version !== 1) return 'Esta copia es de una versión de Okupa que esta app no reconoce.';
   if (!esObjeto(respaldo.datos)) return 'La copia está incompleta o dañada.';

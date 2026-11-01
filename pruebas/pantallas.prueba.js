@@ -42,6 +42,25 @@ prueba('pantallas: categoría con todo visto ofrece reiniciar vistas', () => {
   igual([...estado.progreso.vistas()], []);
 });
 
+prueba('pantallas: al ocultar una pregunta sale otra distinta', () => {
+  const { estado, ctx } = estadoDePrueba([preguntaX('x-001'), preguntaX('x-002'), preguntaX('x-003')]);
+  const ocultadas = [];
+  const div = document.createElement('div');
+  const original = window.confirm;
+  window.confirm = () => true;
+  try {
+    crearPantallas(estado, { alOcultar: (p) => ocultadas.push(p.id) }).categoria(div, { id: 'x' }, ctx);
+    const primera = div.querySelector('.carta').dataset.id;
+    [...div.querySelectorAll('button')].find((b) => b.textContent.includes('ocultar')).click();
+    igual(ocultadas, [primera]);
+    const segunda = div.querySelector('.carta').dataset.id;
+    verdadero(segunda !== primera, `volvió a salir ${primera}`);
+    igual(div.querySelector('.contador').textContent, '1 de 2');
+  } finally {
+    window.confirm = original;
+  }
+});
+
 prueba('pantallas: categoría sin preguntas muestra "No quedan preguntas aquí"', () => {
   const { estado, ctx } = estadoDePrueba([]);
   const div = document.createElement('div');
