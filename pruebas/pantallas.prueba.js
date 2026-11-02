@@ -40,6 +40,31 @@ prueba('pantallas: al retomar una sesión hay un solo contador, con la posición
   igual(div.textContent.match(/\d+ de \d+/g), ['5 de 5']);
 });
 
+prueba('pantallas: el reloj del cierre se detiene al salir de la sesión', () => {
+  const { estado, ctx } = estadoDePrueba([preguntaX('x-001')]);
+  estado.contenido.sesiones = [{ id: 's1', nombre: 'S', bloques: [{ nombre: 'Uno', preguntas: ['x-001'] }],
+    cierre: { tipo: 'mirada', texto: 'Mírense', segundos: 240 } }];
+  const div = document.createElement('div');
+  crearPantallas(estado).sesion(div, { id: 's1' }, ctx);
+  boton(div, 'Empezar').click();
+  boton(div, 'Siguiente →').click();
+  const { setInterval: poner, clearInterval: quitar } = window;
+  const puestos = [];
+  const quitados = [];
+  window.setInterval = (...a) => { const id = poner(...a); puestos.push(id); return id; };
+  window.clearInterval = (id) => { quitados.push(id); quitar(id); };
+  try {
+    boton(div, 'Empezar los 4 minutos').click();
+    igual(puestos.length, 1, 'arrancó el reloj');
+    window.dispatchEvent(new HashChangeEvent('hashchange'));
+    verdadero(quitados.includes(puestos[0]), 'el reloj sigue corriendo');
+  } finally {
+    window.setInterval = poner;
+    window.clearInterval = quitar;
+    puestos.forEach(quitar);
+  }
+});
+
 prueba('pantallas: la intensidad de Al azar se recuerda aunque no se pueda guardar', () => {
   const lista = [preguntaX('x-001'), { ...preguntaX('x-002'), profundidad: 3 }];
   const { estado } = estadoDePrueba(lista);

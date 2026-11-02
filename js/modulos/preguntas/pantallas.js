@@ -276,7 +276,13 @@ export function crearPantallas(estado, { alOcultar } = {}) {
             clase: 'boton boton-principal', type: 'button',
             onclick: (e) => {
               e.currentTarget.remove();
-              temporizador(cuerpo, s.cierre.segundos, () => { progreso.terminarSesion(s.id); final(); });
+              const salir = () => reloj.detener();
+              const reloj = temporizador(cuerpo, s.cierre.segundos, () => {
+                window.removeEventListener('hashchange', salir);
+                progreso.terminarSesion(s.id);
+                final();
+              });
+              window.addEventListener('hashchange', salir, { once: true });
             },
           }, `Empezar los ${Math.round(s.cierre.segundos / 60)} minutos`)));
       } else {

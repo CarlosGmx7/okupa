@@ -134,21 +134,80 @@ export function habilitarDeslizar(elemento, { izquierda, derecha } = {}) {
   elemento.addEventListener('pointercancel', soltar);
 }
 
-export function temporizador(contenedor, segundos, alTerminar) {
+// Prepara el aviso de fin dentro del toque que arranca el reloj (iOS solo deja sonar así).
+function prepararAviso() {
+  let audio = null;
+  try { audio = new (globalThis.AudioContext || globalThis.webkitAudioContext)(); } catch { /* sin sonido */ }
+  const avisar = () => {
+    try { navigator.vibrate?.([200, 100, 200]); } catch { /* sin vibración */ }
+    if (!audio) return;
+    try {
+      const tono = audio.createOscillator();
+      const volumen = audio.createGain();
+      tono.frequency.value = 660;
+      volumen.gain.setValueAtTime(0.2, audio.currentTime);
+      volumen.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + 0.7);
+      tono.connect(volumen).connect(audio.destination);
+      tono.onended = () => audio.close().catch(() => {});
+      tono.start();
+      tono.stop(audio.currentTime + 0.7);
+    } catch { /* sin sonido */ }
+  };
+  avisar.cerrar = () => audio?.close().catch(() => {});
+  return avisar;
+}
+
+// Cuenta regresiva que mantiene la pantalla encendida y avisa al terminar.
+// Se detiene sola si su pantalla desaparece (la pareja se fue a otra parte).
+export function temporizador(contenedor, segundos, alTerminar, {
+  avisar = prepararAviso(),
+  pedirPantalla = () => navigator.wakeLock?.request('screen'),
+} = {}) {
   const fin = Date.now() + segundos * 1000;
   const reloj = el('div', { clase: 'temporizador', role: 'timer', 'aria-live': 'off' });
   contenedor.append(reloj);
+  let activo = true;
+  let estuvoEnPantalla = false;
+  let candado = null;
+
+  const mantenerPantalla = async () => {
+    try {
+      const c = await pedirPantalla();
+      if (!c) return;
+      if (activo) candado = c;
+      else await c.release();
+    } catch { /* el navegador no lo permite */ }
+  };
+  // El navegador suelta el candado al minimizar la app; se pide de nuevo al volver.
+  const alVolver = () => { if (document.visibilityState === 'visible' && activo) mantenerPantalla(); };
+
+  const soltar = () => {
+    if (!activo) return false;
+    activo = false;
+    clearInterval(id);
+    document.removeEventListener('visibilitychange', alVolver);
+    candado?.release().catch(() => {});
+    candado = null;
+    return true;
+  };
+
   const pintarReloj = () => {
+    if (reloj.isConnected) estuvoEnPantalla = true;
+    else if (estuvoEnPantalla) { detener(); return; }
     const resta = Math.max(0, Math.ceil((fin - Date.now()) / 1000));
     reloj.textContent = `${Math.floor(resta / 60)}:${String(resta % 60).padStart(2, '0')}`;
-    if (resta === 0) {
-      clearInterval(id);
+    if (resta === 0 && soltar()) {
+      avisar();
       alTerminar?.();
     }
   };
+  const detener = () => { if (soltar()) avisar.cerrar?.(); };
+
   const id = setInterval(pintarReloj, 250);
+  document.addEventListener('visibilitychange', alVolver);
+  mantenerPantalla();
   pintarReloj();
-  return { detener: () => clearInterval(id) };
+  return { detener };
 }
 
 function agregarHijos(nodo, hijos) {

@@ -1,5 +1,5 @@
 import { prueba, igual, verdadero } from './corredor.js';
-import { el, transicion, crearCarta } from '../js/nucleo/ui.js';
+import { el, transicion, crearCarta, temporizador } from '../js/nucleo/ui.js';
 
 const categoria = { id: 'fidelidad', nombre: 'Fidelidad y confianza', icono: '⚭', color: '#d4566f' };
 const fuente = { id: 'perel', nombre: 'Inspirada en Esther Perel' };
@@ -35,6 +35,46 @@ prueba('carta: escala muestra los extremos del 1 al 10', () => {
 prueba('carta: etiqueta de formato legible', () => {
   const c = crearCarta({ id: 'x', formato: 'dilema', profundidad: 3, texto: 't' }, { categoria, fuente });
   igual(c.querySelector('.carta-formato').textContent, '¿Qué harías si…?');
+});
+
+const esperar = (ms) => new Promise((r) => setTimeout(r, ms));
+
+prueba('temporizador: al terminar avisa, suelta la pantalla y llama alTerminar', async () => {
+  const eventos = [];
+  temporizador(document.createElement('div'), 0, () => eventos.push('fin'), {
+    avisar: () => eventos.push('aviso'),
+    pedirPantalla: async () => ({ release: async () => { eventos.push('soltó'); } }),
+  });
+  await esperar(0);
+  igual(eventos, ['aviso', 'fin', 'soltó']);
+});
+
+prueba('temporizador: se detiene solo cuando su pantalla desaparece', async () => {
+  const eventos = [];
+  const div = document.createElement('div');
+  document.body.append(div);
+  temporizador(div, 60, () => eventos.push('fin'), {
+    avisar: () => eventos.push('aviso'),
+    pedirPantalla: async () => ({ release: async () => { eventos.push('soltó'); } }),
+  });
+  await esperar(0);
+  const antes = div.querySelector('.temporizador').textContent;
+  div.remove();
+  await esperar(1300);
+  igual(eventos, ['soltó']);
+  igual(div.querySelector('.temporizador').textContent, antes, 'el reloj siguió corriendo');
+});
+
+prueba('temporizador: detener suelta la pantalla y no avisa', async () => {
+  const eventos = [];
+  const t = temporizador(document.createElement('div'), 60, () => eventos.push('fin'), {
+    avisar: () => eventos.push('aviso'),
+    pedirPantalla: async () => ({ release: async () => { eventos.push('soltó'); } }),
+  });
+  await esperar(0);
+  t.detener();
+  await esperar(0);
+  igual(eventos, ['soltó']);
 });
 
 prueba('transicion: ejecuta la función y espera a que termine', async () => {
