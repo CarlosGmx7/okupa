@@ -12,9 +12,23 @@ export function pantallaInicio(contenedor, _params, ctx) {
       el('h1', { clase: 'logo' }, 'Okupa'),
       el('p', { clase: 'lema' }, 'Preguntas para conocerse de verdad')),
     el('div', { clase: 'inicio-tarjetas' }, tarjetas),
+    bloqueInstalar(ctx.instalacion),
     el('footer', { clase: 'inicio-pie' },
       el('a', { href: '#/acerca' }, 'Acerca de Okupa')),
   );
+}
+
+// Botón de instalar si el navegador lo ofrece; si no, cómo hacerlo a mano.
+function bloqueInstalar(instalacion) {
+  const e = instalacion?.estado();
+  if (!e || e.instalada) return el('div');
+  if (e.puedeInstalar) {
+    return el('div', { clase: 'instalar' },
+      el('button', { clase: 'boton boton-principal', type: 'button', onclick: () => instalacion.instalar() }, '📲 Instalar como app'));
+  }
+  return el('p', { clase: 'instalar instalar-nota' }, e.esIOS
+    ? ['📲 Para instalarla en iPhone: abre esta página en Safari, toca ', el('strong', {}, 'Compartir'), ' y luego ', el('strong', {}, 'Añadir a pantalla de inicio'), '.']
+    : ['📲 Para instalarla: abre el menú del navegador (⋮) y toca ', el('strong', {}, 'Instalar app'), ' o ', el('strong', {}, 'Agregar a la pantalla principal'), '.']);
 }
 
 export function pantallaAcerca(contenedor, _params, ctx) {

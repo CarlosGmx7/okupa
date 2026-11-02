@@ -15,6 +15,16 @@
   <link rel="preload" href="fuentes-tipograficas/fraunces.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/componentes.css">
+  <script>
+    // Guarda el aviso de "instalar app" del navegador para mostrar nuestro propio botón.
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      window.__okupaInstalar = e;
+      window.dispatchEvent(new Event('okupa:instalable'));
+    });
+    // Pide que el navegador no borre lo guardado (preguntas propias, progreso).
+    if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+  </script>
 </head>
 <body>
   <main id="vista"></main>

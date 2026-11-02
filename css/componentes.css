@@ -39,6 +39,20 @@
   margin-top: 36px;
   font-size: 14px;
 }
+.instalar {
+  margin-top: 26px;
+  text-align: center;
+}
+.instalar .boton { width: 100%; }
+.instalar-nota {
+  padding: 14px 16px;
+  border-radius: var(--radio-chico);
+  background: var(--superficie);
+  border: 1px dashed var(--dorado-suave);
+  color: var(--tenue);
+  font-size: 14px;
+}
+.instalar-nota strong { color: var(--crema); font-weight: 600; }
 .inicio-pie a { color: var(--tenue); text-decoration: none; border-bottom: 1px solid var(--dorado-suave); }
 
 .del-dia {

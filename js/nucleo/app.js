@@ -3,11 +3,13 @@ import { almacen } from './almacen.js';
 import { resolverRuta, cargarModulos } from './rutas.js';
 import { el, transicion } from './ui.js';
 import { pantallaInicio, pantallaAcerca } from './inicio.js';
+import { crearInstalacion } from './instalacion.js';
 
 const vista = document.getElementById('vista');
 const tabla = {};
 const ctx = {
   almacen,
+  instalacion: crearInstalacion(),
   modulos: [],
   ir(ruta) { location.hash = `#/${ruta}`; },
   refrescar() { pintar(); },
@@ -49,6 +51,8 @@ async function arrancar() {
   tabla[''] = pantallaInicio;
   tabla.acerca = pantallaAcerca;
   window.addEventListener('hashchange', pintar);
+  // Si el navegador ofrece instalar (o ya se instaló), repinta el inicio para mostrar u ocultar el botón.
+  ctx.instalacion.alCambiar(() => { if (!resolverRuta(location.hash, tabla) || location.hash.replace(/[#/]/g, '') === '') pintar(); });
   await pintar();
 }
 

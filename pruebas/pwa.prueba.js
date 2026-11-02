@@ -3,7 +3,7 @@ import { prueba, igual, verdadero } from './corredor.js';
 const ESPERADOS = [
   './', 'index.html', 'modulos.json', 'manifest.webmanifest',
   'css/base.css', 'css/componentes.css',
-  'js/nucleo/app.js', 'js/nucleo/almacen.js', 'js/nucleo/rutas.js', 'js/nucleo/ui.js', 'js/nucleo/inicio.js',
+  'js/nucleo/app.js', 'js/nucleo/almacen.js', 'js/nucleo/rutas.js', 'js/nucleo/ui.js', 'js/nucleo/inicio.js', 'js/nucleo/instalacion.js',
   'js/modulos/preguntas/modulo.js', 'js/modulos/preguntas/datos.js', 'js/modulos/preguntas/progreso.js',
   'js/modulos/preguntas/propio.js', 'js/modulos/preguntas/pantallas.js', 'js/modulos/preguntas/editor.js',
   'data/preguntas/categorias.json', 'data/preguntas/fuentes.json', 'data/preguntas/preguntas.json', 'data/preguntas/sesiones.json',
