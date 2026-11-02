@@ -84,6 +84,7 @@ export default {
     'carta/:id': p('carta'),
     mis: e('mis'),
     'mis/pregunta/nueva': e('preguntaNueva'),
+    'mis/pregunta/nueva/:categoria': e('preguntaNueva'),
     'mis/pregunta/:id': e('preguntaEditar'),
     'mis/categoria/nueva': e('categoriaNueva'),
     'mis/sesion/nueva': e('sesionNueva'),

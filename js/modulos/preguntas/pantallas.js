@@ -145,8 +145,12 @@ export function crearPantallas(estado, { alOcultar } = {}) {
     contenedor.append(volverA('preguntas/categorias', 'Categorías'), el('h1', { clase: 'titulo-pantalla' }, c.nombre));
     if (c.descripcion) contenedor.append(el('p', { clase: 'subtitulo' }, c.descripcion));
     if (!todas.length) {
-      pantallaVacia(contenedor, 'No quedan preguntas aquí.',
-        el('a', { clase: 'boton', href: '#/preguntas/mis/ocultas' }, 'Ver ocultas'),
+      // Una categoría propia recién creada está vacía porque aún no tiene preguntas, no porque las ocultaron.
+      const propia = id.startsWith('n-');
+      pantallaVacia(contenedor, propia ? 'Todavía no hay preguntas en esta categoría.' : 'No quedan preguntas aquí.',
+        propia
+          ? el('a', { clase: 'boton boton-principal', href: `#/preguntas/mis/pregunta/nueva/${encodeURIComponent(id)}` }, 'Crear una pregunta')
+          : el('a', { clase: 'boton', href: '#/preguntas/mis/ocultas' }, 'Ver ocultas'),
         el('a', { clase: 'boton', href: '#/preguntas/categorias' }, 'Otra categoría'));
       return;
     }

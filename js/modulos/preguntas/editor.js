@@ -99,8 +99,9 @@ export function crearEditor(estado, { alCambiar = () => {}, alImportar = () => {
       filas.length ? el('ul', { clase: 'lista' }, filas) : el('p', { clase: 'campo-ayuda' }, textoVacio));
   }
 
-  function formularioPregunta(contenedor, ctx, existente) {
-    const datos = existente || { categoria: estado.contenido.categorias[0]?.id, formato: 'abierta', subtipo: 'si_no', opciones: ['Sí', 'No'], profundidad: 2, texto: '' };
+  function formularioPregunta(contenedor, ctx, existente, categoriaInicial) {
+    const categoriaValida = estado.contenido.categorias.some((c) => c.id === categoriaInicial);
+    const datos = existente || { categoria: categoriaValida ? categoriaInicial : estado.contenido.categorias[0]?.id, formato: 'abierta', subtipo: 'si_no', opciones: ['Sí', 'No'], profundidad: 2, texto: '' };
     let profundidad = datos.profundidad;
     const categoria = selector(estado.contenido.categorias.map((c) => [c.id, c.nombre]), datos.categoria);
     const formato = selector(FORMATOS, datos.formato);
@@ -168,8 +169,8 @@ export function crearEditor(estado, { alCambiar = () => {}, alImportar = () => {
     );
   }
 
-  function preguntaNueva(contenedor, _params, ctx) {
-    formularioPregunta(contenedor, ctx, null);
+  function preguntaNueva(contenedor, { categoria } = {}, ctx) {
+    formularioPregunta(contenedor, ctx, null, categoria);
   }
 
   function preguntaEditar(contenedor, { id }, ctx) {

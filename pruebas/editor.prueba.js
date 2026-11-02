@@ -78,6 +78,15 @@ prueba('editor: los puntos de color no pierden su color al escoger uno y tienen 
   igual(puntos().map((b) => b.getAttribute('aria-pressed')), ['false', 'false', 'true', 'false', 'false', 'false']);
 });
 
+prueba('editor: nueva pregunta desde una categoría la deja escogida', () => {
+  const { estado, ctx, editor } = montar();
+  const c = estado.propio.guardarCategoria({ nombre: 'Viajes' }).categoria;
+  estado.contenido = unir(estado.incluido, estado.propio.obtener());
+  const div = document.createElement('div');
+  editor.preguntaNueva(div, { categoria: c.id }, ctx);
+  igual(div.querySelectorAll('select')[0].value, c.id);
+});
+
 prueba('editor: sesión muestra el orden de las escogidas y deja subir y bajar', () => {
   const { estado, ctx, editor } = montar();
   const propia = estado.propio.guardarPregunta({ categoria: 'celos', formato: 'abierta', profundidad: 1, texto: 'Propia dos' }).pregunta;

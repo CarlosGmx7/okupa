@@ -65,6 +65,16 @@ prueba('pantallas: el reloj del cierre se detiene al salir de la sesión', () =>
   }
 });
 
+prueba('pantallas: categoría propia vacía ofrece crear una pregunta', () => {
+  const { estado, ctx } = estadoDePrueba([]);
+  estado.categoriaPorId.set('n-viajes', { id: 'n-viajes', nombre: 'Viajes' });
+  const div = document.createElement('div');
+  crearPantallas(estado).categoria(div, { id: 'n-viajes' }, ctx);
+  const enlaces = [...div.querySelectorAll('a')].map((a) => [a.textContent, a.getAttribute('href')]);
+  verdadero(enlaces.some(([t, h]) => t === 'Crear una pregunta' && h === '#/preguntas/mis/pregunta/nueva/n-viajes'), JSON.stringify(enlaces));
+  verdadero(!div.textContent.includes('Ver ocultas'), div.textContent);
+});
+
 prueba('pantallas: la intensidad de Al azar se recuerda aunque no se pueda guardar', () => {
   const lista = [preguntaX('x-001'), { ...preguntaX('x-002'), profundidad: 3 }];
   const { estado } = estadoDePrueba(lista);
