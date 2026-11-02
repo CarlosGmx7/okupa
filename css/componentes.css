@@ -395,3 +395,8 @@
 .fila-texto { font-family: var(--serif); font-size: 17px; overflow-wrap: anywhere; }
 .seleccionable { cursor: pointer; }
 .seleccionable input { width: 20px; height: 20px; accent-color: var(--dorado); }
+.orden { margin-bottom: 16px; }
+.orden .fila { gap: 8px; padding: 10px 10px 10px 16px; }
+.orden-numero { font-family: var(--serif); color: var(--dorado); min-width: 1.4em; }
+.orden .boton-texto { font-size: 18px; min-width: 40px; min-height: 40px; }
+.orden .boton-texto:disabled { opacity: .3; cursor: default; }

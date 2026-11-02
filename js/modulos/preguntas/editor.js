@@ -211,11 +211,26 @@ export function crearEditor(estado, { alCambiar = () => {}, alImportar = () => {
     const nombre = el('input', { type: 'text', maxlength: '60', value: existente?.nombre || '', placeholder: 'Ej: Domingo de café' });
     const filtro = selector([['', 'Todas las categorías'], ...estado.contenido.categorias.map((c) => [c.id, c.nombre])], '');
     const contador = el('p', { clase: 'campo-ayuda' });
+    const orden = el('ol', { clase: 'lista orden' });
     const lista = el('ul', { clase: 'lista' });
     const error = el('p', { clase: 'error-formulario', role: 'alert' });
+    const textos = new Map([...estado.incluido.preguntas, ...propio().obtener().preguntas].map((q) => [q.id, q.texto]));
 
+    const mover = (i, paso) => {
+      [escogidas[i], escogidas[i + paso]] = [escogidas[i + paso], escogidas[i]];
+      pintarOrden();
+    };
+    const pintarOrden = () => {
+      contador.textContent = escogidas.length
+        ? `${escogidas.length} escogidas. Se recorren en este orden:`
+        : 'Marquen abajo las preguntas que quieran.';
+      orden.replaceChildren(...escogidas.map((id, i) => el('li', {}, el('div', { clase: 'fila' },
+        el('span', { clase: 'orden-numero', 'aria-hidden': 'true' }, String(i + 1)),
+        el('div', { clase: 'fila-cuerpo' }, el('div', { clase: 'fila-texto' }, textos.get(id) || 'Pregunta que ya no está en la app')),
+        el('button', { clase: 'boton-texto', type: 'button', 'aria-label': `Subir la pregunta ${i + 1}`, disabled: i === 0, onclick: () => mover(i, -1) }, '↑'),
+        el('button', { clase: 'boton-texto', type: 'button', 'aria-label': `Bajar la pregunta ${i + 1}`, disabled: i === escogidas.length - 1, onclick: () => mover(i, 1) }, '↓')))));
+    };
     const pintarLista = () => {
-      contador.textContent = `${escogidas.length} escogidas (se recorren en el orden en que las marquen)`;
       const visibles = estado.contenido.preguntas.filter((q) => !filtro.value || q.categoria === filtro.value);
       lista.replaceChildren(...visibles.map((q) => {
         const caja = el('input', { type: 'checkbox', checked: escogidas.includes(q.id) });
@@ -223,20 +238,21 @@ export function crearEditor(estado, { alCambiar = () => {}, alImportar = () => {
           const i = escogidas.indexOf(q.id);
           if (caja.checked && i < 0) escogidas.push(q.id);
           if (!caja.checked && i >= 0) escogidas.splice(i, 1);
-          contador.textContent = `${escogidas.length} escogidas (se recorren en el orden en que las marquen)`;
+          pintarOrden();
         });
         return el('li', {}, el('label', { clase: 'fila seleccionable' }, caja, el('span', { clase: 'fila-texto' }, q.texto)));
       }));
     };
     filtro.addEventListener('change', pintarLista);
+    pintarOrden();
     pintarLista();
 
     contenedor.append(
       volver('preguntas/mis', 'Mis preguntas'),
       el('h1', { clase: 'titulo-pantalla' }, existente ? 'Editar sesión' : 'Nueva sesión'),
       campo('Nombre de la sesión', nombre),
-      campo('Mostrar', filtro),
       contador,
+      orden,
       error,
       el('div', { style: 'display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px' },
         el('button', {
@@ -259,6 +275,7 @@ export function crearEditor(estado, { alCambiar = () => {}, alImportar = () => {
           },
         }, 'Borrar') : null,
         el('a', { clase: 'boton', href: '#/preguntas/mis' }, 'Cancelar')),
+      campo('Mostrar', filtro),
       lista,
     );
   }

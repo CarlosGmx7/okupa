@@ -78,6 +78,27 @@ prueba('editor: los puntos de color no pierden su color al escoger uno y tienen 
   igual(puntos().map((b) => b.getAttribute('aria-pressed')), ['false', 'false', 'true', 'false', 'false', 'false']);
 });
 
+prueba('editor: sesión muestra el orden de las escogidas y deja subir y bajar', () => {
+  const { estado, ctx, editor } = montar();
+  const propia = estado.propio.guardarPregunta({ categoria: 'celos', formato: 'abierta', profundidad: 1, texto: 'Propia dos' }).pregunta;
+  estado.contenido = unir(estado.incluido, estado.propio.obtener());
+  const s = estado.propio.guardarSesion({ nombre: 'Domingo', preguntas: ['cel-001', propia.id] }).sesion;
+  const div = document.createElement('div');
+  editor.sesionEditar(div, { id: s.id }, ctx);
+  const orden = () => [...div.querySelectorAll('.orden .fila-texto')].map((x) => x.textContent);
+  igual(orden(), ['Incluida uno', 'Propia dos']);
+  div.querySelector('.orden button[aria-label^="Bajar"]').click();
+  igual(orden(), ['Propia dos', 'Incluida uno']);
+  [...div.querySelectorAll('.orden button[aria-label^="Subir"]')].at(-1).click();
+  igual(orden(), ['Incluida uno', 'Propia dos']);
+  const caja = [...div.querySelectorAll('label.seleccionable')].find((l) => l.textContent.includes('Incluida uno')).querySelector('input');
+  caja.checked = false;
+  caja.dispatchEvent(new Event('change'));
+  igual(orden(), ['Propia dos']);
+  boton(div, 'Guardar').click();
+  igual(estado.propio.obtener().sesiones[0].bloques[0].preguntas, [propia.id]);
+});
+
 prueba('editor: ocultas no muestra ids de preguntas que ya no existen', () => {
   const { estado, ctx, editor } = montar();
   estado.propio.ocultar('cel-001');
