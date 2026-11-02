@@ -232,6 +232,7 @@
   border: 1px solid var(--dorado-suave);
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.04);
   touch-action: pan-y;
+  -webkit-user-select: none;
   user-select: none;
   transition: transform .3s var(--suave), opacity .3s;
   will-change: transform;
@@ -372,6 +373,22 @@
 .burbuja-avance { font-size: 12px; color: var(--tenue); }
 .barra { height: 3px; border-radius: 3px; background: rgba(255, 255, 255, .08); overflow: hidden; }
 .barra span { display: block; height: 100%; background: var(--acento); }
+
+/* Sin color-mix() (iOS < 16.2) esas reglas quedarían sin fondo: se usa el dorado translúcido. */
+@supports not (color: color-mix(in srgb, red 50%, transparent)) {
+  .carta {
+    background:
+      radial-gradient(130% 70% at 0% 0%, rgba(201, 164, 92, 0.16), transparent 60%),
+      linear-gradient(170deg, var(--superficie-alta), var(--superficie));
+  }
+  .carta-categoria { background: rgba(201, 164, 92, 0.16); }
+  .burbuja {
+    background:
+      radial-gradient(120% 100% at 0% 0%, rgba(201, 164, 92, 0.2), transparent 70%),
+      var(--superficie);
+    border-color: rgba(201, 164, 92, 0.35);
+  }
+}
 
 /* ---------- Listas (sesiones, editor) ---------- */
 .lista { display: flex; flex-direction: column; gap: 12px; padding: 0; margin: 0; list-style: none; }
