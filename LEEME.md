@@ -53,7 +53,7 @@ y abre `http://127.0.0.1:8080`. Las pruebas están en `http://127.0.0.1:8080/pru
 ## Actualizarla
 
 Cada vez que cambies cualquier archivo, sube la versión en `sw.js`
-(`okupa-v1` → `okupa-v2`) y vuelve a publicar. Los celulares toman la versión nueva la
+(por ejemplo `okupa-v2` → `okupa-v3`) y vuelve a publicar con `git push`. Los celulares toman la versión nueva la
 próxima vez que abran la app con internet.
 
 ## Agregar o cambiar preguntas
