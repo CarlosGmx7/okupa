@@ -10,7 +10,36 @@ function almacenFalso() {
   });
 }
 
+// Almacenamiento que funciona pero se llena justo al guardar el contenido propio.
+function almacenLleno() {
+  const m = new Map();
+  return crearAlmacen({
+    getItem: (k) => (m.has(k) ? m.get(k) : null),
+    setItem: (k, v) => { if (k === 'okupa:preguntas:propio') throw new Error('QuotaExceededError'); m.set(k, String(v)); },
+    removeItem: (k) => m.delete(k), key: (i) => [...m.keys()][i] ?? null, get length() { return m.size; },
+  });
+}
+
 const CATS = new Set(['celos', 'fidelidad']);
+
+prueba('propio: si el celular no deja guardar, avisa y no se queda con el cambio a medias', () => {
+  const propio = crearPropio(almacenLleno(), () => CATS);
+  const r = propio.guardarPregunta(base);
+  igual(r.ok, false);
+  verdadero(typeof r.error === 'string' && r.error.length > 0, 'trae mensaje');
+  igual(propio.obtener().preguntas, []);
+  igual(propio.guardarCategoria({ nombre: 'Viajes' }).ok, false);
+  igual(propio.guardarSesion({ nombre: 'S', preguntas: ['a'] }).ok, false);
+  igual(propio.ocultar('fid-001').ok, false);
+  igual(propio.obtener(), { preguntas: [], categorias: [], sesiones: [], ocultas: [] });
+});
+
+prueba('propio: sin almacenamiento del todo sigue funcionando en memoria', () => {
+  const falla = () => { throw new Error('x'); };
+  const propio = crearPropio(crearAlmacen({ getItem: falla, setItem: falla, removeItem: falla, key: falla, get length() { return falla(); } }), () => CATS);
+  verdadero(propio.guardarPregunta(base).ok);
+  igual(propio.obtener().preguntas.length, 1);
+});
 const base = { categoria: 'celos', formato: 'abierta', profundidad: 2, texto: '¿Qué te molesta?' };
 
 prueba('propio: guardar pregunta válida le asigna id n- y persiste', () => {

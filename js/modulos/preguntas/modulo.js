@@ -24,7 +24,11 @@ function armar(ctx) {
   estado.contenido = { categorias: estado.incluido.categorias };
   actualizarContenido();
   pantallas = crearPantallas(estado, {
-    alOcultar: (p) => { estado.propio.ocultar(p.id); actualizarContenido(); },
+    alOcultar: (p) => {
+      const r = estado.propio.ocultar(p.id);
+      if (!r.ok) alert(r.error);
+      actualizarContenido();
+    },
   });
   editor = crearEditor(estado, {
     alCambiar: actualizarContenido,

@@ -58,9 +58,20 @@ export function validarPreguntaPropia(p, categoriasValidas) {
   return null;
 }
 
+const ERROR_AL_GUARDAR = 'No se pudo guardar (¿el celular no tiene espacio?). Intenten de nuevo o liberen espacio.';
+
 export function crearPropio(alm, categoriasValidas = () => new Set()) {
   let datos = leerDatos(alm);
-  const guardar = () => alm.escribir(CLAVE, datos);
+  // Aplica `cambio` y lo guarda. Si el celular no deja escribir, deshace el cambio y devuelve el error.
+  // Si el navegador no guarda nada (modo privado), se trabaja en memoria: la pantalla ya lo advierte.
+  const guardar = (cambio, resultado = {}) => {
+    const anterior = datos;
+    datos = { ...datos };
+    cambio(datos);
+    if (alm.escribir(CLAVE, datos) || !alm.disponible()) return { ok: true, ...resultado };
+    datos = anterior;
+    return { ok: false, error: ERROR_AL_GUARDAR };
+  };
   const reemplazar = (lista, item) => {
     const i = lista.findIndex((x) => x.id === item.id);
     return i < 0 ? [...lista, item] : lista.map((x, j) => (j === i ? item : x));
@@ -81,16 +92,15 @@ export function crearPropio(alm, categoriasValidas = () => new Set()) {
         profundidad: p.profundidad,
         texto: limpiar(p.texto),
       };
-      datos.preguntas = reemplazar(datos.preguntas, pregunta);
-      guardar();
-      return { ok: true, pregunta };
+      return guardar((d) => { d.preguntas = reemplazar(d.preguntas, pregunta); }, { pregunta });
     },
     borrarPregunta(id) {
-      datos.preguntas = datos.preguntas.filter((p) => p.id !== id);
-      datos.sesiones = datos.sesiones.map((s) => ({
-        ...s, bloques: s.bloques.map((b) => ({ ...b, preguntas: b.preguntas.filter((x) => x !== id) })),
-      }));
-      guardar();
+      return guardar((d) => {
+        d.preguntas = d.preguntas.filter((p) => p.id !== id);
+        d.sesiones = d.sesiones.map((s) => ({
+          ...s, bloques: s.bloques.map((b) => ({ ...b, preguntas: b.preguntas.filter((x) => x !== id) })),
+        }));
+      });
     },
     guardarCategoria(c) {
       const nombre = limpiar(c.nombre);
@@ -103,25 +113,19 @@ export function crearPropio(alm, categoriasValidas = () => new Set()) {
         icono: limpiar(c.icono) || '♡',
         color: c.color || '#c9a45c',
       };
-      datos.categorias = reemplazar(datos.categorias, categoria);
-      guardar();
-      return { ok: true, categoria };
+      return guardar((d) => { d.categorias = reemplazar(d.categorias, categoria); }, { categoria });
     },
     borrarCategoria(id) {
       if (datos.preguntas.some((p) => p.categoria === id)) {
         return { ok: false, error: 'Esta categoría tiene preguntas. Muévanlas o bórrenlas primero.' };
       }
-      datos.categorias = datos.categorias.filter((c) => c.id !== id);
-      guardar();
-      return { ok: true };
+      return guardar((d) => { d.categorias = d.categorias.filter((c) => c.id !== id); });
     },
     ocultar(id) {
-      if (!datos.ocultas.includes(id)) datos.ocultas = [...datos.ocultas, id];
-      guardar();
+      return guardar((d) => { if (!d.ocultas.includes(id)) d.ocultas = [...d.ocultas, id]; });
     },
     restaurar(id) {
-      datos.ocultas = datos.ocultas.filter((x) => x !== id);
-      guardar();
+      return guardar((d) => { d.ocultas = d.ocultas.filter((x) => x !== id); });
     },
     guardarSesion(s) {
       const nombre = limpiar(s.nombre);
@@ -134,13 +138,10 @@ export function crearPropio(alm, categoriasValidas = () => new Set()) {
         descripcion: 'Sesión armada por ustedes.',
         bloques: [{ nombre, preguntas: [...s.preguntas] }],
       };
-      datos.sesiones = reemplazar(datos.sesiones, sesion);
-      guardar();
-      return { ok: true, sesion };
+      return guardar((d) => { d.sesiones = reemplazar(d.sesiones, sesion); }, { sesion });
     },
     borrarSesion(id) {
-      datos.sesiones = datos.sesiones.filter((s) => s.id !== id);
-      guardar();
+      return guardar((d) => { d.sesiones = d.sesiones.filter((s) => s.id !== id); });
     },
   };
 }

@@ -4,13 +4,14 @@ import { crearPropio } from '../js/modulos/preguntas/propio.js';
 import { crearEditor } from '../js/modulos/preguntas/editor.js';
 import { unir } from '../js/modulos/preguntas/datos.js';
 
-function almacenFalso({ roto = false } = {}) {
+function almacenFalso({ roto = false, lleno = false } = {}) {
   const m = new Map();
   const falla = () => { throw new Error('x'); };
   return crearAlmacen(roto
     ? { getItem: falla, setItem: falla, removeItem: falla, key: falla, get length() { return falla(); } }
     : {
-      getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)),
+      getItem: (k) => (m.has(k) ? m.get(k) : null),
+      setItem: (k, v) => { if (lleno && k === 'okupa:preguntas:propio') falla(); m.set(k, String(v)); },
       removeItem: (k) => m.delete(k), key: (i) => [...m.keys()][i] ?? null, get length() { return m.size; },
     });
 }
@@ -53,6 +54,17 @@ prueba('editor: guardar pregunta válida la agrega y vuelve a Mis preguntas', ()
   igual(estado.propio.obtener().preguntas.map((p) => p.texto), ['¿Qué canción es nuestra?']);
   igual(estado.contenido.preguntas.length, 2, 'el contenido se actualiza');
   igual(rutas, ['preguntas/mis']);
+});
+
+prueba('editor: si no se puede guardar, lo dice y no se va del formulario', () => {
+  const { estado, ctx, editor, rutas } = montar({ lleno: true });
+  const div = document.createElement('div');
+  editor.preguntaNueva(div, {}, ctx);
+  div.querySelector('textarea').value = '¿Qué canción es nuestra?';
+  boton(div, 'Guardar').click();
+  verdadero(div.querySelector('.error-formulario').textContent.includes('No se pudo guardar'), div.querySelector('.error-formulario').textContent);
+  igual(rutas, []);
+  igual(estado.propio.obtener().preguntas, []);
 });
 
 prueba('editor: ocultas lista y restaura', () => {

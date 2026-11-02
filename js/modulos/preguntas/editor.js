@@ -153,7 +153,8 @@ export function crearEditor(estado, { alCambiar = () => {}, alImportar = () => {
           clase: 'boton boton-peligro', type: 'button',
           onclick: () => {
             if (!confirm('¿Borrar esta pregunta?')) return;
-            propio().borrarPregunta(existente.id);
+            const r = propio().borrarPregunta(existente.id);
+            if (!r.ok) { error.textContent = r.error; return; }
             alCambiar();
             ctx.ir('preguntas/mis');
           },
@@ -248,7 +249,8 @@ export function crearEditor(estado, { alCambiar = () => {}, alImportar = () => {
           clase: 'boton boton-peligro', type: 'button',
           onclick: () => {
             if (!confirm('¿Borrar esta sesión?')) return;
-            propio().borrarSesion(existente.id);
+            const r = propio().borrarSesion(existente.id);
+            if (!r.ok) { error.textContent = r.error; window.scrollTo(0, 0); return; }
             alCambiar();
             ctx.ir('preguntas/mis');
           },
@@ -278,7 +280,12 @@ export function crearEditor(estado, { alCambiar = () => {}, alImportar = () => {
           el('div', { clase: 'fila-cuerpo' }, el('div', { clase: 'fila-texto' }, textoDe(id))),
           el('button', {
             clase: 'boton', type: 'button',
-            onclick: () => { propio().restaurar(id); alCambiar(); ctx.refrescar(); },
+            onclick: () => {
+              const r = propio().restaurar(id);
+              if (!r.ok) { alert(r.error); return; }
+              alCambiar();
+              ctx.refrescar();
+            },
           }, 'Restaurar')))))
         : el('p', { clase: 'subtitulo' }, 'No han ocultado ninguna pregunta.'),
     );
