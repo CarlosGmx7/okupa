@@ -67,6 +67,17 @@ prueba('editor: si no se puede guardar, lo dice y no se va del formulario', () =
   igual(estado.propio.obtener().preguntas, []);
 });
 
+prueba('editor: los puntos de color no pierden su color al escoger uno y tienen nombre', () => {
+  const { ctx, editor } = montar();
+  const div = document.createElement('div');
+  editor.categoriaNueva(div, {}, ctx);
+  const puntos = () => [...div.querySelector('.segmentado[aria-label="Color"]').querySelectorAll('button')];
+  puntos()[2].click();
+  verdadero(puntos().every((b) => b.style.color), 'algún punto quedó sin color');
+  verdadero(puntos().every((b) => b.getAttribute('aria-label')), 'algún punto sin aria-label');
+  igual(puntos().map((b) => b.getAttribute('aria-pressed')), ['false', 'false', 'true', 'false', 'false', 'false']);
+});
+
 prueba('editor: ocultas no muestra ids de preguntas que ya no existen', () => {
   const { estado, ctx, editor } = montar();
   estado.propio.ocultar('cel-001');

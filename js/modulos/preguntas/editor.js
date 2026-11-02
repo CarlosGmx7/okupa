@@ -12,7 +12,7 @@ const ETIQUETAS_OPCIONES = {
   esto_o_aquello: ['Opción A', 'Opción B'],
 };
 const ICONOS = ['♡', '✈', '☀', '♫', '✿', '☕', '★', '⚑'];
-const COLORES = ['#c9a45c', '#d4566f', '#b07ad1', '#8f9fd6', '#7fb7a8', '#e39a6b'];
+const COLORES = [['#c9a45c', 'Dorado'], ['#d4566f', 'Rosa'], ['#b07ad1', 'Lila'], ['#8f9fd6', 'Azul'], ['#7fb7a8', 'Verde'], ['#e39a6b', 'Durazno']];
 
 const volver = (ruta, texto) => el('a', { clase: 'volver', href: `#/${ruta}` }, `← ${texto}`);
 
@@ -26,10 +26,11 @@ function selector(opciones, valor) {
   return el('select', {}, opciones.map(([v, t]) => el('option', { value: v, selected: v === valor }, t)));
 }
 
-function segmentado(opciones, valor, alCambiar) {
-  const grupo = el('div', { clase: 'segmentado', role: 'group' });
-  const pintar = (actual) => grupo.replaceChildren(...opciones.map(([v, t]) =>
-    el('button', { type: 'button', 'aria-pressed': String(v === actual), onclick: () => { alCambiar(v); pintar(v); } }, t)));
+// `opciones`: [valor, texto, atributos extra del botón (p. ej. style o aria-label)].
+function segmentado(opciones, valor, alCambiar, etiqueta) {
+  const grupo = el('div', { clase: 'segmentado', role: 'group', 'aria-label': etiqueta });
+  const pintar = (actual) => grupo.replaceChildren(...opciones.map(([v, t, extra]) =>
+    el('button', { ...extra, type: 'button', 'aria-pressed': String(v === actual), onclick: () => { alCambiar(v); pintar(v); } }, t)));
   pintar(valor);
   return grupo;
 }
@@ -149,7 +150,7 @@ export function crearEditor(estado, { alCambiar = () => {}, alImportar = () => {
       campo('Formato', formato),
       zonaCorta,
       el('div', { clase: 'campo' }, el('span', { clase: 'etiqueta' }, 'Intensidad'),
-        segmentado([[1, 'Suave'], [2, 'Profunda'], [3, 'Intensa']], profundidad, (v) => { profundidad = v; })),
+        segmentado([[1, 'Suave'], [2, 'Profunda'], [3, 'Intensa']], profundidad, (v) => { profundidad = v; }, 'Intensidad')),
       error,
       el('div', { style: 'display:flex;gap:10px;flex-wrap:wrap' },
         el('button', { clase: 'boton boton-principal', type: 'button', onclick: guardar }, 'Guardar'),
@@ -179,7 +180,7 @@ export function crearEditor(estado, { alCambiar = () => {}, alImportar = () => {
 
   function categoriaNueva(contenedor, _params, ctx) {
     let icono = ICONOS[0];
-    let color = COLORES[0];
+    let color = COLORES[0][0];
     const nombre = el('input', { type: 'text', maxlength: '60', placeholder: 'Ej: Viajes, Nuestra música…' });
     const error = el('p', { clase: 'error-formulario', role: 'alert' });
     contenedor.append(
@@ -187,9 +188,9 @@ export function crearEditor(estado, { alCambiar = () => {}, alImportar = () => {
       el('h1', { clase: 'titulo-pantalla' }, 'Nueva categoría'),
       campo('Nombre', nombre),
       el('div', { clase: 'campo' }, el('span', { clase: 'etiqueta' }, 'Ícono'),
-        segmentado(ICONOS.map((i) => [i, i]), icono, (v) => { icono = v; })),
+        segmentado(ICONOS.map((i) => [i, i]), icono, (v) => { icono = v; }, 'Ícono')),
       el('div', { clase: 'campo' }, el('span', { clase: 'etiqueta' }, 'Color'),
-        segmentado(COLORES.map((c) => [c, '●']), color, (v) => { color = v; })),
+        segmentado(COLORES.map(([c, nombre]) => [c, '●', { style: `color:${c}`, 'aria-label': nombre }]), color, (v) => { color = v; }, 'Color')),
       error,
       el('div', { style: 'display:flex;gap:10px' },
         el('button', {
@@ -203,8 +204,6 @@ export function crearEditor(estado, { alCambiar = () => {}, alImportar = () => {
         }, 'Guardar'),
         el('a', { clase: 'boton', href: '#/preguntas/mis' }, 'Cancelar')),
     );
-    // Colorea los puntos del selector de color.
-    contenedor.querySelectorAll('.segmentado')[1]?.querySelectorAll('button').forEach((b, i) => { b.style.color = COLORES[i]; });
   }
 
   function formularioSesion(contenedor, ctx, existente) {
