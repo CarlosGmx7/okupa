@@ -67,6 +67,15 @@ prueba('pwa: al activar solo borra cachés viejas de Okupa, no las de otras apps
   igual(registro.borradas, ['okupa-v0']);
 });
 
+prueba('pwa: las fuentes tipográficas traen su licencia OFL', async () => {
+  const r = await fetch('fuentes-tipograficas/OFL.txt', { cache: 'no-store' });
+  verdadero(r.ok, `OFL.txt (${r.status})`);
+  const texto = await r.text();
+  for (const pista of ['SIL OPEN FONT LICENSE Version 1.1', 'Fraunces Project Authors', 'Inter Project Authors']) {
+    verdadero(texto.includes(pista), `falta "${pista}"`);
+  }
+});
+
 prueba('pwa: al instalar pide los archivos saltándose la caché HTTP', async () => {
   const { disparar, registro } = await cargarSW();
   await disparar('install');
