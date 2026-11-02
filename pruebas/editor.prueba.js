@@ -67,6 +67,19 @@ prueba('editor: si no se puede guardar, lo dice y no se va del formulario', () =
   igual(estado.propio.obtener().preguntas, []);
 });
 
+prueba('editor: ocultas no muestra ids de preguntas que ya no existen', () => {
+  const { estado, ctx, editor } = montar();
+  estado.propio.ocultar('cel-001');
+  estado.propio.ocultar('n-borrada123');
+  const div = document.createElement('div');
+  editor.ocultas(div, {}, ctx);
+  verdadero(!div.textContent.includes('n-borrada123'), div.textContent);
+  igual(div.querySelectorAll('.lista li').length, 1);
+  const mis = document.createElement('div');
+  editor.mis(mis, {}, ctx);
+  verdadero(mis.textContent.includes('1 oculta'), mis.textContent);
+});
+
 prueba('editor: ocultas lista y restaura', () => {
   const { estado, ctx, editor } = montar();
   estado.propio.ocultar('cel-001');

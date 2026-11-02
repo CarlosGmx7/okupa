@@ -40,6 +40,15 @@ prueba('propio: sin almacenamiento del todo sigue funcionando en memoria', () =>
   verdadero(propio.guardarPregunta(base).ok);
   igual(propio.obtener().preguntas.length, 1);
 });
+
+prueba('propio: borrar una pregunta oculta la quita también de ocultas', () => {
+  const propio = crearPropio(almacenFalso(), () => CATS);
+  const a = propio.guardarPregunta(base).pregunta;
+  propio.ocultar(a.id);
+  propio.ocultar('fid-001');
+  propio.borrarPregunta(a.id);
+  igual(propio.obtener().ocultas, ['fid-001']);
+});
 const base = { categoria: 'celos', formato: 'abierta', profundidad: 2, texto: '¿Qué te molesta?' };
 
 prueba('propio: guardar pregunta válida le asigna id n- y persiste', () => {

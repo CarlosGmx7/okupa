@@ -97,6 +97,7 @@ export function crearPropio(alm, categoriasValidas = () => new Set()) {
     borrarPregunta(id) {
       return guardar((d) => {
         d.preguntas = d.preguntas.filter((p) => p.id !== id);
+        d.ocultas = d.ocultas.filter((x) => x !== id);
         d.sesiones = d.sesiones.map((s) => ({
           ...s, bloques: s.bloques.map((b) => ({ ...b, preguntas: b.preguntas.filter((x) => x !== id) })),
         }));

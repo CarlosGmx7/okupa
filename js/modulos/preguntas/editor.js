@@ -36,13 +36,17 @@ function segmentado(opciones, valor, alCambiar) {
 
 export function crearEditor(estado, { alCambiar = () => {}, alImportar = () => {} } = {}) {
   const propio = () => estado.propio;
-  const textoDe = (id) => {
-    const q = [...estado.incluido.preguntas, ...propio().obtener().preguntas].find((x) => x.id === id);
-    return q ? q.texto : id;
+  // Ocultas que todavía existen (una pregunta borrada o retirada de la app no se muestra).
+  const ocultasConTexto = () => {
+    const todas = [...estado.incluido.preguntas, ...propio().obtener().preguntas];
+    return propio().obtener().ocultas
+      .map((id) => ({ id, texto: todas.find((x) => x.id === id)?.texto }))
+      .filter((o) => o.texto);
   };
 
   function mis(contenedor, _params, ctx) {
     const datos = propio().obtener();
+    const nOcultas = ocultasConTexto().length;
     const nombreCategoria = (id) => estado.contenido.categorias.find((c) => c.id === id)?.nombre || '';
     contenedor.append(
       volver('', 'Inicio'),
@@ -79,7 +83,7 @@ export function crearEditor(estado, { alCambiar = () => {}, alImportar = () => {
       el('ul', { clase: 'lista', style: 'margin-top:28px' },
         el('li', {}, el('a', { clase: 'fila', href: '#/preguntas/mis/ocultas' },
           el('div', { clase: 'fila-cuerpo' }, el('div', { clase: 'fila-titulo' }, 'Preguntas ocultas'),
-            el('div', { clase: 'fila-detalle' }, `${datos.ocultas.length} ocultas`)), el('span', { clase: 'fila-marca' }, '→'))),
+            el('div', { clase: 'fila-detalle' }, `${nOcultas} ${nOcultas === 1 ? 'oculta' : 'ocultas'}`)), el('span', { clase: 'fila-marca' }, '→'))),
         el('li', {}, el('a', { clase: 'fila', href: '#/preguntas/mis/respaldo' },
           el('div', { clase: 'fila-cuerpo' }, el('div', { clase: 'fila-titulo' }, 'Copia de seguridad'),
             el('div', { clase: 'fila-detalle' }, 'Descargar o cargar todo lo suyo')), el('span', { clase: 'fila-marca' }, '→')))),
@@ -271,13 +275,13 @@ export function crearEditor(estado, { alCambiar = () => {}, alImportar = () => {
   }
 
   function ocultas(contenedor, _params, ctx) {
-    const ids = propio().obtener().ocultas;
+    const lista = ocultasConTexto();
     contenedor.append(
       volver('preguntas/mis', 'Mis preguntas'),
       el('h1', { clase: 'titulo-pantalla' }, 'Preguntas ocultas'),
-      ids.length
-        ? el('ul', { clase: 'lista' }, ids.map((id) => el('li', {}, el('div', { clase: 'fila' },
-          el('div', { clase: 'fila-cuerpo' }, el('div', { clase: 'fila-texto' }, textoDe(id))),
+      lista.length
+        ? el('ul', { clase: 'lista' }, lista.map(({ id, texto }) => el('li', {}, el('div', { clase: 'fila' },
+          el('div', { clase: 'fila-cuerpo' }, el('div', { clase: 'fila-texto' }, texto)),
           el('button', {
             clase: 'boton', type: 'button',
             onclick: () => {
