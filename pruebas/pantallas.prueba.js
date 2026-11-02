@@ -23,6 +23,36 @@ function estadoDePrueba(lista) {
 }
 
 const preguntaX = (id) => ({ id, categoria: 'x', formato: 'abierta', profundidad: 1, texto: `Pregunta ${id}`, fuente: 'f' });
+const boton = (div, texto) => [...div.querySelectorAll('button')].find((b) => b.textContent === texto);
+
+prueba('pantallas: al retomar una sesión hay un solo contador, con la posición real', () => {
+  const lista = ['x-001', 'x-002', 'x-003', 'x-004', 'x-005'].map(preguntaX);
+  const { estado, ctx } = estadoDePrueba(lista);
+  estado.contenido.sesiones = [{ id: 's1', nombre: 'S', bloques: [
+    { nombre: 'Uno', preguntas: ['x-001', 'x-002'] }, { nombre: 'Dos', preguntas: ['x-003', 'x-004', 'x-005'] }] }];
+  estado.progreso.guardarAvance('s1', { bloque: 1, indice: 1 });
+  const div = document.createElement('div');
+  crearPantallas(estado).sesion(div, { id: 's1' }, ctx);
+  boton(div, 'Continuar donde íbamos').click();
+  igual(div.textContent.match(/\d+ de \d+/g), ['4 de 5']);
+  verdadero(div.textContent.includes('Dos'), 'muestra el bloque');
+  boton(div, 'Siguiente →').click();
+  igual(div.textContent.match(/\d+ de \d+/g), ['5 de 5']);
+});
+
+prueba('pantallas: la intensidad de Al azar se recuerda aunque no se pueda guardar', () => {
+  const lista = [preguntaX('x-001'), { ...preguntaX('x-002'), profundidad: 3 }];
+  const { estado } = estadoDePrueba(lista);
+  const falla = () => { throw new Error('x'); };
+  const roto = crearAlmacen({ getItem: falla, setItem: falla, removeItem: falla, key: falla, get length() { return falla(); } });
+  const div = document.createElement('div');
+  const pantallas = crearPantallas(estado);
+  const ctx = { almacen: roto, ir() {}, refrescar: () => { div.replaceChildren(); pantallas.azar(div, {}, ctx); } };
+  pantallas.azar(div, {}, ctx);
+  boton(div, 'Suave').click();
+  igual(boton(div, 'Suave').getAttribute('aria-pressed'), 'true');
+  igual(boton(div, 'Intensa').getAttribute('aria-pressed'), 'false');
+});
 
 prueba('pantallas: la carta de una categoría no pinta "null"', () => {
   const { estado, ctx } = estadoDePrueba([preguntaX('x-001'), preguntaX('x-002')]);

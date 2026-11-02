@@ -37,8 +37,9 @@ function cartaDe(estado, pregunta) {
 /**
  * Recorre preguntas una a una. `generar()` entrega la siguiente o null cuando se acaban.
  * Deslizar a la izquierda = siguiente; a la derecha = anterior.
+ * `desde` corre el contador cuando se retoma a mitad de camino (p. ej. "14 de 36").
  */
-function recorrido(contenedor, estado, { generar, total, encabezado, alMostrar, alTerminar, alOcultar }) {
+function recorrido(contenedor, estado, { generar, total, desde = 0, encabezado, alMostrar, alTerminar, alOcultar }) {
   const historial = [];
   let pos = -1;
   let generadas = 0; // no baja al ocultar, así `generar` nunca repite una posición
@@ -69,7 +70,7 @@ function recorrido(contenedor, estado, { generar, total, encabezado, alMostrar, 
       mazo(carta),
       el('div', { clase: 'controles-carta' },
         el('button', { clase: 'boton', type: 'button', onclick: anterior, disabled: pos === 0 }, '← Anterior'),
-        total ? el('span', { clase: 'contador' }, `${pos + 1} de ${total - ocultadas}`) : null,
+        total ? el('span', { clase: 'contador' }, `${desde + pos + 1} de ${desde + total - ocultadas}`) : null,
         el('button', { clase: 'boton boton-principal', type: 'button', onclick: siguiente }, 'Siguiente →')),
       alOcultar ? el('div', { clase: 'acciones-secundarias' },
         el('button', {
@@ -96,6 +97,18 @@ function pantallaVacia(contenedor, mensaje, ...acciones) {
 export function crearPantallas(estado, { alOcultar } = {}) {
   const { progreso } = estado;
   const ocultar = (p) => alOcultar?.(p);
+  // Respaldo en memoria por si el navegador no deja guardar la intensidad.
+  let intensidad = null;
+  const leerIntensidad = (alm) => {
+    if (intensidad) return intensidad;
+    const guardada = alm.leer(CLAVE_INTENSIDAD, 3);
+    return [1, 2, 3].includes(guardada) ? guardada : 3;
+  };
+  const cambiarIntensidad = (n, ctx) => {
+    intensidad = n;
+    ctx.almacen.escribir(CLAVE_INTENSIDAD, n);
+    ctx.refrescar();
+  };
 
   function todasVistas(contenedor, ids, ctx, volverRuta, volverTexto) {
     pantallaVacia(contenedor, 'Ya conversaron todas estas. ¿Las repasamos otra vez?',
@@ -155,7 +168,7 @@ export function crearPantallas(estado, { alOcultar } = {}) {
   }
 
   function azar(contenedor, _params, ctx) {
-    const max = ctx.almacen.leer(CLAVE_INTENSIDAD, 3);
+    const max = leerIntensidad(ctx.almacen);
     const niveles = [[1, 'Suave'], [2, 'Profunda'], [3, 'Intensa']];
     contenedor.append(
       volverA('', 'Inicio'),
@@ -164,13 +177,13 @@ export function crearPantallas(estado, { alOcultar } = {}) {
       el('div', { clase: 'segmentado', role: 'group', 'aria-label': 'Intensidad máxima' }, niveles.map(([n, nombre]) =>
         el('button', {
           type: 'button', 'aria-pressed': String(n === max),
-          onclick: () => { ctx.almacen.escribir(CLAVE_INTENSIDAD, n); ctx.refrescar(); },
+          onclick: () => cambiarIntensidad(n, ctx),
         }, nombre))),
     );
     const pool = filtrar(estado.contenido.preguntas, { profundidadMax: max });
     if (!pool.length) {
       pantallaVacia(contenedor, 'No quedan preguntas aquí.',
-        max < 3 ? el('button', { clase: 'boton boton-principal', type: 'button', onclick: () => { ctx.almacen.escribir(CLAVE_INTENSIDAD, 3); ctx.refrescar(); } }, 'Subir la intensidad') : null,
+        max < 3 ? el('button', { clase: 'boton boton-principal', type: 'button', onclick: () => cambiarIntensidad(3, ctx) }, 'Subir la intensidad') : null,
         el('a', { clase: 'boton', href: '#/' }, 'Volver'));
       return;
     }
@@ -242,10 +255,8 @@ export function crearPantallas(estado, { alOcultar } = {}) {
       recorrido(cuerpo, estado, {
         generar: (n) => (posiciones[i0 + n] ? estado.porId.get(posiciones[i0 + n].id) : null),
         total: posiciones.length - i0,
-        encabezado: (_p, k) => {
-          const pos = posiciones[i0 + k];
-          return el('p', { clase: 'subtitulo' }, `${s.bloques[pos.bloque].nombre} · pregunta ${i0 + k + 1} de ${posiciones.length}`);
-        },
+        desde: i0,
+        encabezado: (_p, k) => el('p', { clase: 'subtitulo' }, s.bloques[posiciones[i0 + k].bloque].nombre),
         alMostrar: (p, k) => {
           const pos = posiciones[i0 + k];
           progreso.marcarVista(p.id);
