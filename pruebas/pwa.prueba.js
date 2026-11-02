@@ -62,7 +62,9 @@ async function cargarSW({ claves = [] } = {}) {
 }
 
 prueba('pwa: al activar solo borra cachés viejas de Okupa, no las de otras apps', async () => {
-  const { disparar, registro } = await cargarSW({ claves: ['okupa-v0', 'reverso-v1', 'okupa-v1', 'otra'] });
+  const texto = await (await fetch('sw.js', { cache: 'no-store' })).text();
+  const actual = texto.match(/const CACHE = '([^']+)'/)[1];
+  const { disparar, registro } = await cargarSW({ claves: ['okupa-v0', 'reverso-v1', actual, 'otra'] });
   await disparar('activate');
   igual(registro.borradas, ['okupa-v0']);
 });
