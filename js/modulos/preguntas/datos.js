@@ -44,12 +44,18 @@ function hashTexto(texto) {
   return h;
 }
 
-export function preguntaDelDia(preguntas, fechaISO) {
-  const candidatas = preguntas
+// Se elige entre las preguntas incluidas (iguales en todos los celulares) sin restar las ocultas:
+// así ocultar una no cambia la del día en el otro celular. Si la elegida está oculta, sigue la próxima.
+export function preguntaDelDia(incluidas, fechaISO, ocultas = new Set()) {
+  const candidatas = incluidas
     .filter((q) => !q.id.startsWith('n-') && q.profundidad <= 2)
     .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
-  if (!candidatas.length) return null;
-  return candidatas[hashTexto(fechaISO) % candidatas.length];
+  const inicio = hashTexto(fechaISO) % (candidatas.length || 1);
+  for (let k = 0; k < candidatas.length; k++) {
+    const q = candidatas[(inicio + k) % candidatas.length];
+    if (!ocultas.has(q.id)) return q;
+  }
+  return null;
 }
 
 export function fechaLocalISO(d = new Date()) {

@@ -315,7 +315,9 @@ export function crearPantallas(estado, { alOcultar } = {}) {
   }
 
   function tarjetasInicio() {
-    const hoy = preguntaDelDia(estado.contenido.preguntas, fechaLocalISO());
+    const incluidas = estado.incluido?.preguntas ?? estado.contenido.preguntas;
+    const ocultas = new Set(incluidas.filter((q) => !estado.porId.has(q.id)).map((q) => q.id));
+    const hoy = preguntaDelDia(incluidas, fechaLocalISO(), ocultas);
     const cat = hoy && estado.categoriaPorId.get(hoy.categoria);
     return [
       hoy ? el('a', { clase: 'del-dia', href: `#/preguntas/carta/${encodeURIComponent(hoy.id)}` },

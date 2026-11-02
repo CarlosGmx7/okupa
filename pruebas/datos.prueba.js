@@ -50,6 +50,17 @@ prueba('datos: pregunta del día es estable y nunca intensa ni propia', () => {
   igual(preguntaDelDia([], '2026-11-01'), null);
 });
 
+prueba('datos: pregunta del día no cambia por lo que otro celular oculte, y salta la oculta', () => {
+  const lista = ['a', 'b', 'c', 'd', 'e', 'f'].map((l) => ({ id: `cel-00${l}`, categoria: 'celos', formato: 'abierta', profundidad: 1, texto: l, fuente: 'perel' }));
+  const fecha = '2026-11-01';
+  const elegida = preguntaDelDia(lista, fecha);
+  const otra = lista.find((q) => q.id !== elegida.id);
+  igual(preguntaDelDia(lista, fecha, new Set([otra.id])).id, elegida.id, 'ocultar otra no la cambia');
+  const i = lista.indexOf(elegida);
+  igual(preguntaDelDia(lista, fecha, new Set([elegida.id])).id, lista[(i + 1) % lista.length].id, 'pasa a la siguiente');
+  igual(preguntaDelDia(lista, fecha, new Set(lista.map((q) => q.id))), null, 'todas ocultas');
+});
+
 prueba('datos: fechaLocalISO formatea en hora local', () => {
   igual(fechaLocalISO(new Date(2026, 0, 5, 23, 30)), '2026-01-05');
 });
