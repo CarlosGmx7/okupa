@@ -18,6 +18,9 @@ Esther Perel, Shirley Glass y R&A Psicólogos.
 | `sw.js`, `manifest.webmanifest` | Permiten instalarla y usarla sin internet |
 | `pruebas.html`, `pruebas/` | Pruebas automáticas que corren en el navegador |
 | `herramientas/` | Servidor local de pruebas y generador de íconos |
+| `js/nucleo/nube*.js`, `js/nucleo/pareja.js` | Conexión con Firebase y enlace de la pareja (lo único que usa internet) |
+| `firebase/` | Reglas de seguridad de Firebase y sus pruebas (no forman parte de la app) |
+| `pruebas-nube.html` | Prueba de la conexión real contra los emuladores de Firebase |
 
 ## Probarla en el computador
 
@@ -42,6 +45,31 @@ y abre `http://127.0.0.1:8080`. Las pruebas están en `http://127.0.0.1:8080/pru
 > El repositorio es público: los íconos (con su foto) quedan visibles en internet.
 > La foto original **no** se sube (está en `herramientas/foto-original.jpg`, ignorada por git).
 
+## Conectar Firebase (una vez)
+
+Las secciones para jugar cada uno en su celular (pareja, y luego Trivia y Diario) usan
+Firebase, un servicio gratis de Google. Lo demás de Okupa funciona sin él y sin internet.
+
+1. Entra a https://console.firebase.google.com → **Crear un proyecto** → nombre `okupa` →
+   sin Google Analytics.
+2. **Compilación → Authentication** → Comenzar → Métodos de acceso → **Anónimo** → Habilitar.
+3. **Compilación → Firestore Database** → Crear base de datos → ubicación `us-east1` →
+   modo producción.
+4. **Configuración del proyecto** (⚙️) → Tus apps → **Web** (`</>`) → apodo `okupa` →
+   copia el objeto `firebaseConfig`.
+5. Pégalo en `js/nucleo/nube-config.js` como valor de `CONFIG_FIREBASE`
+   (en vez de `null`).
+6. Publica las reglas de seguridad. Desde la carpeta `firebase/`:
+   `npm install`, luego `npx firebase login` y
+   `npx firebase deploy --only firestore:rules --project <id-del-proyecto>`.
+7. Sube la versión de `CACHE` en `sw.js` y publica con `git push`.
+
+> La configuración de Firebase no es secreta: lo que protege sus datos son las reglas del
+> paso 6. **No compartan el código de pareja**: quien lo tenga puede entrar en su lugar.
+
+Para probar las reglas en el computador (necesita Node y Java), desde `firebase/`:
+`npm run emuladores` en una terminal y `npm run pruebas` en otra.
+
 ## Instalarla
 
 - **Android (Chrome):** abre la dirección → menú ⋮ → **Instalar app**.
@@ -53,7 +81,7 @@ y abre `http://127.0.0.1:8080`. Las pruebas están en `http://127.0.0.1:8080/pru
 ## Actualizarla
 
 Cada vez que cambies cualquier archivo, sube la versión en `sw.js`
-(por ejemplo `okupa-v2` → `okupa-v3`) y vuelve a publicar con `git push`. Los celulares toman la versión nueva la
+(por ejemplo `okupa-v4` → `okupa-v5`) y vuelve a publicar con `git push`. Los celulares toman la versión nueva la
 próxima vez que abran la app con internet.
 
 ## Agregar o cambiar preguntas
