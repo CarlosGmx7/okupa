@@ -10,10 +10,12 @@ const termino = (e) => e.ejemplo.match(/\{([^}]+)\}/)[1];
 
 prueba('inglés: vocabulario válido y suficiente', () => {
   igual(validarVocabulario(vocabulario), []);
-  verdadero(vocabulario.length >= 300, `hay ${vocabulario.length}`);
-  for (const tipo of ['palabra', 'phrasal', 'expresion', 'falso_amigo']) {
+  verdadero(vocabulario.length >= 1500, `hay ${vocabulario.length}`);
+  // Los falsos amigos son menos: solo entran los verificados (la trampa no es traducción válida).
+  const minimos = { palabra: 300, phrasal: 300, expresion: 300, falso_amigo: 180 };
+  for (const [tipo, minimo] of Object.entries(minimos)) {
     const n = vocabulario.filter((e) => e.tipo === tipo).length;
-    verdadero(n >= 50, `${tipo}: ${n}`);
+    verdadero(n >= minimo, `${tipo}: ${n}`);
   }
 });
 
