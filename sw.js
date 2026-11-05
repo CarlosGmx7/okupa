@@ -1,6 +1,6 @@
 // Guarda Okupa en el dispositivo para que funcione sin internet.
-// Al cambiar cualquier archivo, sube la versión (okupa-v8 → okupa-v9) para que los celulares la actualicen.
-const CACHE = 'okupa-v8';
+// Al cambiar cualquier archivo, sube la versión (okupa-v9 → okupa-v10) para que los celulares la actualicen.
+const CACHE = 'okupa-v9';
 
 const PRECACHE = [
   "./",
