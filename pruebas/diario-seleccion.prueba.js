@@ -78,3 +78,54 @@ prueba('agregarVistas no duplica y deja lo nuevo al final', () => {
   igual(agregarVistas(['x', 'y', 'z'], ['y', 'w']), ['x', 'z', 'y', 'w']);
   igual(agregarVistas(['x', 'y', 'z'], ['w'], 2), ['z', 'w']);
 });
+
+// ---------- Etapa 4: seguimientos, plantillas y debate ----------
+const mini = (extra) => [
+  ...['musica', 'gustos', 'dilema', 'postura', 'recuerdos'].map((tema, i) => ({ id: `dia-010${i}`, tema, intensidad: 1, tipo: 'opciones', texto: `P${i}`, adivinar: true, opciones: [{ texto: 'x' }, { texto: 'y' }] })),
+  extra,
+];
+const veces = (preguntas, perfiles, id, opciones = {}) => {
+  const rnd = semilla(8);
+  let n = 0;
+  for (let i = 0; i < 200; i++) if (elegirDia({ preguntas, perfiles, rnd, ...opciones }).gustos.includes(id)) n += 1;
+  return n;
+};
+
+prueba('selección diario: un seguimiento solo sale si se cumple su requisito', () => {
+  const seguimiento = { id: 'dia-0900', tema: 'futuro_solo', intensidad: 1, tipo: 'opciones', texto: 'S', opciones: [{ texto: 'x' }, { texto: 'y' }], requiere: { favorito: 'artistas' } };
+  const sinArtistas = { a: perfil({ intensidad: 3 }), b: perfil({ intensidad: 3 }) };
+  const conArtistas = { a: perfil({ intensidad: 3, artistas: ['Canserbero'] }), b: perfil({ intensidad: 3, artistas: ['Lana del Rey'] }) };
+  igual(veces(mini(seguimiento), sinArtistas, 'dia-0900'), 0);
+  verdadero(veces(mini(seguimiento), conArtistas, 'dia-0900') > 0, 'con el requisito sí sale');
+});
+
+prueba('selección diario: una plantilla sin datos de los dos no sale', () => {
+  const plantilla = { id: 'dia-0901', tema: 'futuro_solo', intensidad: 1, tipo: 'escala', texto: '¿Qué tanto te gusta {artista_fav_otro}?', extremos: ['Nada', 'Mucho'] };
+  const soloUno = { a: perfil({ intensidad: 3, artistas: ['Canserbero'] }), b: perfil({ intensidad: 3 }) };
+  const ambos = { a: perfil({ intensidad: 3, artistas: ['Canserbero'] }), b: perfil({ intensidad: 3, artistas: ['Lana del Rey'] }) };
+  igual(veces(mini(plantilla), soloUno, 'dia-0901'), 0);
+  verdadero(veces(mini(plantilla), ambos, 'dia-0901') > 0, 'con los datos de los dos sí sale');
+  const conNombre = { ...plantilla, id: 'dia-0902', texto: '¿Qué tanto te gusta {artista_fav_otro}, {nombre_otro}?' };
+  igual(veces(mini(conNombre), ambos, 'dia-0902'), 0, 'sin nombres no se puede');
+  verdadero(veces(mini(conNombre), ambos, 'dia-0902', { nombres: { a: 'Carlos', b: 'Sofi' } }) > 0);
+});
+
+prueba('selección diario: los rasgos opuestos dan más debate', () => {
+  const tocaAventura = (id) => {
+    const p = porId.get(id);
+    return Boolean(p.rasgo?.id === 'aventura' || p.opciones?.some((o) => o.rasgos?.aventura));
+  };
+  const cuenta = (perfiles) => {
+    const rnd = semilla(13);
+    let n = 0;
+    for (let i = 0; i < 300; i++) n += elegirDia({ preguntas, perfiles, rnd }).gustos.filter(tocaAventura).length;
+    return n;
+  };
+  const opuestos = {
+    a: { inicial: normalizarPerfil({ intensidad: 3 }), correcciones: { aventura: 'izquierda' } },
+    b: { inicial: normalizarPerfil({ intensidad: 3 }), correcciones: { aventura: 'derecha' } },
+  };
+  const base = cuenta(libres);
+  const debate = cuenta(opuestos);
+  verdadero(debate > base * 1.2, `debate ${debate} vs base ${base}`);
+});

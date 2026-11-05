@@ -19,6 +19,23 @@ export async function cargarDiario(fetchFn = (url) => fetch(url)) {
   return { temas, rasgos, preguntas, perfilInicial, vocabulario };
 }
 
+export const MARCAS_PLANTILLA = ['nombre_otro', 'artista_fav_otro', 'artista_fav_mio', 'cancion_otro', 'peli_otro'];
+const FAVORITOS = ['artistas', 'canciones', 'pelis'];
+
+const marcasDe = (p) => [p.texto, ...(p.opciones || []).map((o) => o?.texto), ...(p.extremos || [])]
+  .filter((t) => typeof t === 'string').flatMap((t) => [...t.matchAll(/\{([^}]*)\}/g)].map((m) => m[1]));
+
+function requiereValido(r, rasgos) {
+  if (!r || typeof r !== 'object') return false;
+  const claves = Object.keys(r);
+  if (!claves.length || !claves.every((k) => ['rasgo', 'favorito', 'respuesta'].includes(k))) return false;
+  if (r.rasgo && !(rasgos.has(r.rasgo.id) && ['izquierda', 'derecha'].includes(r.rasgo.lado))) return false;
+  if (r.favorito && !FAVORITOS.includes(r.favorito)) return false;
+  if (r.respuesta && !(/^dia-\d{4}$/.test(r.respuesta.pregunta) && Array.isArray(r.respuesta.opciones)
+    && r.respuesta.opciones.length > 0 && r.respuesta.opciones.every(Number.isInteger))) return false;
+  return true;
+}
+
 const rasgosValidos = (rasgos, validos) => rasgos === undefined || (
   rasgos !== null && typeof rasgos === 'object'
   && Object.entries(rasgos).every(([id, n]) => validos.has(id) && Number.isInteger(n) && n !== 0 && Math.abs(n) <= MAX_RASGO));
@@ -29,6 +46,8 @@ export function problemaDePreguntaDiario(p, { temas, rasgos }) {
   if (!textoLleno(p.texto)) return 'texto vacío';
   if (![1, 2, 3].includes(p.intensidad)) return 'la intensidad va de 1 a 3';
   if (p.adivinar !== undefined && typeof p.adivinar !== 'boolean') return 'adivinar es true o false';
+  if (p.requiere !== undefined && !requiereValido(p.requiere, rasgos)) return 'requiere inválido';
+  if (marcasDe(p).some((m) => !MARCAS_PLANTILLA.includes(m))) return 'marca de plantilla desconocida';
   if (p.tipo === 'escala') {
     if (p.opciones !== undefined) return 'una escala no lleva opciones';
     if (!Array.isArray(p.extremos) || p.extremos.length !== 2 || !p.extremos.every(textoLleno)) return 'la escala necesita sus dos extremos';
@@ -60,6 +79,10 @@ export function validarDiario({ temas, rasgos, preguntas }) {
       if (textos.has(minus(p.texto))) errores.push(`${p.id}: pregunta repetida`);
       textos.add(minus(p.texto));
     }
+  }
+  for (const p of preguntas) {
+    const ref = p.requiere?.respuesta?.pregunta;
+    if (ref && !ids.has(ref)) errores.push(`${p.id}: requiere una pregunta que no existe (${ref})`);
   }
   return errores;
 }

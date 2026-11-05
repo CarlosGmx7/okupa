@@ -26,7 +26,9 @@ export function abrirDia(nube, pareja, { fecha, datos, rnd = Math.random }) {
     const recientes = anteriores.flatMap((d) => d?.gustos || []).map((id) => temaDe.get(id)).filter(Boolean);
     const vistasDiario = uso?.vistasDiario || [];
     const vistasIngles = uso?.vistasIngles || [];
-    const { gustos, adivinar } = elegirDia({ preguntas: datos.preguntas, perfiles: { a, b }, vistas: vistasDiario, recientes, rnd });
+    const { gustos, adivinar } = elegirDia({
+      preguntas: datos.preguntas, perfiles: { a, b }, nombres: pareja.nombres || {}, vistas: vistasDiario, recientes, rnd,
+    });
     const ingles = elegirReto({ vocabulario: datos.vocabulario, vistas: vistasIngles, rnd });
     const dia = { fecha, gustos, adivinar, ingles, hechos: {} };
     tx.escribir(rutaDia(pareja, fecha), { ...dia, creado: nube.horaServidor() });

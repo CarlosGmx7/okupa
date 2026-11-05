@@ -1,5 +1,6 @@
 // Escoge las 3 preguntas del día y el reto de inglés. Lógica pura: sin nube ni pantalla.
 import { preferenciasDe } from './perfil.js';
+import { cumpleRequiere, esPlantilla, resolverPlantilla, signoRasgo } from './aprender.js';
 import { generarPreguntaIngles } from '../../compartido/ingles.js';
 
 export const POR_DIA = 3;
@@ -37,9 +38,23 @@ function sortear(lista, peso, rnd) {
 
 const alcanza = (pool) => pool.length >= POR_DIA && new Set(pool.map((p) => p.tema)).size >= POR_DIA && pool.some((p) => p.adivinar);
 
-export function elegirDia({ preguntas, perfiles = {}, vistas = [], recientes = [], rnd = Math.random }) {
+const rasgosQueToca = (p) => [...new Set([p.rasgo?.id, ...(p.opciones || []).flatMap((o) => Object.keys(o.rasgos || {}))].filter(Boolean))];
+
+// Hay debate en un rasgo si los dos ya tienen lado y es el contrario.
+function hayDebate(p, perfiles) {
+  return rasgosQueToca(p).some((id) => {
+    const a = signoRasgo(perfiles.a, id);
+    const b = signoRasgo(perfiles.b, id);
+    return a && b && a !== b;
+  });
+}
+
+export function elegirDia({ preguntas, perfiles = {}, nombres = {}, vistas = [], recientes = [], rnd = Math.random }) {
   const prefs = preferenciasDe({ a: perfiles.a, b: perfiles.b });
-  const sinRequisitos = preguntas.filter((p) => !p.requiere);
+  const ambos = { a: perfiles.a, b: perfiles.b };
+  const usable = (p) => cumpleRequiere(p, ambos)
+    && (!esPlantilla(p) || ['a', 'b'].every((yo) => resolverPlantilla(p, { yo, nombres, perfiles: ambos })));
+  const sinRequisitos = preguntas.filter(usable);
   let elegibles = sinRequisitos.filter((p) => p.intensidad <= prefs.intensidad && !prefs.evitar.has(p.tema));
   if (elegibles.length < POR_DIA) elegibles = sinRequisitos.filter((p) => !prefs.evitar.has(p.tema));
   if (elegibles.length < POR_DIA) elegibles = sinRequisitos;
@@ -53,7 +68,8 @@ export function elegirDia({ preguntas, perfiles = {}, vistas = [], recientes = [
   }
 
   const recienteSet = new Set(recientes);
-  const peso = (p) => Math.max(PESO_MINIMO, 1 + (prefs.mas.get(p.tema) || 0) - (recienteSet.has(p.tema) ? CASTIGO_RECIENTE : 0));
+  const peso = (p) => Math.max(PESO_MINIMO, 1 + (prefs.mas.get(p.tema) || 0) - (recienteSet.has(p.tema) ? CASTIGO_RECIENTE : 0)
+    + (p.requiere ? 1 : 0) + (hayDebate(p, ambos) ? 1 : 0));
   const elegidas = [];
   while (elegidas.length < Math.min(POR_DIA, pool.length)) {
     const restantes = pool.filter((p) => !elegidas.includes(p));

@@ -13,6 +13,8 @@ prueba('diario contenido: válido y suficiente', () => {
     verdadero(n >= 8, `${tema}: ${n}`);
   }
   verdadero(diario.preguntas.filter((p) => p.adivinar).length >= 30, 'al menos 30 para adivinar');
+  verdadero(diario.preguntas.filter((p) => p.requiere).length >= 8, 'al menos 8 seguimientos');
+  verdadero(diario.preguntas.filter((p) => /\{[a-z_]+\}/.test(p.texto)).length >= 8, 'al menos 8 plantillas');
   verdadero(diario.vocabulario.length >= 300, 'trae el vocabulario de inglés');
 });
 
@@ -36,10 +38,18 @@ prueba('diario: problemaDePreguntaDiario detecta formas malas', () => {
     { ...buena, texto: ' ' },
     { ...buena, tipo: 'abierta' },
     { ...buena, adivinar: 'sí' },
+    { ...buena, requiere: { magia: 1 } },
+    { ...buena, requiere: { rasgo: { id: 'aventura', lado: 'arriba' } } },
+    { ...buena, requiere: { favorito: 'comidas' } },
+    { ...buena, requiere: { respuesta: { pregunta: 'dia-0001', opciones: [] } } },
+    { ...buena, texto: 'Hola {nombre_mio}' },
   ];
   for (const m of malas) verdadero(problemaDePreguntaDiario(m, ctx), JSON.stringify(m));
   const errores = validarDiario({ temas: [{ id: 'musica' }], rasgos: [{ id: 'aventura' }], preguntas: [buena, { ...buena }, { ...escala, id: 'dia-1' }] }).join('\n');
   for (const pista of ['dia-9001', 'dia-1']) verdadero(errores.includes(pista), `falta "${pista}" en:\n${errores}`);
+  const huerfana = validarDiario({ temas: [{ id: 'musica' }], rasgos: [{ id: 'aventura' }], preguntas: [{ ...buena, requiere: { respuesta: { pregunta: 'dia-0404', opciones: [0] } } }] });
+  verdadero(huerfana.join().includes('dia-0404'), huerfana.join());
+  igual(problemaDePreguntaDiario({ ...buena, texto: '¿{artista_fav_otro} o {artista_fav_mio}?', requiere: { favorito: 'artistas', rasgo: { id: 'aventura', lado: 'derecha' } } }, ctx), null);
 });
 
 prueba('diario: fechaBogota cambia a medianoche de Colombia', () => {
