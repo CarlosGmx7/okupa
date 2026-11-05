@@ -1,7 +1,8 @@
 import { prueba, igual, verdadero } from './corredor.js';
 import { cargarTrivia, validarBancos, problemaDePreguntaTrivia, TEMAS_BANCO } from '../js/modulos/trivia/banco.js';
 
-const MINIMO_POR_TEMA = 40;
+// Canserbero tiene menos: no hay más datos verificables de su música y trayectoria.
+const MINIMO_POR_TEMA = { arte: 200, historia: 200, ciencia: 200, deportes: 200, lana: 150, canserbero: 95 };
 const trivia = await cargarTrivia();
 const TEMAS = new Set(trivia.temas.map((t) => t.id));
 
@@ -14,10 +15,10 @@ prueba('trivia contenido: bancos válidos', () => {
   igual(validarBancos(trivia.bancos, trivia.temas), []);
 });
 
-prueba(`trivia contenido: al menos ${MINIMO_POR_TEMA} preguntas por tema de banco`, () => {
+prueba('trivia contenido: cada tema de banco tiene su mínimo de preguntas', () => {
   for (const tema of TEMAS_BANCO) {
     const n = trivia.bancos[tema]?.length || 0;
-    verdadero(n >= MINIMO_POR_TEMA, `${tema} tiene ${n}`);
+    verdadero(n >= MINIMO_POR_TEMA[tema], `${tema} tiene ${n} (mínimo ${MINIMO_POR_TEMA[tema]})`);
   }
 });
 
