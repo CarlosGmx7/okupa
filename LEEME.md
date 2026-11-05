@@ -19,6 +19,8 @@ Esther Perel, Shirley Glass y R&A Psicólogos.
 | `pruebas.html`, `pruebas/` | Pruebas automáticas que corren en el navegador |
 | `herramientas/` | Servidor local de pruebas y generador de íconos |
 | `js/nucleo/nube*.js`, `js/nucleo/pareja.js` | Conexión con Firebase y enlace de la pareja (lo único que usa internet) |
+| `js/modulos/trivia/`, `data/trivia/` | Trivia en vivo y sus bancos de preguntas |
+| `js/modulos/diario/`, `data/diario/` | Diario: las 3 preguntas del día, el reto de inglés y el perfil |
 | `firebase/` | Reglas de seguridad de Firebase y sus pruebas (no forman parte de la app) |
 | `pruebas-nube.html` | Prueba de la conexión real contra los emuladores de Firebase |
 
@@ -129,6 +131,40 @@ Reglas (las revisa `pruebas.html`):
 Para el inglés, cada entrada del vocabulario lleva `es`, `en`, `tipo` (`palabra`, `phrasal`,
 `expresion` o `falso_amigo`), un `ejemplo` en inglés con el término entre llaves
 (`"I finally {gave up} smoking."`) y, en los falsos amigos, la `trampa` (lo que parece pero no es).
+
+## El Diario
+
+Cada día (cambia a medianoche, hora de Colombia) los dos reciben las mismas **3 preguntas**
+de gustos, futuro y posturas, y un **reto de inglés** de 3. Cada uno responde en su celular;
+lo del otro solo se ve cuando los dos respondieron esa parte (lo garantizan las reglas de
+Firebase, no solo la pantalla). En una de las 3, además, cada uno adivina qué respondió el otro.
+Los días que queden sin responder aparecen en **Pendientes**; en **Historial** está el
+porcentaje de adivinanzas y la racha de días con los dos al día.
+
+Cómo se escogen: el primero que abre el día lo crea para los dos. Salen preguntas que no han
+visto, con la intensidad más baja que aceptó alguno de los dos en su perfil, sin los temas que
+alguno prefiere evitar, más seguido de los temas que pidieron, menos de los que salieron los dos
+días anteriores, de temas distintos y con una para adivinar. Si se acaban, vuelven las que se
+vieron hace más tiempo.
+
+Las preguntas están en `data/diario/preguntas.json`. Una pregunta se ve así:
+
+```json
+{ "id": "dia-0097", "tema": "dilema", "intensidad": 2, "tipo": "opciones", "adivinar": true,
+  "texto": "¿…?", "opciones": [{ "texto": "A", "rasgos": { "aventura": 1 } }, { "texto": "B" }] }
+{ "id": "dia-0098", "tema": "gustos", "intensidad": 1, "tipo": "escala",
+  "texto": "¿Qué tanto…?", "extremos": ["Nada", "Muchísimo"], "rasgo": { "id": "social", "signo": 1 } }
+```
+
+Reglas (las revisa `pruebas.html`):
+
+- `id`: `dia-` + 4 cifras, sin repetir. `tema`: un id de `data/diario/temas.json`.
+- `intensidad`: 1 (suave), 2 (media) o 3 (sin filtro).
+- `opciones`: de 2 a 4, con textos distintos. `escala`: va de 1 a 10 y lleva sus dos `extremos`.
+- `adivinar: true` si tiene sentido que el otro adivine la respuesta.
+- `rasgos` (en cada opción) y `rasgo` (en la escala) dicen qué rasgo del perfil mueve la
+  respuesta (de −2 a 2; positivo = el extremo `izquierda` de `data/diario/rasgos.json`).
+- Nada genérico: cada pregunta debe obligar a escoger y dejar tema para discutir.
 
 ## Agregar una sección nueva al ecosistema
 

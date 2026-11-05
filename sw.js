@@ -1,6 +1,6 @@
 // Guarda Okupa en el dispositivo para que funcione sin internet.
-// Al cambiar cualquier archivo, sube la versión (okupa-v5 → okupa-v6) para que los celulares la actualicen.
-const CACHE = 'okupa-v5';
+// Al cambiar cualquier archivo, sube la versión (okupa-v6 → okupa-v7) para que los celulares la actualicen.
+const CACHE = 'okupa-v6';
 
 const PRECACHE = [
   "./",
@@ -34,6 +34,17 @@ const PRECACHE = [
   "data/trivia/canserbero.json",
   "data/trivia/lana.json",
   "data/ingles/vocabulario.json",
+  "js/modulos/diario/modulo.js",
+  "js/modulos/diario/pantallas.js",
+  "js/modulos/diario/contenido.js",
+  "js/modulos/diario/perfil.js",
+  "js/modulos/diario/seleccion.js",
+  "js/modulos/diario/dia.js",
+  "js/modulos/diario/revelar.js",
+  "data/diario/temas.json",
+  "data/diario/rasgos.json",
+  "data/diario/preguntas.json",
+  "data/diario/perfil-inicial.json",
   "js/modulos/preguntas/modulo.js",
   "js/modulos/preguntas/datos.js",
   "js/modulos/preguntas/progreso.js",
