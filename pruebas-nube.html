@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="es-CO">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Okupa · Prueba de la nube</title>
+  <style>
+    body { font: 14px/1.5 system-ui, sans-serif; margin: 16px; background: #fff; color: #222; }
+    #resultado { font-size: 18px; font-weight: 700; }
+    .ok { color: #1b7f3b; } .falla { color: #b3261e; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <!-- Prueba de humo del adaptador real contra los emuladores de Firebase.
+       Antes: en firebase/, `npm run emuladores`. Luego abrir http://127.0.0.1:8080/pruebas-nube.html -->
+  <p id="resultado">Corriendo…</p>
+  <ol id="pasos"></ol>
+  <script type="module">
+    import { crearNube } from './js/nucleo/nube.js';
+    import { crearAlmacen } from './js/nucleo/almacen.js';
+    import { crearPareja, unirse, vigilarLugar, reclamar, miPareja } from './js/nucleo/pareja.js';
+
+    const config = { apiKey: 'demo-clave', projectId: 'demo-okupa', authDomain: 'demo-okupa.firebaseapp.com' };
+    const emuladores = { auth: 'http://127.0.0.1:9099', firestore: { host: '127.0.0.1', puerto: 8085 } };
+    const vez = Date.now();
+    const celular = (nombre) => crearNube({ config, emuladores, nombreApp: `${nombre}-${vez}` });
+    const almacen = () => { const m = new Map(); return crearAlmacen({ getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k), key: (i) => [...m.keys()][i] ?? null, get length() { return m.size; } }); };
+    const pasos = document.getElementById('pasos');
+    const paso = (texto) => { const li = document.createElement('li'); li.textContent = texto; pasos.append(li); };
+    const esperar = (ms) => new Promise((r) => setTimeout(r, ms));
+    const afirmar = (cond, texto) => { if (!cond) throw new Error(texto); paso(`✔ ${texto}`); };
+
+    try {
+      const [a, b, c] = [celular('a'), celular('b'), celular('c')];
+      const [almA, almB, almC] = [almacen(), almacen(), almacen()];
+      const { codigo } = await crearPareja(a, almA, { nombre: 'Carlos' });
+      afirmar(/^[A-HJKMNP-Z2-9]{6}$/.test(codigo), `crea la pareja ${codigo}`);
+      await unirse(b, almB, { codigo, nombre: 'Sofi' });
+      const doc = await a.leer(`parejas/${codigo}`);
+      afirmar(doc.nombres.b === 'Sofi' && doc.lugares.b, 'el segundo celular se une');
+      await a.escribir(`parejas/${codigo}/perfiles/a`, { musica: ['rap'] });
+      afirmar((await b.leer(`parejas/${codigo}/perfiles/a`)).musica[0] === 'rap', 'los dos leen los datos de la pareja');
+      let error = null;
+      try { await c.leer(`parejas/${codigo}/perfiles/a`); } catch (e) { error = e; }
+      afirmar(error?.codigo === 'permiso', 'un extraño recibe permiso negado');
+      const motivos = [];
+      vigilarLugar(a, almA, (m) => motivos.push(m));
+      await esperar(500);
+      await reclamar(c, almC, { codigo, lugar: 'a' });
+      for (let i = 0; i < 20 && !motivos.length; i++) await esperar(150);
+      afirmar(motivos[0] === 'reclamado' && !miPareja(almA), 'el celular reclamado se entera');
+      document.getElementById('resultado').textContent = 'OK';
+      document.getElementById('resultado').className = 'ok';
+    } catch (e) {
+      document.getElementById('resultado').textContent = `FALLA: ${e.codigo || ''} ${e.message}`;
+      document.getElementById('resultado').className = 'falla';
+      console.error(e);
+    }
+  </script>
+</body>
+</html>
