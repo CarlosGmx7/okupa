@@ -200,6 +200,87 @@
   .anillo-progreso, .opcion-juego { transition: none; }
 }
 
+/* ---------- Diario ---------- */
+.juntos-acceso { flex-direction: column; gap: 2px; padding: 8px 14px; text-align: center; }
+.juntos-acceso-detalle { font-size: 12px; font-weight: 500; opacity: .8; }
+.nav-diario { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: -10px 0 18px; }
+.nav-diario .boton-texto { color: var(--dorado); text-decoration: none; padding: 10px 4px; min-height: 44px; display: inline-flex; align-items: center; }
+.parte-diario { margin-bottom: 28px; }
+.titulo-parte { font-size: 24px; font-style: italic; font-weight: 400; margin: 0 0 14px; }
+.formulario-diario { display: flex; flex-direction: column; gap: 16px; }
+.carta-diario {
+  --acento: var(--dorado);
+  padding: 18px 18px 16px;
+  border-radius: var(--radio);
+  background: var(--superficie);
+  border: 1px solid rgba(201, 164, 92, 0.18);
+  border-top: 3px solid var(--acento);
+}
+.carta-diario.revelada { animation: voltear .3s var(--suave); }
+@keyframes voltear { from { transform: perspective(800px) rotateY(-12deg); opacity: .4; } to { transform: none; opacity: 1; } }
+.carta-diario-cabecera { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px; }
+.numero-diario { font-size: 13px; color: var(--tenue); }
+.texto-diario { font-family: var(--serif); font-size: 21px; line-height: 1.3; margin: 0 0 14px; overflow-wrap: anywhere; }
+.opciones-diario { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.opcion-diario {
+  min-height: 56px; padding: 10px 12px; border-radius: 18px;
+  border: 1.5px solid var(--dorado-suave); background: rgba(0, 0, 0, .2); color: var(--crema);
+  font: inherit; font-size: 15px; cursor: pointer; transition: transform .12s, background .2s, border-color .2s;
+}
+.opcion-diario:active, .punto-escala:active, .chip:active { transform: scale(.96); }
+.opcion-diario[aria-pressed="true"], .punto-escala[aria-pressed="true"], .chip[aria-pressed="true"] { background: var(--vino); border-color: var(--dorado); }
+.escala-diario { display: flex; flex-direction: column; gap: 8px; }
+.puntos-escala { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; }
+.punto-escala {
+  min-height: 48px; padding: 0; border-radius: 12px;
+  border: 1.5px solid var(--dorado-suave); background: rgba(0, 0, 0, .2); color: var(--crema);
+  font: inherit; font-size: 15px; cursor: pointer; transition: transform .12s, background .2s;
+}
+.extremos-escala { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; color: var(--tenue); }
+.comentario-diario {
+  width: 100%; margin-top: 12px; font: inherit; font-size: 15px; color: var(--crema);
+  background: rgba(0, 0, 0, .18); border: 1px solid rgba(201, 164, 92, 0.2); border-radius: 14px; padding: 10px 12px; resize: vertical;
+}
+.adivina { margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--dorado-suave); }
+.adivina-texto { font-family: var(--serif); font-style: italic; color: var(--dorado); margin: 0 0 10px; }
+.enviar-diario { display: flex; justify-content: center; margin-top: 4px; }
+.espera-diario { padding: 18px; border-radius: var(--radio-chico); background: var(--superficie); text-align: center; color: var(--tenue); }
+.espera-titulo { font-family: var(--serif); font-size: 22px; color: var(--crema); margin: 0 0 4px; }
+.lado-a-lado { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.respuesta-diario { padding: 12px; border-radius: 16px; background: rgba(0, 0, 0, .2); min-width: 0; }
+.respuesta-diario.mia { border: 1px solid var(--dorado-suave); }
+.respuesta-diario .quien { font-size: 13px; color: var(--dorado); margin: 0 0 4px; }
+.respuesta-diario .cual { font-family: var(--serif); font-size: 18px; margin: 0; overflow-wrap: anywhere; }
+.respuesta-diario .comentario { font-size: 14px; color: var(--tenue); margin: 8px 0 0; overflow-wrap: anywhere; }
+.coincidencia { margin: 12px 0 0; font-weight: 600; }
+.coincidencia.coinciden { color: #7fb7a8; }
+.coincidencia.parecido { color: var(--dorado); }
+.coincidencia.debate { color: #f0a3b3; }
+.adivinanza { margin: 6px 0 0; font-size: 14px; color: var(--tenue); }
+.reto { display: flex; flex-direction: column; gap: 18px; }
+.reto-pregunta { padding: 16px; border-radius: var(--radio); background: var(--superficie); }
+.texto-reto { font-family: var(--serif); font-size: 19px; margin: 0 0 12px; overflow-wrap: anywhere; }
+.marcador-reto { font-family: var(--serif); font-size: 22px; margin: 0 0 6px; }
+.racha, .resumen-diario p { color: var(--tenue); margin: 0 0 6px; }
+.resumen-diario { padding: 16px 18px; border-radius: var(--radio-chico); background: var(--superficie); margin-bottom: 18px; }
+.campo-perfil { margin-bottom: 22px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  min-height: 44px; padding: 0 16px; border-radius: 999px;
+  border: 1.5px solid var(--dorado-suave); background: rgba(0, 0, 0, .2); color: var(--crema);
+  font: inherit; font-size: 15px; cursor: pointer; transition: transform .12s, background .2s;
+}
+.textos-perfil { display: flex; flex-direction: column; gap: 8px; }
+.campo-perfil input { width: 100%; }
+@media (max-width: 380px) {
+  .opciones-diario { grid-template-columns: 1fr; }
+  .puntos-escala { grid-template-columns: repeat(5, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .carta-diario.revelada { animation: none; }
+  .opcion-diario, .punto-escala, .chip { transition: none; }
+}
+
 .inicio-pie {
   text-align: center;
   margin-top: 36px;

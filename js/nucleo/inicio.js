@@ -15,8 +15,16 @@ function tarjetaJuntos(almacen, modulos = []) {
     return el('a', { clase: 'juntos', href: '#/pareja' }, cabeza('Jueguen juntos', 'Enlacen sus dos celulares'),
       el('span', { clase: 'juntos-accion' }, 'Enlazar →'));
   }
-  const accesos = modulos.filter((m) => m.accesoJuntos).map(({ accesoJuntos: a }) =>
-    el('a', { clase: 'juntos-acceso', href: `#/${a.ruta}` }, el('span', { 'aria-hidden': 'true' }, a.icono), ` ${a.nombre}`));
+  // `detalle` (opcional) da una línea de estado guardada en el celular, p. ej. el del día del diario.
+  const detalleDe = (a) => {
+    try { return a.detalle?.({ almacen }) || null; } catch { return null; }
+  };
+  const accesos = modulos.filter((m) => m.accesoJuntos).map(({ accesoJuntos: a }) => {
+    const detalle = detalleDe(a);
+    return el('a', { clase: 'juntos-acceso', href: `#/${a.ruta}` },
+      el('span', { clase: 'juntos-acceso-nombre' }, el('span', { 'aria-hidden': 'true' }, a.icono), ` ${a.nombre}`),
+      detalle ? el('span', { clase: 'juntos-acceso-detalle' }, detalle) : null);
+  });
   return el('div', { clase: 'juntos enlazados' },
     el('a', { clase: 'juntos-principal', href: '#/pareja' }, cabeza('Nuestra pareja', 'Celulares enlazados ✓'),
       el('span', { clase: 'juntos-accion' }, 'Ver')),
