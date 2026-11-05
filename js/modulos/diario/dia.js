@@ -4,6 +4,7 @@ import { elegirDia, elegirReto, agregarVistas } from './seleccion.js';
 import { sumarDias } from './contenido.js';
 import { normalizarPerfil } from './perfil.js';
 import { otroLugar } from './revelar.js';
+import { aprenderDeDia } from './aprender.js';
 
 const DIAS_RECIENTES = 2;
 
@@ -81,6 +82,18 @@ export async function leerAmbas(nube, pareja, fecha, parte, dia = null) {
 
 export const guardarPerfil = (nube, pareja, inicial) =>
   nube.escribir(rutaPerfil(pareja, pareja.lugar), { inicial: normalizarPerfil(inicial), actualizado: nube.horaServidor() }, { combinar: true });
+
+// Suma al perfil propio lo de un día ya revelado, una sola vez (aunque se abra en dos pantallas a la vez).
+export function aprenderDia(nube, pareja, dia, propia, porId) {
+  const ruta = rutaPerfil(pareja, pareja.lugar);
+  return nube.transaccion(async (tx) => {
+    const perfil = await tx.leer(ruta);
+    const nuevo = aprenderDeDia(perfil, dia, propia?.items || [], porId);
+    if (nuevo === perfil) return false;
+    tx.escribir(ruta, { rasgos: nuevo.rasgos, respuestas: nuevo.respuestas, aprendidos: nuevo.aprendidos }, { combinar: true });
+    return true;
+  });
+}
 
 export async function leerPerfiles(nube, pareja) {
   const [a, b] = await Promise.all([nube.leer(rutaPerfil(pareja, 'a')), nube.leer(rutaPerfil(pareja, 'b'))]);

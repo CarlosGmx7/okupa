@@ -96,6 +96,11 @@ prueba('diario: coincidencia y adivino', () => {
   igual(adivino(esc, 6, { valor: 7 }), true);
   igual(adivino(esc, 5, { valor: 7 }), false);
   igual(adivino(op, undefined, { opcion: 1 }), false);
+  const yoTu = { tipo: 'opciones', espejo: [0, 1], opciones: [{ texto: 'Yo' }, { texto: 'Tú' }, { texto: 'Los dos' }] };
+  igual(coincidencia(yoTu, { opcion: 0 }, { opcion: 0 }), 'debate', 'los dos dicen «yo»: no coinciden');
+  igual(coincidencia(yoTu, { opcion: 0 }, { opcion: 1 }), 'coinciden', '«yo» y «tú» dicen lo mismo');
+  igual(coincidencia(yoTu, { opcion: 2 }, { opcion: 2 }), 'coinciden');
+  igual(adivino(yoTu, 0, { opcion: 1 }), true, 'creo que dijo que fui yo, y dijo «tú»');
 });
 
 prueba('diario: rachaAmbos cuenta días seguidos con los dos', () => {

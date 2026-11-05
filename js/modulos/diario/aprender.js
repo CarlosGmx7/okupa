@@ -103,8 +103,14 @@ export function cumpleRequiere(pregunta, { a, b }) {
 const textosDe = (p) => [p.texto, ...(p.opciones || []).map((o) => o.texto), ...(p.extremos || [])];
 export const esPlantilla = (p) => textosDe(p).some((t) => typeof t === 'string' && /\{[a-z_]+\}/.test(t));
 
-// La pregunta como la ve `yo`, con sus marcas llenas; null si falta algún dato.
-export function resolverPlantilla(pregunta, { yo, nombres, perfiles }) {
+// Si un dato desapareció después de crear el día (p. ej. se quitó un favorito), se dice en general.
+const GENERICO = {
+  nombre_otro: 'tu pareja', artista_fav_otro: 'su artista favorito', artista_fav_mio: 'tu artista favorito',
+  cancion_otro: 'su canción favorita', peli_otro: 'su peli favorita',
+};
+
+// La pregunta como la ve `yo`, con sus marcas llenas; null si falta algún dato (o, con `respaldo`, en general).
+export function resolverPlantilla(pregunta, { yo, nombres, perfiles, respaldo = false }) {
   if (!esPlantilla(pregunta)) return pregunta;
   const otro = otroLugar(yo);
   const mio = favoritosDe(perfiles?.[yo]);
@@ -115,8 +121,9 @@ export function resolverPlantilla(pregunta, { yo, nombres, perfiles }) {
   };
   let falta = false;
   const llenar = (t) => t.replace(MARCA, (_, k) => {
-    if (!valores[k]) falta = true;
-    return valores[k] || '';
+    if (valores[k]) return valores[k];
+    falta = true;
+    return GENERICO[k] || '';
   });
   const resuelta = {
     ...pregunta,
@@ -124,7 +131,7 @@ export function resolverPlantilla(pregunta, { yo, nombres, perfiles }) {
     ...(pregunta.opciones ? { opciones: pregunta.opciones.map((o) => ({ ...o, texto: llenar(o.texto) })) } : {}),
     ...(pregunta.extremos ? { extremos: pregunta.extremos.map(llenar) } : {}),
   };
-  return falta ? null : resuelta;
+  return falta && !respaldo ? null : resuelta;
 }
 
 // Para la selección: +1 / −1 si el rasgo ya tiene lado (−1 = derecha), 0 en el medio, null si no se sabe.

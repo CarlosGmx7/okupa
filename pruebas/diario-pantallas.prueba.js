@@ -6,6 +6,7 @@ import { cargarDiario } from '../js/modulos/diario/contenido.js';
 import { crearPantallasDiario } from '../js/modulos/diario/pantallas.js';
 import { guardarPerfil, leerPerfiles, abrirDia, enviar } from '../js/modulos/diario/dia.js';
 import { CLAVE_ESTADO } from '../js/modulos/diario/pantallas.js';
+import { reflejar } from '../js/modulos/diario/revelar.js';
 import { fechaBogota } from '../js/modulos/diario/contenido.js';
 import { pantallaInicio } from '../js/nucleo/inicio.js';
 import moduloDiario from '../js/modulos/diario/modulo.js';
@@ -87,7 +88,7 @@ function itemsDe(datos, dia, { comentario = '' } = {}) {
   return dia.gustos.map((id, i) => {
     const p = porId.get(id);
     const item = { ...valorInicial(p), comentario };
-    if (i === dia.adivinar) item.adivina = p.tipo === 'escala' ? 1 : 0;
+    if (i === dia.adivinar) item.adivina = p.tipo === 'escala' ? 1 : reflejar(p, 0); // adivina bien lo que dijo el otro
     return item;
   });
 }
@@ -126,7 +127,7 @@ prueba('diario pantallas: al responder los dos se revela con coincidencia y adiv
   await hasta(() => a.div.querySelectorAll('.carta-diario.revelada').length === 3);
   verdadero(a.div.textContent.includes('secreto-de-sofi'), 'ahora sí');
   verdadero(a.div.textContent.includes('¡Coincidieron!'), a.div.textContent);
-  verdadero(a.div.textContent.includes('Carlos creía') && a.div.textContent.includes('adivinó ✓'), a.div.textContent);
+  verdadero(a.div.textContent.includes('Carlos creía') && /adivinó [✓✗]/.test(a.div.textContent), a.div.textContent);
   igual(a.ctx.almacen.leer(CLAVE_ESTADO, null).texto, 'Revelado ✓');
   salir();
 });
@@ -215,5 +216,68 @@ prueba('diario pantallas: historial muestra porcentaje y racha', async () => {
   verdadero(a.div.textContent.includes('Qué tanto se conocen: 100 % de adivinanzas'), a.div.textContent);
   verdadero(a.div.textContent.includes('Racha: 2 días con los dos al día'), a.div.textContent);
   igual([...a.div.querySelectorAll('.lista a')].map((x) => x.getAttribute('href')), [`#/diario/dia/${FECHA}`, '#/diario/dia/2026-11-04']);
+  salir();
+});
+// ---------- Etapa 4: aprender y plantillas ----------
+async function hastaQue(fn, ms = 2000) {
+  let v;
+  for (let t = 0; t < ms; t += 25) { v = await fn(); if (v) return v; await esperar(25); }
+  verdadero(v, 'no llegó a tiempo');
+  return v;
+}
+const aprendidosDe = async (cel) => (await leerPerfiles(cel.nube, cel.pareja))[cel.pareja.lugar]?.aprendidos || [];
+
+prueba('diario pantallas: revelar aprende una sola vez', async () => {
+  const { a, b, datos } = await parejaDiario({ perfiles: true });
+  const dia = await abrirDia(b.nube, b.pareja, { fecha: FECHA, datos });
+  await enviar(a.nube, a.pareja, FECHA, 'gustos', { items: itemsDe(datos, dia) });
+  await enviar(b.nube, b.pareja, FECHA, 'gustos', { items: itemsDe(datos, dia) });
+  await a.pantallas.hoy(a.div, {}, a.ctx);
+  await hastaQue(async () => (await aprendidosDe(a)).length === 1);
+  const antes = (await leerPerfiles(a.nube, a.pareja)).a;
+  igual(Object.keys(antes.respuestas).sort(), [...dia.gustos].sort());
+  salir();
+  const otraVez = document.createElement('div');
+  await a.pantallas.hoy(otraVez, {}, a.ctx);
+  await hasta(() => otraVez.querySelectorAll('.carta-diario.revelada').length === 3);
+  await esperar(100);
+  const despues = (await leerPerfiles(a.nube, a.pareja)).a;
+  igual([despues.aprendidos, despues.rasgos], [[FECHA], antes.rasgos]);
+  igual(await aprendidosDe(b), [], 'el perfil del otro no se toca');
+  salir();
+});
+
+prueba('diario pantallas: el historial aprende los días revelados que faltaban', async () => {
+  const { a, b, datos } = await parejaDiario({ perfiles: true });
+  for (const fecha of ['2026-11-03', '2026-11-04']) {
+    const dia = await abrirDia(a.nube, a.pareja, { fecha, datos });
+    await enviar(a.nube, a.pareja, fecha, 'gustos', { items: itemsDe(datos, dia) });
+    await enviar(b.nube, b.pareja, fecha, 'gustos', { items: itemsDe(datos, dia) });
+  }
+  await a.pantallas.historial(a.div, {}, a.ctx);
+  await hasta(() => a.div.querySelector('.lista'));
+  igual((await aprendidosDe(a)).sort(), ['2026-11-03', '2026-11-04']);
+  salir();
+});
+
+prueba('diario pantallas: cada uno ve la plantilla con los gustos del otro', async () => {
+  const { a, b, datos } = await parejaDiario();
+  await guardarPerfil(a.nube, a.pareja, { intensidad: 3, artistas: ['Canserbero'] });
+  await guardarPerfil(b.nube, b.pareja, { intensidad: 3, artistas: ['Lana del Rey'] });
+  await abrirDia(a.nube, a.pareja, { fecha: FECHA, datos });
+  await a.nube.escribir(`parejas/${a.pareja.codigo}/dias/${FECHA}`, { gustos: ['dia-0101', 'dia-0001', 'dia-0013'], adivinar: 0 }, { combinar: true });
+  await abrirHoy(a);
+  await abrirHoy(b);
+  verdadero(a.div.textContent.includes('¿a quién ponemos primero: Canserbero o Lana del Rey?'), a.div.textContent.slice(0, 400));
+  verdadero(b.div.textContent.includes('¿a quién ponemos primero: Lana del Rey o Canserbero?'), b.div.textContent.slice(0, 400));
+  responderTodo(a.div);
+  boton(a.div, 'Enviar').click();
+  responderTodo(b.div);
+  boton(b.div, 'Enviar').click();
+  await hasta(() => a.div.querySelectorAll('.carta-diario.revelada').length === 3);
+  const primera = a.div.querySelector('.carta-diario.revelada .lado-a-lado').textContent;
+  verdadero(primera.includes('CarlosA Canserbero') && primera.includes('SofiA Lana del Rey'), `cada respuesta con su propio artista: ${primera}`);
+  verdadero(a.div.textContent.includes('Carlos creía «A Canserbero»'), 'la adivinanza se lee desde el lado del otro');
+  verdadero(a.div.querySelector('.carta-diario.revelada .coincidencia').textContent.includes('Aquí hay debate'), 'cada uno escogió a su propio artista: no coinciden');
   salir();
 });

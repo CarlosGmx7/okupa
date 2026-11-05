@@ -59,6 +59,8 @@ export function problemaDePreguntaDiario(p, { temas, rasgos }) {
     if (!p.opciones.every((o) => textoLleno(o?.texto))) return 'opción sin texto';
     if (new Set(p.opciones.map((o) => minus(o.texto))).size !== p.opciones.length) return 'opciones repetidas';
     if (!p.opciones.every((o) => rasgosValidos(o.rasgos, rasgos))) return 'rasgos de una opción inválidos';
+    if (p.espejo !== undefined && !(Array.isArray(p.espejo) && p.espejo.length === 2 && p.espejo[0] !== p.espejo[1]
+      && p.espejo.every((i) => Number.isInteger(i) && i >= 0 && i < p.opciones.length))) return 'espejo inválido';
     return null;
   }
   return `tipo inválido "${p.tipo}"`;

@@ -3,8 +3,9 @@ import { el } from '../../nucleo/ui.js';
 import { exigirPareja } from '../../nucleo/pantallas-pareja.js';
 import { fechaBogota, fechaLegible } from './contenido.js';
 import { normalizarPerfil, problemaDePerfil } from './perfil.js';
-import { abrirDia, leerDia, escucharDia, listarDias, enviar, leerPropia, leerAmbas, guardarPerfil, leerPerfiles } from './dia.js';
-import { estadoParte, coincidencia, adivino, rachaAmbos, porcentajeAdivinanzas, otroLugar, valorDe } from './revelar.js';
+import { abrirDia, leerDia, escucharDia, listarDias, enviar, leerPropia, leerAmbas, guardarPerfil, leerPerfiles, aprenderDia } from './dia.js';
+import { resolverPlantilla } from './aprender.js';
+import { estadoParte, coincidencia, adivino, rachaAmbos, porcentajeAdivinanzas, otroLugar, valorDe, reflejar } from './revelar.js';
 
 export const CLAVE_ESTADO = 'okupa:diario:estado';
 const MAX_COMENTARIO = 280;
@@ -195,8 +196,9 @@ export function crearPantallasDiario({ cargar, hoy = () => fechaBogota() } = {})
     const yo = pareja.lugar;
 
     let d;
+    let perfiles;
     try {
-      const perfiles = await leerPerfiles(nube, pareja);
+      perfiles = await leerPerfiles(nube, pareja);
       if (!perfiles[yo]?.inicial) {
         zona.replaceChildren(titulo(), vacio('Antes de empezar, cuéntanos de ti',
           el('p', { clase: 'campo-ayuda' }, 'Son 3 minutos y se hace una sola vez.'),
@@ -242,8 +244,12 @@ export function crearPantallasDiario({ cargar, hoy = () => fechaBogota() } = {})
     }
     const recargar = () => leerDia(nube, pareja, fecha).then(render).catch(() => {});
 
+    // Cada uno ve las plantillas desde su lado (el artista del otro, su nombre…).
+    const comoLaVe = (p, l) => resolverPlantilla(p, { yo: l, nombres: pareja.nombres, perfiles, respaldo: true });
+
     async function pintarGustos(seccion, estado) {
-      const preguntas = d.gustos.map((id) => porId.get(id)).filter(Boolean);
+      const originales = d.gustos.map((id) => porId.get(id)).filter(Boolean);
+      const preguntas = originales.map((p) => comoLaVe(p, yo));
       if (estado === 'responder') { seccion.replaceChildren(formularioGustos(preguntas)); return; }
       if (estado === 'esperando') {
         seccion.replaceChildren(el('div', { clase: 'espera-diario', role: 'status' },
@@ -253,8 +259,9 @@ export function crearPantallasDiario({ cargar, hoy = () => fechaBogota() } = {})
       const ambas = await leerAmbas(nube, pareja, fecha, 'gustos', d);
       if (!ambas) { vistos.gustos = null; return; }
       seccion.replaceChildren(el('h2', { clase: 'titulo-parte' }, 'Lo que respondieron'),
-        ...preguntas.map((p, i) => cartaRevelada(p, i, ambas)));
+        ...originales.map((p, i) => cartaRevelada(p, i, ambas)));
       vibrar(20);
+      aprenderDia(nube, pareja, d, ambas[yo], porId).catch((e) => console.warn('Okupa: no se pudo aprender del día', e));
     }
 
     function formularioGustos(preguntas) {
@@ -308,12 +315,14 @@ export function crearPantallasDiario({ cargar, hoy = () => fechaBogota() } = {})
       return el('div', { clase: 'formulario-diario' }, cartas, error, el('div', { clase: 'enviar-diario' }, boton));
     }
 
-    function cartaRevelada(p, i, ambas) {
+    // `original` sin resolver: la respuesta de cada uno se lee con las opciones como las vio esa persona.
+    function cartaRevelada(original, i, ambas) {
+      const p = comoLaVe(original, yo);
       const lado = (l) => {
         const item = ambas[l].items[i] || {};
         return el('div', { clase: `respuesta-diario${l === yo ? ' mia' : ''}` },
           el('p', { clase: 'quien' }, nombre(l)),
-          el('p', { clase: 'cual' }, textoRespuesta(p, item)),
+          el('p', { clase: 'cual' }, textoRespuesta(comoLaVe(original, l), item)),
           item.comentario ? el('p', { clase: 'comentario' }, `«${item.comentario}»`) : null);
       };
       const tipo = coincidencia(p, ambas.a.items[i] || {}, ambas.b.items[i] || {});
@@ -322,7 +331,7 @@ export function crearPantallasDiario({ cargar, hoy = () => fechaBogota() } = {})
         if (item.adivina === undefined) return null;
         const bien = adivino(p, item.adivina, ambas[otroLugar(l)].items[i]);
         return el('p', { clase: `adivinanza ${bien ? 'bien' : 'mal'}` },
-          `${nombre(l)} creía «${textoRespuesta(p, { opcion: item.adivina, valor: item.adivina })}»: ${bien ? 'adivinó ✓' : 'no adivinó ✗'}`);
+          `${nombre(l)} creía «${textoRespuesta(comoLaVe(original, otroLugar(l)), { opcion: reflejar(original, item.adivina), valor: item.adivina })}»: ${bien ? 'adivinó ✓' : 'no adivinó ✗'}`);
       }) : [];
       const carta = el('article', { clase: 'carta-diario revelada' },
         el('header', { clase: 'carta-diario-cabecera' }, chipTema(temas.get(p.tema))),
@@ -442,11 +451,16 @@ export function crearPantallasDiario({ cargar, hoy = () => fechaBogota() } = {})
     try {
       lista = await listarDias(nube, pareja);
       const revelados = lista.filter((x) => estadoParte(x, 'gustos', yo) === 'revelado');
-      adivinanzas = (await Promise.all(revelados.map(async (x) => {
-        const ambas = await leerAmbas(nube, pareja, x.fecha, 'gustos', x);
+      const conRespuestas = await Promise.all(revelados.map(async (x) => ({ x, ambas: await leerAmbas(nube, pareja, x.fecha, 'gustos', x) })));
+      adivinanzas = conRespuestas.map(({ x, ambas }) => {
         const pregunta = porId.get(x.gustos?.[x.adivinar]);
         return ambas && pregunta ? { pregunta, a: ambas.a.items[x.adivinar], b: ambas.b.items[x.adivinar] } : null;
-      }))).filter(Boolean);
+      }).filter(Boolean);
+      // Lo revelado mientras este celular no lo abrió también se aprende (una vez por día).
+      const aprendidos = new Set((await leerPerfiles(nube, pareja))[yo]?.aprendidos || []);
+      for (const { x, ambas } of conRespuestas) {
+        if (ambas && !aprendidos.has(x.fecha)) await aprenderDia(nube, pareja, x, ambas[yo], porId).catch((e) => console.warn('Okupa:', e));
+      }
     } catch (e) { sinConexion(zona, ctx, e); return; }
     const porcentaje = porcentajeAdivinanzas(adivinanzas);
     const racha = rachaAmbos(lista, 'gustos', hoy());
