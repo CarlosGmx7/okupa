@@ -12,6 +12,7 @@ const ESPERADOS = [
   'data/trivia/deportes.json', 'data/trivia/canserbero.json', 'data/trivia/lana.json', 'data/ingles/vocabulario.json', 'js/nucleo/instalacion.js',
   'js/modulos/diario/modulo.js', 'js/modulos/diario/pantallas.js', 'js/modulos/diario/contenido.js', 'js/modulos/diario/perfil.js',
   'js/modulos/diario/seleccion.js', 'js/modulos/diario/dia.js', 'js/modulos/diario/revelar.js',
+  'js/modulos/diario/aprender.js', 'js/modulos/trivia/conoces.js',
   'data/diario/temas.json', 'data/diario/rasgos.json', 'data/diario/preguntas.json', 'data/diario/perfil-inicial.json',
   'js/modulos/preguntas/modulo.js', 'js/modulos/preguntas/datos.js', 'js/modulos/preguntas/progreso.js',
   'js/modulos/preguntas/propio.js', 'js/modulos/preguntas/pantallas.js', 'js/modulos/preguntas/editor.js',

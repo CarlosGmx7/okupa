@@ -165,6 +165,28 @@ Reglas (las revisa `pruebas.html`):
 - `rasgos` (en cada opción) y `rasgo` (en la escala) dicen qué rasgo del perfil mueve la
   respuesta (de −2 a 2; positivo = el extremo `izquierda` de `data/diario/rasgos.json`).
 - Nada genérico: cada pregunta debe obligar a escoger y dejar tema para discutir.
+- `espejo: [0, 1]` en las opciones que cambian de sentido según quién responde ("Yo" / "Tú",
+  "mi artista" / "tu artista"): así "Yo" de uno y "Tú" del otro cuentan como coincidencia.
+
+### Lo que Okupa aprende
+
+Okupa aprende **solo de lo ya revelado** (nunca de una respuesta que el otro todavía no ve):
+suma los `rasgos` de cada respuesta y guarda qué respondió cada uno. Un rasgo aparece en
+**Lo que Okupa sabe de mí** cuando hay al menos 3 respuestas que lo tocan; ahí cada uno puede
+corregirlo, ocultarlo y manejar sus favoritos (artistas, canciones, pelis). El otro lo puede ver.
+
+Con eso:
+
+- **Seguimientos**: una pregunta con `requiere` solo sale si se cumple:
+  `{ "rasgo": { "id": "aventura", "lado": "izquierda" } }` (alguno de los dos es así),
+  `{ "favorito": "artistas" }` (los dos tienen al menos uno) o
+  `{ "respuesta": { "pregunta": "dia-0026", "opciones": [1, 2, 3] } }` (alguno respondió eso).
+- **Plantillas**: el texto y las opciones pueden llevar `{nombre_otro}`, `{artista_fav_otro}`,
+  `{artista_fav_mio}`, `{cancion_otro}` y `{peli_otro}`. Cada uno la ve desde su lado; si falta
+  un dato de alguno de los dos, esa pregunta no sale.
+- **Debate**: salen más las preguntas sobre rasgos en los que ustedes están en lados opuestos.
+- **¿Cuánto me conoces?**: cuando cada uno tiene 5 días revelados, la trivia mete hasta 2
+  preguntas en las que cada uno adivina qué respondió el otro en el diario.
 
 ## Agregar una sección nueva al ecosistema
 
