@@ -95,6 +95,30 @@ export function aprenderDia(nube, pareja, dia, propia, porId) {
   });
 }
 
+// `valor`: 'izquierda' | 'medio' | 'derecha' | 'oculto', o null para volver a lo aprendido.
+export const corregirRasgo = (nube, pareja, rasgo, valor) =>
+  nube.escribir(rutaPerfil(pareja, pareja.lugar), { correcciones: { [rasgo]: valor } }, { combinar: true });
+
+const sinRepetir = (lista) => [...new Map(lista.map((x) => [x.toLowerCase(), x])).values()];
+
+// Agregar o quitar un favorito (artistas, canciones, pelis) del perfil propio.
+export function cambiarFavorito(nube, pareja, tipo, texto, { quitar = false } = {}) {
+  const limpio = typeof texto === 'string' ? texto.trim().slice(0, 80) : '';
+  if (!limpio) return Promise.resolve(false);
+  const ruta = rutaPerfil(pareja, pareja.lugar);
+  return nube.transaccion(async (tx) => {
+    const perfil = (await tx.leer(ruta)) || {};
+    const igual = (x) => x.toLowerCase() === limpio.toLowerCase();
+    const favoritos = (perfil.favoritos?.[tipo] || []).filter((x) => !igual(x));
+    const quitados = (perfil.quitados?.[tipo] || []).filter((x) => !igual(x));
+    tx.escribir(ruta, {
+      favoritos: { [tipo]: quitar ? favoritos : sinRepetir([...favoritos, limpio]) },
+      quitados: { [tipo]: quitar ? sinRepetir([...quitados, limpio]) : quitados },
+    }, { combinar: true });
+    return true;
+  });
+}
+
 export async function leerPerfiles(nube, pareja) {
   const [a, b] = await Promise.all([nube.leer(rutaPerfil(pareja, 'a')), nube.leer(rutaPerfil(pareja, 'b'))]);
   return { a, b };

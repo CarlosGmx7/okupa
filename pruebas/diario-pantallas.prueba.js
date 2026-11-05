@@ -281,3 +281,56 @@ prueba('diario pantallas: cada uno ve la plantilla con los gustos del otro', asy
   verdadero(a.div.querySelector('.carta-diario.revelada .coincidencia').textContent.includes('Aquí hay debate'), 'cada uno escogió a su propio artista: no coinciden');
   salir();
 });
+// ---------- Lo que Okupa sabe de mí ----------
+async function conRasgos(cel, extra = {}) {
+  await guardarPerfil(cel.nube, cel.pareja, { intensidad: 3, artistas: ['Canserbero'], ...extra });
+  await cel.nube.escribir(`parejas/${cel.pareja.codigo}/perfiles/${cel.pareja.lugar}`, { rasgos: { aventura: { suma: 6, n: 3 }, social: { suma: 1, n: 1 } } }, { combinar: true });
+}
+const perfilDe = async (cel) => (await leerPerfiles(cel.nube, cel.pareja))[cel.pareja.lugar];
+
+prueba('sabe de mí: muestra lo aprendido y deja corregir y ocultar', async () => {
+  const { a } = await parejaDiario();
+  await conRasgos(a);
+  await a.pantallas.sabe(a.div, {}, a.ctx);
+  await hasta(() => a.div.textContent.includes('Más bien aventurero'));
+  verdadero(!a.div.textContent.includes('sociable'), 'con una sola respuesta no se muestra');
+  boton(a.div, 'Corregir').click();
+  boton(a.div, 'de rutina').click();
+  await hasta(() => a.div.textContent.includes('Más bien de rutina') && a.div.textContent.includes('Corregido a mano'));
+  igual((await perfilDe(a)).correcciones.aventura, 'derecha');
+  boton(a.div, 'Corregir').click();
+  boton(a.div, 'Ocultar').click();
+  await hasta(() => a.div.textContent.includes('Volver a mostrar'));
+  verdadero(!a.div.textContent.includes('Más bien de rutina'), a.div.textContent);
+  boton(a.div, 'Volver a mostrar').click();
+  await hasta(() => a.div.textContent.includes('Más bien aventurero'));
+  salir();
+});
+
+prueba('sabe de mí: agregar y quitar favoritos', async () => {
+  const { a } = await parejaDiario();
+  await conRasgos(a);
+  await a.pantallas.sabe(a.div, {}, a.ctx);
+  await hasta(() => a.div.querySelector('[aria-label="Quitar Canserbero"]'));
+  a.div.querySelector('[aria-label="Quitar Canserbero"]').click();
+  await hasta(() => !a.div.querySelector('[aria-label="Quitar Canserbero"]'));
+  const entrada = a.div.querySelector('input[data-tipo="artistas"]');
+  entrada.value = 'Akapellah';
+  entrada.parentElement.querySelector('button').click();
+  await hasta(() => a.div.querySelector('[aria-label="Quitar Akapellah"]'));
+  const p = await perfilDe(a);
+  igual([p.quitados.artistas, p.favoritos.artistas], [['Canserbero'], ['Akapellah']]);
+  salir();
+});
+
+prueba('sabe de mí: lo del otro se ve, pero sin botones para cambiarlo', async () => {
+  const { a, b } = await parejaDiario();
+  await conRasgos(b, { artistas: ['Lana del Rey'] });
+  await a.pantallas.sabe(a.div, {}, a.ctx);
+  await hasta(() => boton(a.div, 'Sofi'));
+  boton(a.div, 'Sofi').click();
+  await hasta(() => a.div.textContent.includes('Lo que Okupa sabe de Sofi'));
+  verdadero(a.div.textContent.includes('Más bien aventurero') && a.div.textContent.includes('Lana del Rey'), a.div.textContent);
+  igual([boton(a.div, 'Corregir'), boton(a.div, 'Agregar'), a.div.querySelector('.quitar-favorito')], [undefined, undefined, null]);
+  salir();
+});

@@ -3,8 +3,11 @@ import { el } from '../../nucleo/ui.js';
 import { exigirPareja } from '../../nucleo/pantallas-pareja.js';
 import { fechaBogota, fechaLegible } from './contenido.js';
 import { normalizarPerfil, problemaDePerfil } from './perfil.js';
-import { abrirDia, leerDia, escucharDia, listarDias, enviar, leerPropia, leerAmbas, guardarPerfil, leerPerfiles, aprenderDia } from './dia.js';
-import { resolverPlantilla } from './aprender.js';
+import {
+  abrirDia, leerDia, escucharDia, listarDias, enviar, leerPropia, leerAmbas, guardarPerfil, leerPerfiles, aprenderDia,
+  corregirRasgo, cambiarFavorito,
+} from './dia.js';
+import { resolverPlantilla, describirRasgos, favoritosDe } from './aprender.js';
 import { estadoParte, coincidencia, adivino, rachaAmbos, porcentajeAdivinanzas, otroLugar, valorDe, reflejar } from './revelar.js';
 
 export const CLAVE_ESTADO = 'okupa:diario:estado';
@@ -216,6 +219,7 @@ export function crearPantallasDiario({ cargar, hoy = () => fechaBogota() } = {})
       titulo(), el('p', { clase: 'subtitulo' }, esHoy ? `Hoy, ${fechaLegible(fecha)}` : fechaLegible(fecha)),
       el('nav', { clase: 'nav-diario', 'aria-label': 'Diario' }, enlacePendientes,
         el('a', { clase: 'boton-texto', href: '#/diario/historial' }, 'Historial'),
+        el('a', { clase: 'boton-texto', href: '#/diario/sabe' }, 'Lo que sabe de mí'),
         el('a', { clase: 'boton-texto', href: '#/diario/perfil' }, 'Mi perfil')),
       gustos, ingles);
 
@@ -477,5 +481,87 @@ export function crearPantallasDiario({ cargar, hoy = () => fechaBogota() } = {})
         : vacio('Todavía no hay días', el('a', { clase: 'boton', href: '#/diario' }, 'Ir a hoy')));
   }
 
-  return { hoy: dia, dia, perfil, pendientes, historial };
+  // ---------- Lo que Okupa sabe de mí ----------
+  async function sabe(contenedor, _params, ctx) {
+    const zona = el('div', { clase: 'diario' });
+    contenedor.append(el('a', { clase: 'volver', href: '#/diario' }, '← Diario'), zona);
+    const r = await preparar(zona, ctx);
+    if (!r) return;
+    const { nube, pareja, datos, nombre, otro } = r;
+    const yo = pareja.lugar;
+    let de = yo;
+    const error = el('p', { clase: 'error-formulario', role: 'alert' });
+    const intentar = async (fn) => {
+      error.textContent = '';
+      try { await fn(); await pintar(); } catch (e) {
+        console.warn('Okupa:', e);
+        error.textContent = 'No se pudo guardar. Revisa la conexión e intenta otra vez.';
+      }
+    };
+
+    async function pintar() {
+      const perfil = (await leerPerfiles(nube, pareja))[de] || {};
+      const propio = de === yo;
+      const rasgos = describirRasgos(perfil, datos.rasgos);
+      const ocultos = propio ? datos.rasgos.filter((x) => perfil.correcciones?.[x.id] === 'oculto') : [];
+      const favoritos = favoritosDe(perfil);
+
+      const filaRasgo = (x) => {
+        const info = datos.rasgos.find((y) => y.id === x.id);
+        const editor = el('div', { clase: 'chips editor-rasgo', role: 'group', 'aria-label': `Corregir: ${x.texto}`, hidden: true },
+          [['izquierda', info.izquierda], ['medio', 'En el medio'], ['derecha', info.derecha]].map(([lado, texto]) =>
+            el('button', { clase: 'chip', type: 'button', 'aria-pressed': String(x.lado === lado), onclick: () => intentar(() => corregirRasgo(nube, pareja, x.id, lado)) }, texto)),
+          el('button', { clase: 'chip', type: 'button', onclick: () => intentar(() => corregirRasgo(nube, pareja, x.id, 'oculto')) }, 'Ocultar'));
+        return el('li', { clase: 'rasgo-sabe' },
+          el('div', { clase: 'fila' },
+            el('span', { clase: 'fila-cuerpo' },
+              el('span', { clase: 'fila-titulo' }, x.texto),
+              el('span', { clase: 'fila-detalle' }, x.corregido ? 'Corregido a mano' : `Según ${x.n} respuestas`)),
+            propio ? el('button', { clase: 'boton-texto', type: 'button', 'aria-expanded': 'false', onclick: (e) => {
+              editor.hidden = !editor.hidden;
+              e.currentTarget.setAttribute('aria-expanded', String(!editor.hidden));
+            } }, 'Corregir') : null),
+          propio ? editor : null);
+      };
+
+      const bloqueFavoritos = ([tipo, titulo]) => {
+        const lista = favoritos[tipo];
+        const entrada = el('input', { type: 'text', maxlength: '80', 'aria-label': `Agregar a ${titulo.toLowerCase()}`, 'data-tipo': tipo });
+        return el('div', { clase: 'favoritos-sabe' },
+          el('h3', {}, titulo),
+          lista.length
+            ? el('ul', { clase: 'chips' }, lista.map((x) => el('li', { clase: 'chip chip-favorito' }, x,
+              propio ? el('button', { clase: 'quitar-favorito', type: 'button', 'aria-label': `Quitar ${x}`, onclick: () => intentar(() => cambiarFavorito(nube, pareja, tipo, x, { quitar: true })) }, '×') : null)))
+            : el('p', { clase: 'campo-ayuda' }, 'Nada todavía'),
+          propio ? el('div', { clase: 'agregar-favorito' }, entrada,
+            el('button', { clase: 'boton', type: 'button', onclick: () => intentar(() => cambiarFavorito(nube, pareja, tipo, entrada.value)) }, 'Agregar')) : null);
+      };
+
+      const selector = el('div', { clase: 'segmentado', role: 'group', 'aria-label': 'De quién' },
+        [[yo, 'Yo'], [otro, nombre(otro)]].map(([l, texto]) => el('button', {
+          type: 'button', 'aria-pressed': String(de === l),
+          onclick: () => { de = l; pintar().catch((e) => sinConexion(zona, ctx, e)); },
+        }, texto)));
+
+      zona.replaceChildren(
+        titulo(propio ? 'Lo que Okupa sabe de mí' : `Lo que Okupa sabe de ${nombre(otro)}`),
+        el('p', { clase: 'subtitulo' }, propio
+          ? `Sale solo de las respuestas ya reveladas. Corrige o quita lo que no cuadre: ${nombre(otro)} también puede verlo.`
+          : `Así lo dejó ${nombre(otro)}. Solo ${nombre(otro)} puede corregirlo.`),
+        selector, error,
+        el('h2', { clase: 'titulo-parte' }, propio ? 'Cómo eres, según tus respuestas' : 'Cómo es, según sus respuestas'),
+        rasgos.length
+          ? el('ul', { clase: 'lista' }, rasgos.map(filaRasgo))
+          : el('p', { clase: 'campo-ayuda' }, 'Todavía no hay suficientes respuestas: cada rasgo aparece cuando hay al menos 3.'),
+        ocultos.length ? el('div', { clase: 'ocultos-sabe' },
+          el('p', { clase: 'campo-ayuda' }, `Ocultaste: ${ocultos.map((x) => `${x.izquierda} / ${x.derecha}`).join(', ')}`),
+          ...ocultos.map((x) => el('button', { clase: 'boton-texto', type: 'button', onclick: () => intentar(() => corregirRasgo(nube, pareja, x.id, null)) }, `Volver a mostrar ${x.izquierda} / ${x.derecha}`))) : null,
+        el('h2', { clase: 'titulo-parte' }, 'Favoritos'),
+        ...[['artistas', 'Artistas'], ['canciones', 'Canciones'], ['pelis', 'Pelis, series y libros']].map(bloqueFavoritos));
+    }
+
+    try { await pintar(); } catch (e) { sinConexion(zona, ctx, e); }
+  }
+
+  return { hoy: dia, dia, perfil, pendientes, historial, sabe };
 }

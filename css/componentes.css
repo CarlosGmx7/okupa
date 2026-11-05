@@ -271,6 +271,22 @@
   font: inherit; font-size: 15px; cursor: pointer; transition: transform .12s, background .2s;
 }
 .textos-perfil { display: flex; flex-direction: column; gap: 8px; }
+.rasgo-sabe { list-style: none; }
+.editor-rasgo { margin: 10px 0 4px; }
+.ocultos-sabe { margin: 10px 0 18px; }
+.favoritos-sabe { margin-bottom: 20px; }
+.favoritos-sabe h3 { font-size: 17px; margin: 0 0 8px; }
+ul.chips { padding: 0; margin: 0; list-style: none; }
+.chip-favorito { display: inline-flex; align-items: center; gap: 2px; padding-right: 2px; cursor: default; }
+.quitar-favorito {
+  min-width: 44px; min-height: 44px; border: none; border-radius: 50%;
+  background: none; color: var(--tenue); font-size: 22px; line-height: 1; cursor: pointer;
+}
+.agregar-favorito { display: flex; gap: 8px; margin-top: 10px; }
+.agregar-favorito input {
+  flex: 1; min-width: 0; font: inherit; color: var(--crema); background: var(--superficie);
+  border: 1px solid rgba(201, 164, 92, 0.25); border-radius: 14px; padding: 10px 12px;
+}
 .campo-perfil input { width: 100%; }
 @media (max-width: 380px) {
   .opciones-diario { grid-template-columns: 1fr; }
