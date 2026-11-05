@@ -21,7 +21,8 @@ prueba('inicio: con pareja, la tarjeta dice que los celulares están enlazados',
   almacen.escribir('okupa:pareja:actual', { codigo: 'K7PQ2M', lugar: 'a' });
   const div = document.createElement('div');
   pantallaInicio(div, {}, ctx([], almacen));
-  verdadero(div.querySelector('a.juntos').textContent.includes('Celulares enlazados'), div.querySelector('a.juntos').textContent);
+  verdadero(div.querySelector('.juntos').textContent.includes('Celulares enlazados'), div.querySelector('.juntos').textContent);
+  igual(div.querySelector('.juntos-principal').getAttribute('href'), '#/pareja');
 });
 
 prueba('inicio: pinta las tarjetas de cada módulo y omite el que falla', () => {

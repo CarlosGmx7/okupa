@@ -2,17 +2,25 @@
 import { el } from './ui.js';
 import { miPareja } from './pareja.js';
 
-// Acceso destacado a enlazar los celulares. Se pinta con lo guardado en el celular, sin internet.
-function tarjetaJuntos(almacen) {
+// Acceso destacado a enlazar los celulares y, ya enlazados, a lo que se juega entre los dos
+// (los módulos que declaran `accesoJuntos`). Se pinta con lo guardado en el celular, sin internet.
+function tarjetaJuntos(almacen, modulos = []) {
   const enlazados = Boolean(almacen && miPareja(almacen));
-  return el('a', { clase: `juntos${enlazados ? ' enlazados' : ''}`, href: '#/pareja' },
+  const cabeza = (titulo, detalle) => [
     el('span', { clase: 'juntos-icono', 'aria-hidden': 'true' }, '∞'),
     el('span', { clase: 'juntos-cuerpo' },
-      el('span', { clase: 'juntos-titulo' }, enlazados ? 'Nuestra pareja' : 'Jueguen juntos'),
-      el('span', { clase: 'juntos-detalle' }, enlazados
-        ? 'Celulares enlazados ✓'
-        : 'Enlacen sus dos celulares')),
-    el('span', { clase: 'juntos-accion' }, enlazados ? 'Ver' : 'Enlazar →'));
+      el('span', { clase: 'juntos-titulo' }, titulo),
+      el('span', { clase: 'juntos-detalle' }, detalle))];
+  if (!enlazados) {
+    return el('a', { clase: 'juntos', href: '#/pareja' }, cabeza('Jueguen juntos', 'Enlacen sus dos celulares'),
+      el('span', { clase: 'juntos-accion' }, 'Enlazar →'));
+  }
+  const accesos = modulos.filter((m) => m.accesoJuntos).map(({ accesoJuntos: a }) =>
+    el('a', { clase: 'juntos-acceso', href: `#/${a.ruta}` }, el('span', { 'aria-hidden': 'true' }, a.icono), ` ${a.nombre}`));
+  return el('div', { clase: 'juntos enlazados' },
+    el('a', { clase: 'juntos-principal', href: '#/pareja' }, cabeza('Nuestra pareja', 'Celulares enlazados ✓'),
+      el('span', { clase: 'juntos-accion' }, 'Ver')),
+    accesos.length ? el('nav', { clase: 'juntos-accesos', 'aria-label': 'Jugar juntos' }, accesos) : null);
 }
 
 export function pantallaInicio(contenedor, _params, ctx) {
@@ -25,7 +33,7 @@ export function pantallaInicio(contenedor, _params, ctx) {
       el('img', { clase: 'inicio-portada', src: 'iconos/portada-circular.png', alt: '', onerror: (e) => e.target.remove() }),
       el('h1', { clase: 'logo' }, 'Okupa'),
       el('p', { clase: 'lema' }, 'Preguntas para conocerse de verdad')),
-    tarjetaJuntos(ctx.almacen),
+    tarjetaJuntos(ctx.almacen, ctx.modulos),
     el('div', { clase: 'inicio-tarjetas' }, tarjetas),
     bloqueInstalar(ctx.instalacion),
     el('footer', { clase: 'inicio-pie' },
