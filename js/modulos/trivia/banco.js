@@ -15,8 +15,8 @@ export async function cargarTrivia(fetchFn = (url) => fetch(url)) {
     if (!r.ok) throw new Error(`No se pudo cargar ${nombre}.json (${r.status})`);
     return r.json();
   };
-  const [temas, ...listas] = await Promise.all(['temas', ...TEMAS_BANCO].map(leer));
-  return { temas, bancos: Object.fromEntries(TEMAS_BANCO.map((t, i) => [t, listas[i]])) };
+  const [temas, vocabulario, ...listas] = await Promise.all(['temas', '../ingles/vocabulario', ...TEMAS_BANCO].map(leer));
+  return { temas, vocabulario, bancos: Object.fromEntries(TEMAS_BANCO.map((t, i) => [t, listas[i]])) };
 }
 
 // Devuelve el problema de forma de una pregunta de trivia, o null si está bien.
