@@ -2,6 +2,7 @@
 import { el, movimientoReducido } from '../../nucleo/ui.js';
 import { exigirPareja } from '../../nucleo/pantallas-pareja.js';
 import { elegirPartida } from './banco.js';
+import { preguntasConoces, insertarConoces } from './conoces.js';
 import { MS_PREGUNTA, MS_GRACIA, MS_REVELADO, ambosRespondieron, resultadoPregunta, puntaje, ganador, preguntaDe } from './partida.js';
 import {
   crearSala, partidaPendiente, cancelarSala, unirse, enviarRespuesta, intentarAvanzar, escucharPartida, latir,
@@ -27,6 +28,19 @@ function svg(etiqueta, atributos = {}) {
   return nodo;
 }
 const vacio = (mensaje, ...acciones) => el('div', { clase: 'vacio' }, el('p', {}, mensaje), acciones);
+
+// "¿Cuánto me conoces?" con lo que el diario ya aprendió de los dos; si algo falla, la partida sale sin ellas.
+async function conocesPara(nube, pareja, datos) {
+  if (!datos.diario?.length) return [];
+  try {
+    const ruta = (l) => `parejas/${pareja.codigo}/perfiles/${l}`;
+    const [a, b] = await Promise.all([nube.leer(ruta('a')), nube.leer(ruta('b'))]);
+    return preguntasConoces({ perfiles: { a, b }, preguntas: datos.diario, nombres: pareja.nombres });
+  } catch (e) {
+    console.warn('Okupa: sin «¿Cuánto me conoces?» esta vez', e);
+    return [];
+  }
+}
 
 // `ahora` y `ms` se pueden cambiar en las pruebas para no esperar los tiempos reales.
 export function crearPantallasTrivia({ cargar, ahora = () => performance.now(), ms = {} } = {}) {
@@ -109,7 +123,8 @@ export function crearPantallasTrivia({ cargar, ahora = () => performance.now(), 
         });
       } else {
         contenido = [el('button', { clase: 'boton boton-principal boton-grande', type: 'button', onclick: accion(aviso, async () => {
-          const preguntas = elegirPartida({ bancos: datos.bancos, vocabulario: datos.vocabulario, vistas: uso.vistasTrivia, fallidas: uso.fallidas });
+          let preguntas = elegirPartida({ bancos: datos.bancos, vocabulario: datos.vocabulario, vistas: uso.vistasTrivia, fallidas: uso.fallidas });
+          preguntas = insertarConoces(preguntas, await conocesPara(nube, pareja, datos));
           await crearSala(nube, pareja, { preguntas });
           firma = null;
           await pintar();

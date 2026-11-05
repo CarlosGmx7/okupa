@@ -127,3 +127,26 @@ prueba('inicio: con pareja la tarjeta ofrece las secciones para jugar juntos', (
   verdadero(enlace, div.querySelector('.juntos')?.outerHTML);
   igual(enlace.getAttribute('href'), '#/trivia');
 });
+
+prueba('trivia pantallas: con 5 días del diario, la partida trae 2 de «¿Cuánto me conoces?»', async () => {
+  const { a } = await pareja();
+  const diario = [{ id: 'dia-0087', tema: 'gustos', intensidad: 1, tipo: 'opciones', texto: '¿Playa o montaña?', opciones: [{ texto: 'Playa' }, { texto: 'Montaña' }] },
+    { id: 'dia-0088', tema: 'gustos', intensidad: 1, tipo: 'escala', texto: '¿Terror?', extremos: ['No', 'Sí'] }];
+  const dias = ['2026-11-01', '2026-11-02', '2026-11-03', '2026-11-04', '2026-11-05'];
+  for (const l of ['a', 'b']) {
+    await a.nube.escribir(`parejas/${a.pareja.codigo}/perfiles/${l}`, { aprendidos: dias, respuestas: { 'dia-0087': 1, 'dia-0088': 9 } });
+  }
+  const pantallas = crearPantallasTrivia({
+    cargar: async () => ({ temas: TEMAS, bancos: { arte: preguntas() }, vocabulario: [], diario }),
+    ms: { ruleta: 0, cuenta: 0, revelado: 60000, revisar: 20, sondeo: 30 },
+  });
+  await pantallas.sala(a.div, {}, a.ctx);
+  await hasta(() => boton(a.div, 'Nueva partida'));
+  boton(a.div, 'Nueva partida').click();
+  await hasta(() => a.div.textContent.includes('Esperando a que Sofi se una'));
+  const [{ datos: partida }] = await a.nube.listar(`parejas/${a.pareja.codigo}/partidas`);
+  const conoces = partida.preguntas.filter((p) => p.para);
+  igual(conoces.length, 2);
+  verdadero(conoces.every((p) => p.para.a.texto.includes('Sofi') && p.para.b.texto.includes('Carlos')), JSON.stringify(conoces));
+  salir();
+});
