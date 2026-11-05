@@ -1,7 +1,7 @@
 import { prueba, igual, verdadero } from './corredor.js';
 import { cargarTrivia, validarBancos, problemaDePreguntaTrivia, TEMAS_BANCO } from '../js/modulos/trivia/banco.js';
 
-const MINIMO_POR_TEMA = 12;
+const MINIMO_POR_TEMA = 40;
 const trivia = await cargarTrivia();
 const TEMAS = new Set(trivia.temas.map((t) => t.id));
 
