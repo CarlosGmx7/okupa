@@ -120,8 +120,8 @@ export function crearPantallasDiario({ cargar, hoy = () => fechaBogota() } = {})
       });
       return el('div', { clase: 'chips', role: 'group' }, botones);
     };
-    const entrada = (id, valor, alCambiar) => {
-      const i = el('input', { type: 'text', maxlength: String(MAX_TEXTO_PERFIL), 'data-campo': id });
+    const entrada = (id, valor, alCambiar, etiqueta) => {
+      const i = el('input', { type: 'text', maxlength: String(MAX_TEXTO_PERFIL), 'data-campo': id, 'aria-label': etiqueta });
       i.value = valor;
       i.addEventListener('input', () => alCambiar(i.value));
       return i;
@@ -143,15 +143,16 @@ export function crearPantallasDiario({ cargar, hoy = () => fechaBogota() } = {})
           return b;
         });
         control = el('div', { clase: 'chips', role: 'group' }, botones);
-      } else if (c.tipo === 'texto') control = entrada(c.id, valores[c.id], (v) => { valores[c.id] = v; });
+      } else if (c.tipo === 'texto') control = entrada(c.id, valores[c.id], (v) => { valores[c.id] = v; }, c.texto);
       else if (c.tipo === 'textos') {
         control = el('div', { clase: 'textos-perfil' }, Array.from({ length: c.max || 3 }, (_, i) =>
           entrada(c.id, valores[c.id][i] || '', (v) => {
             const lista = [...valores[c.id]];
             lista[i] = v;
             valores[c.id] = lista;
-          })));
+          }, `${c.texto} (${i + 1})`)));
       }
+      if (control?.getAttribute('role') === 'group') control.setAttribute('aria-label', c.texto);
       return el('div', { clase: 'campo campo-perfil' }, el('p', { clase: 'etiqueta' }, c.texto), control);
     });
 
