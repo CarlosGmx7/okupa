@@ -1,0 +1,51 @@
+rules_version = '2';
+// Reglas de Okupa. Una pareja = parejas/{codigo}; solo sus dos lugares (a y b) ven lo de adentro.
+service cloud.firestore {
+  match /databases/{db}/documents {
+    function autenticado() { return request.auth != null; }
+    function nombreValido(n) { return n is string && n.size() >= 1 && n.size() <= 30; }
+    function datosPareja(codigo) { return get(/databases/$(db)/documents/parejas/$(codigo)).data; }
+    function esMiembro(codigo) {
+      let l = datosPareja(codigo).lugares;
+      return autenticado() && (l.a == request.auth.uid || l.b == request.auth.uid);
+    }
+    function soloCambia(antes, despues, claves) { return despues.diff(antes).affectedKeys().hasOnly(claves); }
+    // Ocupar un lugar vacío o reclamarlo (cambio de celular): solo ese lugar y su nombre.
+    function tomaLugar(x) {
+      let antes = resource.data;
+      let despues = request.resource.data;
+      return soloCambia(antes, despues, ['lugares', 'nombres'])
+        && soloCambia(antes.lugares, despues.lugares, [x])
+        && soloCambia(antes.nombres, despues.nombres, [x])
+        && despues.lugares[x] == request.auth.uid
+        && despues.lugares.a != despues.lugares.b
+        && nombreValido(despues.nombres[x]);
+    }
+    function cambiaSuNombre(x) {
+      return resource.data.lugares[x] == request.auth.uid
+        && soloCambia(resource.data, request.resource.data, ['nombres'])
+        && soloCambia(resource.data.nombres, request.resource.data.nombres, [x])
+        && nombreValido(request.resource.data.nombres[x]);
+    }
+
+    match /parejas/{codigo} {
+      allow get: if autenticado();
+      allow list: if false;
+      allow create: if autenticado()
+        && codigo.matches('^[A-HJKMNP-Z2-9]{6}$')
+        && request.resource.data.keys().hasOnly(['lugares', 'nombres', 'creada'])
+        && request.resource.data.lugares == { 'a': request.auth.uid, 'b': null }
+        && request.resource.data.nombres.keys().hasOnly(['a', 'b'])
+        && nombreValido(request.resource.data.nombres.a)
+        && request.resource.data.nombres.b == null;
+      allow update: if autenticado()
+        && (tomaLugar('a') || tomaLugar('b') || cambiaSuNombre('a') || cambiaSuNombre('b'));
+      allow delete: if esMiembro(codigo);
+
+      match /perfiles/{lugar} { allow read, write: if esMiembro(codigo); }
+      match /partidas/{id} { allow read, write: if esMiembro(codigo); }
+      match /estado/{doc} { allow read, write: if esMiembro(codigo); }
+      match /dias/{fecha} { allow read, write: if esMiembro(codigo); }
+    }
+  }
+}

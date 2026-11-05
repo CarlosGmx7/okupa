@@ -1,0 +1,16 @@
+{
+  "name": "okupa-firebase",
+  "private": true,
+  "type": "module",
+  "description": "Reglas de Firestore de Okupa y sus pruebas con el emulador (no se publica en la app).",
+  "scripts": {
+    "test": "node emuladores.mjs exec \"node --test pruebas/\"",
+    "emuladores": "node emuladores.mjs start",
+    "pruebas": "node --test pruebas/"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "6.0.0",
+    "firebase": "13.1.0",
+    "firebase-tools": "15.34.0"
+  }
+}

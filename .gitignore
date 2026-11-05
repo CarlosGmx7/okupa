@@ -1,2 +1,5 @@
 ﻿herramientas/foto-original.*
 .superpowers/
+firebase/node_modules/
+firebase/*.log
+firebase/tmp/
