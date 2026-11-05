@@ -1,0 +1,36 @@
+[
+  { "id": "generos", "tipo": "varias", "texto": "¿Qué música te mueve?", "opciones": [
+    { "id": "salsa", "texto": "Salsa" }, { "id": "rap", "texto": "Rap / hip hop" }, { "id": "reggaeton", "texto": "Reguetón" },
+    { "id": "rock", "texto": "Rock" }, { "id": "pop", "texto": "Pop" }, { "id": "vallenato", "texto": "Vallenato" },
+    { "id": "popular", "texto": "Popular / despecho" }, { "id": "electronica", "texto": "Electrónica" }, { "id": "indie", "texto": "Indie / alternativo" },
+    { "id": "baladas", "texto": "Baladas y boleros" }, { "id": "jazz", "texto": "Jazz / blues" }, { "id": "champeta", "texto": "Champeta" }
+  ] },
+  { "id": "artistas", "tipo": "textos", "max": 3, "texto": "Tus tres artistas del momento" },
+  { "id": "cancion", "tipo": "texto", "texto": "La canción que más estás oyendo" },
+  { "id": "pelis", "tipo": "texto", "texto": "Una peli, serie o libro que te marcó" },
+  { "id": "plan", "tipo": "una", "texto": "Tu plan ideal de fin de semana", "opciones": [
+    { "id": "rumba", "texto": "Salir de rumba" }, { "id": "naturaleza", "texto": "Finca, río o montaña" },
+    { "id": "casa", "texto": "Series y comida en casa" }, { "id": "viaje", "texto": "Viajar a otra ciudad" },
+    { "id": "amigos", "texto": "Comida con amigos" }, { "id": "cultura", "texto": "Concierto, museo o teatro" }
+  ] },
+  { "id": "vivir", "tipo": "una", "texto": "¿Dónde te ves viviendo en diez años?", "opciones": [
+    { "id": "aqui", "texto": "En esta misma ciudad" }, { "id": "colombia", "texto": "En otra ciudad de Colombia" },
+    { "id": "exterior", "texto": "En otro país" }, { "id": "campo", "texto": "En el campo o un pueblo" }, { "id": "nose", "texto": "Ni idea" }
+  ] },
+  { "id": "hijos", "tipo": "una", "texto": "¿Hijos?", "opciones": [
+    { "id": "si", "texto": "Sí, quiero" }, { "id": "talvez", "texto": "Tal vez, más adelante" },
+    { "id": "no", "texto": "No quiero" }, { "id": "nolohepensado", "texto": "No lo he pensado" }
+  ] },
+  { "id": "matrimonio", "tipo": "una", "texto": "¿Casarse?", "opciones": [
+    { "id": "grande", "texto": "Sí, con fiesta grande" }, { "id": "pequeno", "texto": "Sí, algo pequeño" },
+    { "id": "no", "texto": "No creo en eso" }, { "id": "igual", "texto": "Me da igual" }
+  ] },
+  { "id": "mascotas", "tipo": "una", "texto": "¿Mascotas?", "opciones": [
+    { "id": "perro", "texto": "Perro" }, { "id": "gato", "texto": "Gato" }, { "id": "ambos", "texto": "Perro y gato" }, { "id": "ninguna", "texto": "Ninguna" }
+  ] },
+  { "id": "masTemas", "tipo": "temas", "texto": "Temas que te gustaría que salieran más" },
+  { "id": "evitarTemas", "tipo": "temas", "texto": "Temas que prefieres que no salgan" },
+  { "id": "intensidad", "tipo": "intensidad", "texto": "¿Qué tan intensas pueden ser las preguntas?", "opciones": [
+    { "id": "1", "texto": "Suaves" }, { "id": "2", "texto": "Medias" }, { "id": "3", "texto": "Sin filtro" }
+  ] }
+]

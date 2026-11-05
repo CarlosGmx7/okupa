@@ -1,0 +1,11 @@
+[
+  { "id": "aventura", "izquierda": "aventurero", "derecha": "de rutina" },
+  { "id": "ciudad", "izquierda": "de ciudad", "derecha": "de naturaleza" },
+  { "id": "ahorro", "izquierda": "ahorrador", "derecha": "de disfrutar la plata" },
+  { "id": "social", "izquierda": "sociable", "derecha": "casero" },
+  { "id": "independencia", "izquierda": "independiente", "derecha": "de hacer todo juntos" },
+  { "id": "tradicion", "izquierda": "tradicional", "derecha": "de cambiar las reglas" },
+  { "id": "hijos", "izquierda": "con ganas de hijos", "derecha": "sin ganas de hijos" },
+  { "id": "celos", "izquierda": "celoso", "derecha": "tranquilo con los celos" },
+  { "id": "planificacion", "izquierda": "de planearlo todo", "derecha": "de improvisar" }
+]
