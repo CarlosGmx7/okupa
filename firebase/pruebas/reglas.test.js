@@ -121,13 +121,54 @@ describe('datos de la pareja', () => {
       await assertFails(setDoc(doc(db('u3'), `${RUTA}/${r}`), { v: 2 }));
     }
   });
-  it('respuestas está cerrado en esta etapa', async () => {
-    await sembrar({ [RUTA]: completa });
-    await assertFails(setDoc(doc(db('u1'), `${RUTA}/dias/2026-11-04/respuestas/gustos_a`), { v: 1 }));
-  });
   it('solo un miembro puede borrar la pareja', async () => {
     await sembrar({ [RUTA]: completa });
     await assertFails(deleteDoc(pareja('u3')));
     await assertSucceeds(deleteDoc(pareja('u1')));
+  });
+});
+
+describe('respuestas del diario', () => {
+  const DIA = `${RUTA}/dias/2026-11-05`;
+  const respuesta = (uid, parte) => doc(db(uid), `${DIA}/respuestas/${parte}`);
+  const items = { items: [{ opcion: 1, comentario: '' }], enviada: 1 };
+
+  it('cada uno crea solo la suya', async () => {
+    await sembrar({ [RUTA]: completa });
+    await assertSucceeds(setDoc(respuesta('u1', 'gustos_a'), items));
+    await assertSucceeds(setDoc(respuesta('u2', 'ingles_b'), { items: [0, 1, 2], aciertos: 2 }));
+    await assertFails(setDoc(respuesta('u1', 'gustos_b'), items));
+    await assertFails(setDoc(respuesta('u3', 'gustos_a'), items));
+    await assertFails(setDoc(respuesta('u1', 'secreto_a'), items));
+  });
+  it('no se puede cambiar una respuesta enviada', async () => {
+    await sembrar({ [RUTA]: completa });
+    await assertSucceeds(setDoc(respuesta('u1', 'gustos_a'), items));
+    await assertFails(setDoc(respuesta('u1', 'gustos_a'), { items: [{ opcion: 0 }] }));
+    await assertFails(setDoc(respuesta('u1', 'gustos_a'), { items: [{ opcion: 0 }] }, { merge: true }));
+  });
+  it('la propia se lee aunque todavía no exista', async () => {
+    await sembrar({ [RUTA]: completa });
+    await assertSucceeds(getDoc(respuesta('u1', 'gustos_a')));
+  });
+  it('no se lee la del otro sin haber enviado la propia de esa parte', async () => {
+    await sembrar({ [RUTA]: completa, [`${DIA}/respuestas/gustos_b`]: items });
+    await assertFails(getDoc(respuesta('u1', 'gustos_b')));
+    await assertSucceeds(setDoc(respuesta('u1', 'gustos_a'), items));
+    await assertSucceeds(getDoc(respuesta('u1', 'gustos_b')));
+  });
+  it('enviar los gustos no destapa el inglés del otro', async () => {
+    await sembrar({ [RUTA]: completa, [`${DIA}/respuestas/gustos_a`]: items, [`${DIA}/respuestas/ingles_b`]: { items: [0, 0, 0], aciertos: 1 } });
+    await assertFails(getDoc(respuesta('u1', 'ingles_b')));
+  });
+  it('un extraño no lee respuestas y nadie las lista', async () => {
+    await sembrar({ [RUTA]: completa, [`${DIA}/respuestas/gustos_a`]: items });
+    await assertFails(getDoc(respuesta('u3', 'gustos_a')));
+    await assertFails(getDocs(collection(db('u1'), `${DIA}/respuestas`)));
+  });
+  it('un miembro puede borrarlas (borrar todos los datos)', async () => {
+    await sembrar({ [RUTA]: completa, [`${DIA}/respuestas/gustos_b`]: items });
+    await assertSucceeds(deleteDoc(respuesta('u1', 'gustos_b')));
+    await assertFails(deleteDoc(respuesta('u3', 'gustos_a')));
   });
 });

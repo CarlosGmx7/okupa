@@ -6,6 +6,7 @@ const LUGARES = ['a', 'b'];
 const MAX_NOMBRE = 30;
 const INTENTOS_CODIGO = 5;
 const SUBCOLECCIONES = ['perfiles', 'partidas', 'estado', 'dias'];
+export const PARTES_RESPUESTA = ['gustos_a', 'gustos_b', 'ingles_a', 'ingles_b'];
 
 // Sin I, L, O, 0 ni 1 para que no se confundan al dictarlo.
 export const ALFABETO = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
@@ -167,8 +168,9 @@ export async function borrarTodo(nube, almacen) {
   const base = ruta(pareja.codigo);
   for (const sub of SUBCOLECCIONES) {
     for (const { id } of await nube.listar(`${base}/${sub}`)) {
+      // Las respuestas no se pueden listar (protegen lo del otro): se borran por su nombre fijo.
       if (sub === 'dias') {
-        for (const r of await nube.listar(`${base}/dias/${id}/respuestas`)) await nube.borrar(`${base}/dias/${id}/respuestas/${r.id}`);
+        for (const parte of PARTES_RESPUESTA) await nube.borrar(`${base}/dias/${id}/respuestas/${parte}`);
       }
       await nube.borrar(`${base}/${sub}/${id}`);
     }

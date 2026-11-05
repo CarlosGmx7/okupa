@@ -10,6 +10,10 @@ service cloud.firestore {
       return autenticado() && (l.a == request.auth.uid || l.b == request.auth.uid);
     }
     function soloCambia(antes, despues, claves) { return despues.diff(antes).affectedKeys().hasOnly(claves); }
+    function miLugar(codigo) {
+      let l = datosPareja(codigo).lugares;
+      return l.a == request.auth.uid ? 'a' : (l.b == request.auth.uid ? 'b' : '');
+    }
     // Ocupar un lugar vacío o reclamarlo (cambio de celular): solo ese lugar y su nombre.
     function tomaLugar(x) {
       let antes = resource.data;
@@ -45,7 +49,25 @@ service cloud.firestore {
       match /perfiles/{lugar} { allow read, write: if esMiembro(codigo); }
       match /partidas/{id} { allow read, write: if esMiembro(codigo); }
       match /estado/{doc} { allow read, write: if esMiembro(codigo); }
-      match /dias/{fecha} { allow read, write: if esMiembro(codigo); }
+      match /dias/{fecha} {
+        allow read, write: if esMiembro(codigo);
+
+        // Respuestas del diario: {gustos|ingles}_{a|b}. Cada uno crea la suya una sola vez, y solo ve
+        // la del otro en una parte si ya envió la propia de esa misma parte.
+        match /respuestas/{parte} {
+          function valida() { return parte.matches('^(gustos|ingles)_(a|b)$'); }
+          function deParte() { return parte.split('_')[0]; }
+          function esMia() { return parte.split('_')[1] == miLugar(codigo); }
+          function yaEnvieLaMia() {
+            return exists(/databases/$(db)/documents/parejas/$(codigo)/dias/$(fecha)/respuestas/$(deParte() + '_' + miLugar(codigo)));
+          }
+          allow get: if esMiembro(codigo) && valida() && (esMia() || yaEnvieLaMia());
+          allow list: if false;
+          allow create: if esMiembro(codigo) && valida() && esMia();
+          allow update: if false;
+          allow delete: if esMiembro(codigo);
+        }
+      }
     }
   }
 }
