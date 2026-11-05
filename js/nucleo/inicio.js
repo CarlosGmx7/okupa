@@ -14,6 +14,8 @@ export function pantallaInicio(contenedor, _params, ctx) {
     el('div', { clase: 'inicio-tarjetas' }, tarjetas),
     bloqueInstalar(ctx.instalacion),
     el('footer', { clase: 'inicio-pie' },
+      el('a', { href: '#/pareja' }, 'Nuestra pareja'),
+      el('span', { 'aria-hidden': 'true' }, ' · '),
       el('a', { href: '#/acerca' }, 'Acerca de Okupa')),
   );
 }

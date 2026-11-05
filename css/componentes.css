@@ -426,6 +426,17 @@
 .fila-texto { font-family: var(--serif); font-size: 17px; overflow-wrap: anywhere; }
 .seleccionable { cursor: pointer; }
 .seleccionable input { width: 20px; height: 20px; accent-color: var(--dorado); }
+.codigo-pareja {
+  font-family: var(--serif);
+  font-size: clamp(40px, 13vw, 56px);
+  letter-spacing: 0.12em;
+  color: var(--dorado);
+  text-align: center;
+  margin: 8px 0 12px;
+  -webkit-user-select: all;
+  user-select: all;
+}
+.enlace-acciones { display: flex; flex-wrap: wrap; gap: 10px; margin: 8px 0 16px; }
 .orden { margin-bottom: 16px; }
 .orden .fila { gap: 8px; padding: 10px 10px 10px 16px; }
 .orden-numero { font-family: var(--serif); color: var(--dorado); min-width: 1.4em; }
