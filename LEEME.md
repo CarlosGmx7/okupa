@@ -105,6 +105,31 @@ Reglas (las revisa `pruebas.html`):
 
 Para preguntas solo de ustedes no hace falta tocar archivos: usen **Mis preguntas** dentro de la app.
 
+## Agregar preguntas de trivia
+
+Cada tema tiene su archivo en `data/trivia/` (`arte`, `historia`, `ciencia`, `deportes`,
+`canserbero`, `lana`). Matemáticas e inglés no se escriben: se generan (inglés sale de
+`data/ingles/vocabulario.json`). Una pregunta se ve así:
+
+```json
+{ "id": "art-013", "tema": "arte", "tipo": "vf", "texto": "…", "respuesta": true,
+  "dato": "Explicación corta de la respuesta.", "ref": "https://… (fuente donde se verificó)" }
+{ "id": "art-014", "tema": "arte", "tipo": "opciones", "texto": "¿…?",
+  "opciones": ["A", "B", "C", "D"], "respuesta": 2, "dato": "…", "ref": "https://…" }
+```
+
+Reglas (las revisa `pruebas.html`):
+
+- `id`: prefijo del tema (`art`, `his`, `cie`, `dep`, `can`, `lan`) + 3 cifras, sin repetir.
+- `vf`: `respuesta` es `true` o `false`; en cada tema, entre 40 y 60 % de los V/F son verdaderos.
+- `opciones`: 4 textos distintos y `respuesta` es la posición de la correcta (0 a 3).
+- Siempre `dato` y `ref`: cada dato se verifica en una fuente antes de agregarlo.
+- Canserbero: su música y trayectoria; nada sobre los detalles de su muerte.
+
+Para el inglés, cada entrada del vocabulario lleva `es`, `en`, `tipo` (`palabra`, `phrasal`,
+`expresion` o `falso_amigo`), un `ejemplo` en inglés con el término entre llaves
+(`"I finally {gave up} smoking."`) y, en los falsos amigos, la `trampa` (lo que parece pero no es).
+
 ## Agregar una sección nueva al ecosistema
 
 1. Crea `js/modulos/<nombre>/modulo.js` que exporte `{ id, nombre, rutas, tarjetasInicio, iniciar?, acerca? }`
