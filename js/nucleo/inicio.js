@@ -1,5 +1,19 @@
 // Pantallas propias del núcleo: inicio y "Acerca de".
 import { el } from './ui.js';
+import { miPareja } from './pareja.js';
+
+// Acceso destacado a enlazar los celulares. Se pinta con lo guardado en el celular, sin internet.
+function tarjetaJuntos(almacen) {
+  const enlazados = Boolean(almacen && miPareja(almacen));
+  return el('a', { clase: `juntos${enlazados ? ' enlazados' : ''}`, href: '#/pareja' },
+    el('span', { clase: 'juntos-icono', 'aria-hidden': 'true' }, '∞'),
+    el('span', { clase: 'juntos-cuerpo' },
+      el('span', { clase: 'juntos-titulo' }, enlazados ? 'Nuestra pareja' : 'Jueguen juntos'),
+      el('span', { clase: 'juntos-detalle' }, enlazados
+        ? 'Celulares enlazados ✓'
+        : 'Enlacen sus dos celulares')),
+    el('span', { clase: 'juntos-accion' }, enlazados ? 'Ver' : 'Enlazar →'));
+}
 
 export function pantallaInicio(contenedor, _params, ctx) {
   const tarjetas = ctx.modulos.flatMap((m) => {
@@ -11,11 +25,10 @@ export function pantallaInicio(contenedor, _params, ctx) {
       el('img', { clase: 'inicio-portada', src: 'iconos/portada-circular.png', alt: '', onerror: (e) => e.target.remove() }),
       el('h1', { clase: 'logo' }, 'Okupa'),
       el('p', { clase: 'lema' }, 'Preguntas para conocerse de verdad')),
+    tarjetaJuntos(ctx.almacen),
     el('div', { clase: 'inicio-tarjetas' }, tarjetas),
     bloqueInstalar(ctx.instalacion),
     el('footer', { clase: 'inicio-pie' },
-      el('a', { href: '#/pareja' }, 'Nuestra pareja'),
-      el('span', { 'aria-hidden': 'true' }, ' · '),
       el('a', { href: '#/acerca' }, 'Acerca de Okupa')),
   );
 }

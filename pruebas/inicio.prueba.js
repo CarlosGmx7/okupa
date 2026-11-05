@@ -1,8 +1,28 @@
 import { prueba, igual, verdadero } from './corredor.js';
 import { pantallaInicio, pantallaAcerca } from '../js/nucleo/inicio.js';
 import { el } from '../js/nucleo/ui.js';
+import { almacenEnMemoria } from './pareja.prueba.js';
 
-const ctx = (modulos) => ({ modulos, almacen: { claves: () => [], borrar() {} }, ir() {}, refrescar() {} });
+const ctx = (modulos, almacen = almacenEnMemoria()) => ({ modulos, almacen, ir() {}, refrescar() {} });
+
+prueba('inicio: sin pareja, una tarjeta destacada arriba invita a enlazar', () => {
+  const div = document.createElement('div');
+  pantallaInicio(div, {}, ctx([{ id: 'a', tarjetasInicio: () => [el('p', { clase: 't' }, 'Tarjeta A')] }]));
+  const tarjeta = div.querySelector('a.juntos');
+  verdadero(tarjeta, 'falta la tarjeta de pareja');
+  igual(tarjeta.getAttribute('href'), '#/pareja');
+  verdadero(tarjeta.textContent.includes('Jueguen juntos') && tarjeta.textContent.includes('Enlazar'), tarjeta.textContent);
+  verdadero(tarjeta.compareDocumentPosition(div.querySelector('.t')) & Node.DOCUMENT_POSITION_FOLLOWING, 'va antes de las tarjetas de los módulos');
+  verdadero(!div.querySelector('.inicio-pie a[href="#/pareja"]'), 'ya no está escondida en el pie');
+});
+
+prueba('inicio: con pareja, la tarjeta dice que los celulares están enlazados', () => {
+  const almacen = almacenEnMemoria();
+  almacen.escribir('okupa:pareja:actual', { codigo: 'K7PQ2M', lugar: 'a' });
+  const div = document.createElement('div');
+  pantallaInicio(div, {}, ctx([], almacen));
+  verdadero(div.querySelector('a.juntos').textContent.includes('Celulares enlazados'), div.querySelector('a.juntos').textContent);
+});
 
 prueba('inicio: pinta las tarjetas de cada módulo y omite el que falla', () => {
   const div = document.createElement('div');
