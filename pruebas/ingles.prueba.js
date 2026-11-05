@@ -10,10 +10,10 @@ const termino = (e) => e.ejemplo.match(/\{([^}]+)\}/)[1];
 
 prueba('inglés: vocabulario válido y suficiente', () => {
   igual(validarVocabulario(vocabulario), []);
-  verdadero(vocabulario.length >= 300, `hay ${vocabulario.length}`);
+  verdadero(vocabulario.length >= 1500, `hay ${vocabulario.length}`);
   for (const tipo of ['palabra', 'phrasal', 'expresion', 'falso_amigo']) {
     const n = vocabulario.filter((e) => e.tipo === tipo).length;
-    verdadero(n >= 50, `${tipo}: ${n}`);
+    verdadero(n >= 250, `${tipo}: ${n}`);
   }
 });
 
