@@ -7,12 +7,12 @@ const diario = await cargarDiario();
 prueba('diario contenido: válido y suficiente', () => {
   igual(diario.temas.map((t) => t.id), TEMAS_DIARIO);
   igual(validarDiario(diario), []);
-  verdadero(diario.preguntas.length >= 90, `hay ${diario.preguntas.length}`);
+  verdadero(diario.preguntas.length >= 600, `hay ${diario.preguntas.length}`);
   for (const tema of TEMAS_DIARIO) {
     const n = diario.preguntas.filter((p) => p.tema === tema).length;
-    verdadero(n >= 8, `${tema}: ${n}`);
+    verdadero(n >= 70, `${tema}: ${n}`);
   }
-  verdadero(diario.preguntas.filter((p) => p.adivinar).length >= 30, 'al menos 30 para adivinar');
+  verdadero(diario.preguntas.filter((p) => p.adivinar).length >= 300, 'al menos 300 para adivinar');
   verdadero(diario.preguntas.filter((p) => p.requiere).length >= 8, 'al menos 8 seguimientos');
   verdadero(diario.preguntas.filter((p) => /\{[a-z_]+\}/.test(p.texto)).length >= 8, 'al menos 8 plantillas');
   verdadero(diario.vocabulario.length >= 300, 'trae el vocabulario de inglés');
