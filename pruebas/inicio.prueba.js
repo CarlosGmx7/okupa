@@ -8,12 +8,21 @@ const ctx = (modulos, almacen = almacenEnMemoria()) => ({ modulos, almacen, ir()
 prueba('inicio: sin pareja, una tarjeta destacada arriba invita a enlazar', () => {
   const div = document.createElement('div');
   pantallaInicio(div, {}, ctx([{ id: 'a', tarjetasInicio: () => [el('p', { clase: 't' }, 'Tarjeta A')] }]));
-  const tarjeta = div.querySelector('a.juntos');
+  const tarjeta = div.querySelector('.juntos .juntos-principal');
   verdadero(tarjeta, 'falta la tarjeta de pareja');
   igual(tarjeta.getAttribute('href'), '#/pareja');
   verdadero(tarjeta.textContent.includes('Jueguen juntos') && tarjeta.textContent.includes('Enlazar'), tarjeta.textContent);
   verdadero(tarjeta.compareDocumentPosition(div.querySelector('.t')) & Node.DOCUMENT_POSITION_FOLLOWING, 'va antes de las tarjetas de los módulos');
   verdadero(!div.querySelector('.inicio-pie a[href="#/pareja"]'), 'ya no está escondida en el pie');
+});
+
+prueba('inicio: sin pareja también se ven las secciones para jugar juntos', () => {
+  const div = document.createElement('div');
+  pantallaInicio(div, {}, ctx([{ id: 'diario', accesoJuntos: { ruta: 'diario', nombre: 'Diario', icono: '☼' } }]));
+  const enlace = [...div.querySelectorAll('.juntos a')].find((x) => x.textContent.includes('Diario'));
+  verdadero(enlace, div.querySelector('.juntos')?.outerHTML);
+  igual(enlace.getAttribute('href'), '#/diario');
+  verdadero(div.querySelector('.juntos').textContent.includes('Enlazar'), 'sigue invitando a enlazar');
 });
 
 prueba('inicio: con pareja, la tarjeta dice que los celulares están enlazados', () => {

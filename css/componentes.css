@@ -77,7 +77,7 @@
   font-weight: 600;
   white-space: nowrap;
 }
-.juntos.enlazados {
+.juntos.enlazados, .juntos.sin-enlazar {
   flex-direction: column;
   align-items: stretch;
   gap: 12px;
