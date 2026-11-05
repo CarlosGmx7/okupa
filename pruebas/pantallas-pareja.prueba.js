@@ -135,6 +135,45 @@ prueba('pantalla pareja: el nombre de la pareja se muestra como texto', async ()
   igual(div.querySelector('b'), null);
 });
 
+prueba('pantalla pareja: un error de Firebase no se confunde con falta de internet', async () => {
+  const div = document.createElement('div');
+  const ctx = { almacen: almacenEnMemoria(), nube: async () => { throw new ErrorNube('desconocido', 'auth/admin-restricted-operation'); }, refrescar() {} };
+  const original = console.warn;
+  const avisos = [];
+  console.warn = (...a) => avisos.push(a);
+  try { await pantallaPareja(div, {}, ctx); } finally { console.warn = original; }
+  verdadero(div.textContent.includes('No se pudo conectar con Firebase'), div.textContent);
+  verdadero(!div.textContent.includes('Necesitas internet'), div.textContent);
+  verdadero(boton(div, 'Reintentar'), 'ofrece reintentar');
+  verdadero(avisos.length > 0, 'deja el error en la consola');
+});
+
+prueba('pantalla pareja: el campo de código acepta pegar el mensaje compartido', async () => {
+  const { div, pintar } = montar(crearMundoFalso(), 'u1');
+  await pintar();
+  boton(div, 'Tengo un código').click();
+  const campo = div.querySelector('input[placeholder="K7P-Q2M"]');
+  igual(campo.getAttribute('maxlength'), null);
+});
+
+prueba('exigirPareja: si reclamaron el lugar o borraron la pareja, lo explica', async () => {
+  const mundo = crearMundoFalso();
+  const alm1 = almacenEnMemoria();
+  const { codigo } = await crearPareja(mundo.nube('u1'), alm1, { nombre: 'Carlos' });
+  await reclamar(mundo.nube('u3'), almacenEnMemoria(), { codigo, lugar: 'a' });
+  const uno = montar(mundo, 'u1', alm1);
+  igual(await exigirPareja(uno.div, uno.ctx), null);
+  verdadero(uno.div.textContent.includes('Tu lugar se abrió en otro celular'), uno.div.textContent);
+  igual(miPareja(alm1), null);
+
+  const alm2 = almacenEnMemoria();
+  const otra = await crearPareja(mundo.nube('u2'), alm2, { nombre: 'Sofi' });
+  await mundo.nube('u2').borrar(`parejas/${otra.codigo}`);
+  const dos = montar(mundo, 'u2', alm2);
+  igual(await exigirPareja(dos.div, dos.ctx), null);
+  verdadero(dos.div.textContent.includes('Tu pareja borró sus datos de la nube'), dos.div.textContent);
+});
+
 prueba('exigirPareja: null y pinta el enlace sin pareja; nube y pareja si la hay', async () => {
   const mundo = crearMundoFalso();
   const sin = montar(mundo, 'u1');

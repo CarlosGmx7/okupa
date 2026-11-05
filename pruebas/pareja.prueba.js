@@ -50,6 +50,24 @@ prueba('pareja: normalizarCodigo acepta minúsculas, espacios y guion; rechaza a
   }
 });
 
+prueba('pareja: normalizarCodigo saca el código del mensaje compartido', () => {
+  igual(normalizarCodigo('Únete a nuestra pareja en Okupa con el código K7P-Q2M'), 'K7PQ2M');
+  igual(normalizarCodigo('K7P - Q2M'), 'K7PQ2M');
+  igual(normalizarCodigo('el código es O7P-Q2M'), null);
+});
+
+prueba('pareja: una escucha vacía sin conexión no borra la pareja', async () => {
+  const { mundo, alm1, codigo } = await parejaCompleta();
+  const motivos = [];
+  vigilarLugar(mundo.nube('u1'), alm1, (m) => motivos.push(m));
+  await microtareas();
+  mundo.desconectar({ escuchasVacias: true }); // Firestore sin red avisa "no existe" desde su caché
+  await microtareas();
+  await microtareas();
+  igual(motivos, []);
+  igual(miPareja(alm1), { codigo, lugar: 'a' });
+});
+
 prueba('pareja: formatearCodigo', () => {
   igual(formatearCodigo('K7PQ2M'), 'K7P-Q2M');
 });

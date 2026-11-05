@@ -36,14 +36,19 @@ async function accion(boton, error, fn) {
 }
 
 function pintarSinNube(zona, ctx, e) {
-  if (!(e instanceof ErrorNube)) console.warn('Okupa: la nube no inició', e);
-  zona.replaceChildren(e?.codigo === 'sin-config'
-    ? el('div', { clase: 'vacio' },
+  const codigo = e instanceof ErrorNube ? e.codigo : 'desconocido';
+  if (codigo !== 'sin-config' && codigo !== 'sin-conexion') console.warn('Okupa: la nube no inició', e);
+  const reintentar = el('button', { clase: 'boton boton-principal', type: 'button', onclick: () => ctx.refrescar() }, 'Reintentar');
+  zona.replaceChildren(
+    codigo === 'sin-config' ? el('div', { clase: 'vacio' },
       el('p', {}, 'Falta configurar la conexión'),
       el('p', { clase: 'campo-ayuda' }, 'Sigue los pasos de «Conectar Firebase» en el LEEME.'))
+    : codigo === 'sin-conexion' ? el('div', { clase: 'vacio' },
+      el('p', {}, 'Necesitas internet para esta sección'), reintentar)
     : el('div', { clase: 'vacio' },
-      el('p', {}, 'Necesitas internet para esta sección'),
-      el('button', { clase: 'boton boton-principal', type: 'button', onclick: () => ctx.refrescar() }, 'Reintentar')));
+      el('p', {}, 'No se pudo conectar con Firebase'),
+      el('p', { clase: 'campo-ayuda' }, 'Revisa que estén hechos todos los pasos de «Conectar Firebase» en el LEEME (incluido el acceso Anónimo y las reglas).'),
+      reintentar));
 }
 
 // Descargar Firebase e iniciar sesión tarda unos segundos: nunca dejar la pantalla vacía.
@@ -97,7 +102,7 @@ function pintarEnlace(zona, ctx, nube, alEnlazar) {
   }
 
   function tengoCodigo() {
-    const codigo = entrada({ maxlength: '7', autocapitalize: 'characters', autocomplete: 'off', placeholder: 'K7P-Q2M' });
+    const codigo = entrada({ autocapitalize: 'characters', autocomplete: 'off', placeholder: 'K7P-Q2M' });
     const nombre = entrada({ maxlength: '30', autocomplete: 'given-name' });
     const error = el('p', { clase: 'error-formulario', role: 'alert' });
     const unirme = el('button', { clase: 'boton boton-principal', type: 'button' }, 'Unirme');
@@ -225,7 +230,9 @@ export async function exigirPareja(contenedor, ctx) {
       if (doc?.lugares?.[pareja.lugar] === uid) {
         return { nube, pareja: { ...pareja, nombres: { a: doc.nombres?.a ?? null, b: doc.nombres?.b ?? null } } };
       }
-      salir(ctx.almacen); // ya no es de este celular
+      salir(ctx.almacen); // ya no es de este celular: se explica por qué
+      pintarPerdido(contenedor, ctx, doc ? 'reclamado' : 'borrada');
+      return null;
     } catch (e) {
       pintarSinNube(contenedor, ctx, e);
       return null;

@@ -94,7 +94,11 @@ export function crearNube({ config, emuladores = null, nombreApp = '[DEFAULT]', 
       let activo = true;
       conDb((db, fs) => {
         if (!activo) return;
-        cancelar = fs.onSnapshot(fs.doc(db, ruta), (foto) => fn(datosDe(foto)), (e) => console.warn('Okupa: escucha cortada', traducir(e)));
+        cancelar = fs.onSnapshot(fs.doc(db, ruta), (foto) => {
+          // Sin red, un documento que no está en la caché llega como "no existe": no es cierto, se ignora.
+          if (foto.metadata.fromCache && !foto.exists()) return;
+          fn(datosDe(foto));
+        }, (e) => console.warn('Okupa: escucha cortada', traducir(e)));
       }).catch((e) => console.warn('Okupa: no se pudo escuchar', e));
       return () => { activo = false; cancelar?.(); };
     },

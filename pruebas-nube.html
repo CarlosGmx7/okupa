@@ -16,7 +16,7 @@
   <p id="resultado">Corriendo…</p>
   <ol id="pasos"></ol>
   <script type="module">
-    import { crearNube } from './js/nucleo/nube.js';
+    import { crearNube, VERSION_FIREBASE } from './js/nucleo/nube.js';
     import { crearAlmacen } from './js/nucleo/almacen.js';
     import { crearPareja, unirse, vigilarLugar, reclamar, miPareja } from './js/nucleo/pareja.js';
 
@@ -43,6 +43,20 @@
       let error = null;
       try { await c.leer(`parejas/${codigo}/perfiles/a`); } catch (e) { error = e; }
       afirmar(error?.codigo === 'permiso', 'un extraño recibe permiso negado');
+      // Sin red, la escucha no debe decir "no existe" ni hacer creer que la pareja se borró.
+      const fs = await import(`https://www.gstatic.com/firebasejs/${VERSION_FIREBASE}/firebase-firestore.js`);
+      const { getApp } = await import(`https://www.gstatic.com/firebasejs/${VERSION_FIREBASE}/firebase-app.js`);
+      const dbB = fs.getFirestore(getApp(`b-${vez}`));
+      await fs.disableNetwork(dbB);
+      const vistos = [];
+      const cancelarB = b.escuchar(`parejas/${codigo}/perfiles/b`, (d) => vistos.push(d));
+      const motivosB = [];
+      vigilarLugar(b, almB, (m) => motivosB.push(m));
+      await esperar(2500);
+      cancelarB();
+      afirmar(!vistos.includes(null) && !motivosB.length && miPareja(almB), 'sin red no se cree que la pareja se borró');
+      await fs.enableNetwork(dbB);
+
       const motivos = [];
       vigilarLugar(a, almA, (m) => motivos.push(m));
       await esperar(500);

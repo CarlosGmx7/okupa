@@ -91,7 +91,11 @@ export function crearMundoFalso() {
   return {
     nube,
     datos,
-    desconectar() { conectado = false; },
+    // escuchasVacias: imita a Firestore sin red, que avisa "no existe" a las escuchas activas.
+    desconectar({ escuchasVacias = false } = {}) {
+      conectado = false;
+      if (escuchasVacias) oyentes.forEach((fns) => queueMicrotask(() => fns.forEach((fn) => fn(null))));
+    },
     reconectar() { conectado = true; },
   };
 }

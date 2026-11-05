@@ -28,10 +28,14 @@ export function generarCodigo(rnd = Math.random) {
 
 export const formatearCodigo = (codigo) => `${codigo.slice(0, 3)}-${codigo.slice(3)}`;
 
+// Acepta el código suelto ("k7p q2m") o pegado dentro del mensaje compartido ("…el código K7P-Q2M").
 export function normalizarCodigo(texto) {
   if (typeof texto !== 'string') return null;
-  const limpio = texto.toUpperCase().replace(/[\s-]/g, '');
-  return REGEX_CODIGO.test(limpio) ? limpio : null;
+  const mayusculas = texto.toUpperCase();
+  const limpio = mayusculas.replace(/[\s-]/g, '');
+  if (REGEX_CODIGO.test(limpio)) return limpio;
+  const enMensaje = mayusculas.match(/(?:^|[^A-Z0-9])([A-HJKMNP-Z2-9]{3})-([A-HJKMNP-Z2-9]{3})(?![A-Z0-9])/);
+  return enMensaje ? enMensaje[1] + enMensaje[2] : null;
 }
 
 export function limpiarNombre(texto) {
@@ -125,14 +129,21 @@ export function vigilarLugar(nube, almacen, alPerder) {
   let cancelar = () => {};
   nube.iniciar().then(({ uid }) => {
     if (!activo) return;
-    cancelar = nube.escuchar(ruta(pareja.codigo), (doc) => {
+    const perder = (motivo) => {
       if (!activo) return;
-      const motivo = !doc ? 'borrada' : doc.lugares?.[pareja.lugar] !== uid ? 'reclamado' : null;
-      if (!motivo) return;
       activo = false;
       cancelar();
       salir(almacen);
       alPerder(motivo);
+    };
+    cancelar = nube.escuchar(ruta(pareja.codigo), (doc) => {
+      if (!activo) return;
+      if (doc) {
+        if (doc.lugares?.[pareja.lugar] !== uid) perder('reclamado');
+        return;
+      }
+      // Sin red, Firestore avisa "no existe" desde su caché: solo se cree si el servidor lo confirma.
+      nube.leer(ruta(pareja.codigo)).then((confirmado) => { if (!confirmado) perder('borrada'); }, () => {});
     });
   }).catch(() => {});
   return () => { activo = false; cancelar(); };
