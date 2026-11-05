@@ -1,0 +1,10 @@
+[
+  { "id": "arte", "nombre": "Arte", "icono": "✎", "color": "#d4566f" },
+  { "id": "historia", "nombre": "Historia", "icono": "♜", "color": "#c9a45c" },
+  { "id": "ciencia", "nombre": "Ciencia", "icono": "⚗", "color": "#7fb7a8" },
+  { "id": "matematicas", "nombre": "Matemáticas", "icono": "∑", "color": "#8f9fd6" },
+  { "id": "deportes", "nombre": "Deportes", "icono": "◎", "color": "#e39a6b" },
+  { "id": "canserbero", "nombre": "Canserbero", "icono": "♪", "color": "#b07ad1" },
+  { "id": "lana", "nombre": "Lana del Rey", "icono": "☾", "color": "#e8b4c8" },
+  { "id": "ingles", "nombre": "Inglés", "icono": "Aa", "color": "#9ccf8a" }
+]
