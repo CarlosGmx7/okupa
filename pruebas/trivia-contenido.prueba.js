@@ -22,6 +22,16 @@ prueba('trivia contenido: cada tema de banco tiene su mínimo de preguntas', () 
   }
 });
 
+// Cada partida trae 7 preguntas de nivel 'facil' de los temas elegidos.
+const MINIMO_FACILES = { arte: 80, historia: 80, ciencia: 80, deportes: 80, lana: 50, canserbero: 40 };
+
+prueba('trivia contenido: suficientes preguntas fáciles por tema', () => {
+  for (const tema of TEMAS_BANCO) {
+    const n = (trivia.bancos[tema] || []).filter((p) => p.nivel === 'facil').length;
+    verdadero(n >= MINIMO_FACILES[tema], `${tema} tiene ${n} fáciles (mínimo ${MINIMO_FACILES[tema]})`);
+  }
+});
+
 const base = { id: 'art-900', tema: 'arte', tipo: 'vf', texto: '¿Algo?', respuesta: true, dato: 'Porque sí.', ref: 'https://es.wikipedia.org' };
 const opciones = { ...base, tipo: 'opciones', opciones: ['A', 'B', 'C', 'D'], respuesta: 2 };
 
