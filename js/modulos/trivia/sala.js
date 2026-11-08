@@ -16,14 +16,24 @@ export async function crearSala(nube, pareja, { preguntas, id = nuevoId() }) {
     creada: nube.horaServidor(),
     creadaMs: Date.now(),
   });
+  // Puntero a la última sala: buscar la pendiente es una lectura, no listar todas las partidas.
+  await nube.escribir(rutaUso(pareja.codigo), { salaAbierta: id }, { combinar: true });
   return id;
 }
 
+const abierta = (p) => p?.estado === 'esperando' || p?.estado === 'jugando';
+
 // La partida más reciente que no ha terminado ni se canceló.
 export async function partidaPendiente(nube, pareja) {
+  const uso = await nube.leer(rutaUso(pareja.codigo));
+  if (uso?.salaAbierta) {
+    const p = await nube.leer(rutaPartida(pareja, uso.salaAbierta));
+    return abierta(p) ? { ...p, id: uso.salaAbierta } : null;
+  }
+  // Datos de antes del puntero: se busca como antes.
   const abiertas = (await nube.listar(rutaPartidas(pareja.codigo)))
     .map(({ id, datos }) => ({ ...datos, id }))
-    .filter((p) => p.estado === 'esperando' || p.estado === 'jugando')
+    .filter(abierta)
     .sort((x, y) => (y.creadaMs || 0) - (x.creadaMs || 0));
   return abiertas[0] || null;
 }

@@ -19,6 +19,7 @@ const PRECACHE = [
   "js/nucleo/nube-config.js",
   "js/nucleo/pareja.js",
   "js/nucleo/pantallas-pareja.js",
+  "js/nucleo/precalentar.js",
   "js/compartido/ingles.js",
   "js/modulos/trivia/modulo.js",
   "js/modulos/trivia/pantallas.js",
@@ -82,7 +83,7 @@ self.addEventListener('install', (e) => {
 self.addEventListener('activate', (e) => {
   e.waitUntil(caches.keys()
     .then((claves) => Promise.all(claves
-      .filter((k) => k.startsWith('okupa-') && k !== CACHE)
+      .filter((k) => k.startsWith('okupa-') && k !== CACHE && k !== CACHE_LIBRERIAS)
       .map((k) => caches.delete(k))))
     .then(() => self.clients.claim()));
 });
@@ -97,9 +98,27 @@ async function desdeCache(req) {
   return null;
 }
 
+// Librerías externas con la versión en la dirección (Firebase, Leaflet): nunca cambian, así que se
+// guardan la primera vez y después salen del celular, sin esperar la red.
+const CACHE_LIBRERIAS = 'okupa-libs';
+const LIBRERIAS = [/^https:\/\/www\.gstatic\.com\/firebasejs\/\d+\.\d+\.\d+\//, /^https:\/\/cdnjs\.cloudflare\.com\/ajax\/libs\/leaflet\/\d+\.\d+\.\d+\//];
+
+async function libreria(req) {
+  const guardada = await caches.match(req, { cacheName: CACHE_LIBRERIAS });
+  if (guardada) return guardada;
+  const respuesta = await fetch(req);
+  if (respuesta.ok) {
+    const copia = respuesta.clone();
+    caches.open(CACHE_LIBRERIAS).then((c) => c.put(req, copia)).catch(() => {});
+  }
+  return respuesta;
+}
+
 self.addEventListener('fetch', (e) => {
   const req = e.request;
-  if (req.method !== 'GET' || new URL(req.url).origin !== self.location.origin) return;
+  if (req.method !== 'GET') return;
+  if (LIBRERIAS.some((r) => r.test(req.url))) { e.respondWith(libreria(req)); return; }
+  if (new URL(req.url).origin !== self.location.origin) return;
   if (DESARROLLO) {
     e.respondWith(fetch(req).catch(async () => (await desdeCache(req)) || Response.error()));
     return;

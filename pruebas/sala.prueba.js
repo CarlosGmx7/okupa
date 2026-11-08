@@ -69,6 +69,15 @@ prueba('sala: sin respuesta del otro se puede avanzar por tiempo', async () => {
   igual([p.indice, p.respuestas.b[0]], [1, undefined]);
 });
 
+prueba('sala: buscar la partida pendiente no lista todas las partidas', async () => {
+  const { a, b } = await dosCelulares();
+  const id = await crearSala(a.nube, a.pareja, { preguntas: PREGUNTAS });
+  let listados = 0;
+  const contando = { ...b.nube, listar: async (...x) => { listados++; return b.nube.listar(...x); } };
+  igual((await partidaPendiente(contando, b.pareja)).id, id);
+  igual(listados, 0);
+});
+
 prueba('sala: la partida cancelada ya no queda pendiente', async () => {
   const { a, b } = await dosCelulares();
   const id = await crearSala(a.nube, a.pareja, { preguntas: PREGUNTAS });

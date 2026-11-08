@@ -15,6 +15,7 @@ const MENSAJES = {
 };
 const mensajeDe = (e) => MENSAJES[e?.codigo] || 'Algo salió mal. Intenta de nuevo.';
 const otroLugar = (lugar) => (lugar === 'a' ? 'b' : 'a');
+const CLAVE_NOMBRES = 'okupa:pareja:nombres';
 
 function campo(etiqueta, control) {
   control.id = `c-${Math.random().toString(36).slice(2, 8)}`;
@@ -225,13 +226,32 @@ export async function exigirPareja(contenedor, ctx) {
   if (!nube) return null;
   const pareja = miPareja(ctx.almacen);
   if (pareja) {
-    try {
-      const [{ uid }, doc] = await Promise.all([nube.iniciar(), nube.leer(`parejas/${pareja.codigo}`)]);
-      if (doc?.lugares?.[pareja.lugar] === uid) {
-        return { nube, pareja: { ...pareja, nombres: { a: doc.nombres?.a ?? null, b: doc.nombres?.b ?? null } } };
+    // Comprueba en la nube que el lugar sigue siendo de este celular y guarda los nombres.
+    const comprobar = Promise.all([nube.iniciar(), nube.leer(`parejas/${pareja.codigo}`)]).then(([{ uid }, doc]) => {
+      if (doc?.lugares?.[pareja.lugar] !== uid) {
+        salir(ctx.almacen);
+        ctx.almacen.borrar(CLAVE_NOMBRES);
+        return { motivo: doc ? 'reclamado' : 'borrada' };
       }
-      salir(ctx.almacen); // ya no es de este celular: se explica por qué
-      pintarPerdido(contenedor, ctx, doc ? 'reclamado' : 'borrada');
+      const nombres = { a: doc.nombres?.a ?? null, b: doc.nombres?.b ?? null };
+      ctx.almacen.escribir(CLAVE_NOMBRES, { codigo: pareja.codigo, nombres });
+      return { nombres };
+    });
+    // Con los nombres ya guardados no se espera a la red: se comprueba por detrás y, si el lugar
+    // se perdió, se explica en esta misma pantalla.
+    const guardados = ctx.almacen.leer(CLAVE_NOMBRES, null);
+    if (guardados?.codigo === pareja.codigo && guardados.nombres?.b) {
+      comprobar.then((r) => {
+        if (!r.motivo) return;
+        contenedor.replaceChildren();
+        pintarPerdido(contenedor, ctx, r.motivo);
+      }).catch(() => {});
+      return { nube, pareja: { ...pareja, nombres: guardados.nombres } };
+    }
+    try {
+      const r = await comprobar;
+      if (!r.motivo) return { nube, pareja: { ...pareja, nombres: r.nombres } };
+      pintarPerdido(contenedor, ctx, r.motivo); // ya no es de este celular: se explica por qué
       return null;
     } catch (e) {
       pintarSinNube(contenedor, ctx, e);

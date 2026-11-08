@@ -47,10 +47,12 @@ export function crearPantallasTrivia({ cargar, ahora = () => performance.now(), 
   const T = { ruleta: 700, cuenta: 800, revelado: MS_REVELADO, revisar: 200, sondeo: 3000, ...ms };
 
   async function preparar(zona, ctx) {
+    const cargando = cargar(); // en paralelo con la conexión, no después
+    cargando.catch(() => {});
     const r = await exigirPareja(zona, ctx);
     if (!r) return null;
     try {
-      return { ...r, datos: await cargar() };
+      return { ...r, datos: await cargando };
     } catch (e) {
       console.warn('Okupa: no se pudo cargar la trivia', e);
       zona.replaceChildren(vacio('No se pudieron cargar las preguntas',

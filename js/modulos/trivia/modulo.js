@@ -13,6 +13,7 @@ const pantallas = crearPantallasTrivia({ cargar });
 export default {
   id: 'trivia',
   nombre: 'Trivia',
+  precalentar: () => cargar().catch(() => {}),
   accesoJuntos: { ruta: 'trivia', nombre: 'Trivia en vivo', icono: '✦' },
   rutas: {
     '': pantallas.sala,

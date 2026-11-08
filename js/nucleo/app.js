@@ -5,6 +5,7 @@ import { el, transicion } from './ui.js';
 import { pantallaInicio, pantallaAcerca } from './inicio.js';
 import { obtenerNube } from './nube.js';
 import { pantallaPareja } from './pantallas-pareja.js';
+import { precalentar } from './precalentar.js';
 import { crearInstalacion } from './instalacion.js';
 
 const vista = document.getElementById('vista');
@@ -24,18 +25,21 @@ async function pintar() {
   const r = resolverRuta(location.hash, tabla) || { handler: pantallaInicio, params: {} };
   const cambiar = primeraVez ? (fn) => fn() : transicion;
   primeraVez = false;
+  // La transición solo espera lo inmediato: si la pantalla trae datos de internet, se muestra ya
+  // (con su "Conectando…") en vez de dejar congelada la anterior hasta que lleguen.
+  let terminada;
   await cambiar(async () => {
     vista.replaceChildren();
     window.scrollTo(0, 0);
-    try {
-      await r.handler(vista, r.params, ctx);
-    } catch (e) {
+    terminada = Promise.resolve().then(() => r.handler(vista, r.params, ctx)).catch((e) => {
       console.error(e);
       vista.replaceChildren(
         el('p', { clase: 'aviso' }, 'Algo salió mal al abrir esta pantalla.'),
         el('a', { clase: 'boton', href: '#/' }, 'Volver al inicio'));
-    }
+    });
+    await Promise.race([terminada, new Promise((res) => setTimeout(res, 60))]);
   });
+  await terminada;
 }
 
 async function arrancar() {
@@ -58,6 +62,9 @@ async function arrancar() {
   // Si el navegador ofrece instalar (o ya se instaló), repinta el inicio para mostrar u ocultar el botón.
   ctx.instalacion.alCambiar(() => { if (!resolverRuta(location.hash, tabla) || location.hash.replace(/[#/]/g, '') === '') pintar(); });
   await pintar();
+  // Con la app ya pintada, adelanta Firebase y las preguntas para que Trivia y Diario abran rápido.
+  const luego = window.requestIdleCallback || ((fn) => setTimeout(fn, 400));
+  luego(() => precalentar(ctx));
 }
 
 arrancar();

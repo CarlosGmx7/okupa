@@ -71,10 +71,12 @@ function chipTema(tema) {
 
 export function crearPantallasDiario({ cargar, hoy = () => fechaBogota() } = {}) {
   async function preparar(zona, ctx) {
+    const cargando = cargar(); // en paralelo con la conexión, no después
+    cargando.catch(() => {});
     const r = await exigirPareja(zona, ctx);
     if (!r) return null;
     let datos;
-    try { datos = await cargar(); } catch (e) {
+    try { datos = await cargando; } catch (e) {
       console.warn('Okupa: no se pudo cargar el diario', e);
       zona.replaceChildren(vacio('No se pudieron cargar las preguntas', reintentar(ctx)));
       return null;

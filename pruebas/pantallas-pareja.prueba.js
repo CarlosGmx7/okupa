@@ -174,6 +174,24 @@ prueba('exigirPareja: si reclamaron el lugar o borraron la pareja, lo explica', 
   verdadero(dos.div.textContent.includes('Tu pareja borró sus datos de la nube'), dos.div.textContent);
 });
 
+prueba('exigirPareja: la segunda vez no espera a la red y si el lugar se perdió lo explica después', async () => {
+  const mundo = crearMundoFalso();
+  const alm1 = almacenEnMemoria();
+  const { codigo } = await crearPareja(mundo.nube('u1'), alm1, { nombre: 'Carlos' });
+  await unirse(mundo.nube('u2'), almacenEnMemoria(), { codigo, nombre: 'Sofi' });
+  const primera = montar(mundo, 'u1', alm1);
+  await exigirPareja(primera.div, primera.ctx); // guarda los nombres en el celular
+  let lecturas = 0;
+  const segunda = montar(mundo, 'u1', alm1);
+  segunda.ctx.nube = async () => { const n = mundo.nube('u1'); return { ...n, leer: async (r) => { lecturas++; await esperar(30); return n.leer(r); } }; };
+  await reclamar(mundo.nube('u3'), almacenEnMemoria(), { codigo, lugar: 'a' });
+  const r = await exigirPareja(segunda.div, segunda.ctx);
+  igual(r.pareja.nombres.a, 'Carlos', 'usa los nombres guardados');
+  await hasta(() => segunda.div.textContent.includes('Tu lugar se abrió en otro celular'));
+  verdadero(lecturas >= 1, 'igual comprueba en la nube');
+  igual(miPareja(alm1), null);
+});
+
 prueba('exigirPareja: null y pinta el enlace sin pareja; nube y pareja si la hay', async () => {
   const mundo = crearMundoFalso();
   const sin = montar(mundo, 'u1');

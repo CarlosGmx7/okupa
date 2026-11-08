@@ -4,7 +4,7 @@ const ESPERADOS = [
   './', 'index.html', 'modulos.json', 'manifest.webmanifest',
   'css/base.css', 'css/componentes.css',
   'js/nucleo/app.js', 'js/nucleo/almacen.js', 'js/nucleo/rutas.js', 'js/nucleo/ui.js', 'js/nucleo/inicio.js',
-  'js/nucleo/nube.js', 'js/nucleo/nube-config.js', 'js/nucleo/pareja.js', 'js/nucleo/pantallas-pareja.js',
+  'js/nucleo/nube.js', 'js/nucleo/nube-config.js', 'js/nucleo/pareja.js', 'js/nucleo/pantallas-pareja.js', 'js/nucleo/precalentar.js',
   'js/compartido/ingles.js',
   'js/modulos/trivia/modulo.js', 'js/modulos/trivia/pantallas.js', 'js/modulos/trivia/banco.js',
   'js/modulos/trivia/matematicas.js', 'js/modulos/trivia/partida.js', 'js/modulos/trivia/sala.js',
@@ -46,30 +46,59 @@ prueba('pwa: cada archivo de PRECACHE existe', async () => {
 });
 
 // Ejecuta sw.js con un `self` y un `caches` falsos y devuelve sus manejadores de eventos.
-async function cargarSW({ claves = [] } = {}) {
+async function cargarSW({ claves = [], red = async () => new Response('red') } = {}) {
   const codigo = await (await fetch('sw.js', { cache: 'no-store' })).text();
   const manejadores = {};
-  const registro = { borradas: [], agregadas: null };
+  const guardado = new Map(); // `${cache}|${url}` → Response
+  const registro = { borradas: [], agregadas: null, pedidosRed: [], guardado };
+  const cache = (nombre) => ({
+    addAll: async (reqs) => { registro.agregadas = reqs; },
+    put: async (req, res) => { guardado.set(`${nombre}|${req.url || req}`, res); },
+    match: async (req) => guardado.get(`${nombre}|${req.url || req}`),
+  });
   const cachesFalsas = {
     keys: async () => claves,
     delete: async (k) => { registro.borradas.push(k); return true; },
-    open: async () => ({ addAll: async (reqs) => { registro.agregadas = reqs; } }),
-    match: async () => undefined,
+    open: async (nombre) => cache(nombre),
+    match: async (req, { cacheName } = {}) => (cacheName ? guardado.get(`${cacheName}|${req.url || req}`) : undefined),
   };
+  const fetchFalso = async (req) => { registro.pedidosRed.push(req.url || req); return red(req); };
   const selfFalso = {
     location: new URL('https://ejemplo.github.io/okupa/sw.js'),
     addEventListener: (tipo, fn) => { manejadores[tipo] = fn; },
     skipWaiting: async () => {},
     clients: { claim: async () => {} },
   };
-  new Function('self', 'caches', codigo)(selfFalso, cachesFalsas);
+  new Function('self', 'caches', 'fetch', codigo)(selfFalso, cachesFalsas, fetchFalso);
   const disparar = async (tipo) => {
     let espera = Promise.resolve();
     manejadores[tipo]({ waitUntil: (p) => { espera = p; } });
     await espera;
   };
-  return { disparar, registro };
+  // Simula un pedido de la app y devuelve lo que respondió el service worker (o null si no intervino).
+  const pedir = async (url) => {
+    let respuesta = null;
+    manejadores.fetch({ request: new Request(url), respondWith: (p) => { respuesta = p; }, waitUntil: () => {} });
+    return respuesta ? await respuesta : null;
+  };
+  return { disparar, pedir, registro };
 }
+
+prueba('pwa: las librerías externas con versión fija se guardan y no se vuelven a descargar', async () => {
+  const { pedir, registro } = await cargarSW();
+  const url = 'https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js';
+  igual(await (await pedir(url)).text(), 'red');
+  await new Promise((r) => setTimeout(r, 0));
+  await pedir(url);
+  igual(registro.pedidosRed, [url], 'la segunda vez debe salir de la caché');
+  igual(await pedir('https://otra.com/algo.js'), null, 'no intercepta otros dominios');
+});
+
+prueba('pwa: al activar no borra la caché de librerías', async () => {
+  const { disparar, registro } = await cargarSW({ claves: ['okupa-libs', 'okupa-v0'] });
+  await disparar('activate');
+  igual(registro.borradas, ['okupa-v0']);
+});
 
 prueba('pwa: al activar solo borra cachés viejas de Okupa, no las de otras apps', async () => {
   const texto = await (await fetch('sw.js', { cache: 'no-store' })).text();
