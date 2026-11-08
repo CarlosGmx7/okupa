@@ -172,3 +172,21 @@ describe('respuestas del diario', () => {
     await assertFails(deleteDoc(respuesta('u3', 'gustos_a')));
   });
 });
+
+describe('ubicaciones', () => {
+  const ruta = (l) => `${RUTA}/ubicaciones/${l}`;
+  it('cada uno escribe la suya y los dos la leen', async () => {
+    await sembrar({ [RUTA]: completa });
+    await assertSucceeds(setDoc(doc(db('u1'), ruta('a')), { lat: 4.7, lng: -74 }));
+    await assertSucceeds(getDoc(doc(db('u2'), ruta('a'))));
+  });
+  it('nadie escribe la ubicación del otro', async () => {
+    await sembrar({ [RUTA]: completa });
+    await assertFails(setDoc(doc(db('u1'), ruta('b')), { lat: 0, lng: 0 }));
+  });
+  it('un extraño no lee ni escribe ubicaciones', async () => {
+    await sembrar({ [RUTA]: completa, [ruta('a')]: { lat: 4.7, lng: -74 } });
+    await assertFails(getDoc(doc(db('u3'), ruta('a'))));
+    await assertFails(setDoc(doc(db('u3'), ruta('a')), { lat: 0, lng: 0 }));
+  });
+});

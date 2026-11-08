@@ -49,6 +49,11 @@ service cloud.firestore {
       match /perfiles/{lugar} { allow read, write: if esMiembro(codigo); }
       match /partidas/{id} { allow read, write: if esMiembro(codigo); }
       match /estado/{doc} { allow read, write: if esMiembro(codigo); }
+      // Última ubicación de cada uno: los dos la ven; cada uno escribe o borra solo la suya.
+      match /ubicaciones/{lugar} {
+        allow read: if esMiembro(codigo);
+        allow write: if esMiembro(codigo) && lugar == miLugar(codigo);
+      }
       match /dias/{fecha} {
         allow read, write: if esMiembro(codigo);
 
