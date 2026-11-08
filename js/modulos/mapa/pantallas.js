@@ -1,31 +1,15 @@
-// Pantalla del mapa: la última ubicación de cada uno sobre un mapa claro y detallado, unidos por la ruta.
+// Pantalla del mapa: la última ubicación de cada uno sobre el mapa Liberty de OpenFreeMap, unidos por la ruta.
 import { el } from '../../nucleo/ui.js';
 import { exigirPareja } from '../../nucleo/pantallas-pareja.js';
 import { guardarUbicacion, leerUbicaciones, formatearDistancia, haceCuanto, avatarDe } from './ubicacion.js';
 import { calcularRuta } from './ruta.js';
+import { cargarMapLibre, crearMapa, marcador as ponerMarcador, dibujarLinea, encuadrar } from './motor.js';
 
-const LEAFLET = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4';
+export { cargarMapLibre };
+
 const CLAVE_APROXIMADA = 'okupa:mapa:aproximada';
-const CENTRO_COLOMBIA = [4.6, -74.1];
 const ROJO_RUTA = '#e0292f';
 const COLOR_LUGAR = { a: '#c9a45c', b: '#a8344f' };
-
-let leaflet = null;
-// Leaflet se descarga solo al entrar al mapa (y queda guardado en el celular por el service worker).
-export function cargarLeaflet() {
-  if (globalThis.L) return Promise.resolve(globalThis.L);
-  return (leaflet ??= new Promise((listo, fallo) => {
-    const css = document.createElement('link');
-    css.rel = 'stylesheet';
-    css.href = `${LEAFLET}/leaflet.min.css`;
-    document.head.append(css);
-    const js = document.createElement('script');
-    js.src = `${LEAFLET}/leaflet.min.js`;
-    js.onload = () => listo(globalThis.L);
-    js.onerror = () => { leaflet = null; fallo(new Error('No se pudo descargar el mapa')); };
-    document.head.append(js);
-  }));
-}
 
 function miUbicacion() {
   return new Promise((listo, fallo) => {
@@ -38,18 +22,7 @@ function miUbicacion() {
   });
 }
 
-// Fondo claro y detallado: el mapa de OpenStreetMap (gratis y sin clave), con calles, pueblos,
-// barrios y lugares con sus nombres; los colores se suavizan con CSS (.capa-fondo).
-function capaFondo(L) {
-  return L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    minZoom: 3,
-    className: 'capa-fondo',
-    attribution: '© colaboradores de OpenStreetMap',
-  });
-}
-
-function marcador(L, { nombre, lugar, ubicacion }) {
+function elementoPareja({ nombre, lugar, ubicacion }) {
   const avatar = avatarDe(nombre);
   const figura = avatar
     ? el('img', { clase: 'avatar-pixel', src: avatar, alt: '' })
@@ -60,19 +33,15 @@ function marcador(L, { nombre, lugar, ubicacion }) {
     figura,
     el('span', { clase: 'marcador-hora' }, `${haceCuanto(ubicacion.horaMs)}${ubicacion.aproximada ? ' · aprox.' : ''}`));
   contenido.style.setProperty('--color', COLOR_LUGAR[lugar]);
-  return L.marker([ubicacion.lat, ubicacion.lng], {
-    icon: L.divIcon({ className: 'marcador-contenedor', html: contenido, iconSize: [72, 96], iconAnchor: [36, 90] }),
-    title: nombre || 'Tu pareja',
-    keyboard: false,
-  });
+  contenido.title = nombre || 'Tu pareja';
+  return contenido;
 }
 
 export function crearPantallasMapa() {
   async function mapa(contenedor, _params, ctx) {
     const zona = el('div', { clase: 'mapa-pantalla' });
     contenedor.append(el('a', { clase: 'volver', href: '#/' }, '← Inicio'), zona);
-    const cargandoMapa = cargarLeaflet();
-    cargandoMapa.catch(() => {});
+    cargarMapLibre().catch(() => {});
     const r = await exigirPareja(zona, ctx);
     if (!r) return;
     const { nube, pareja } = r;
@@ -105,34 +74,33 @@ export function crearPantallasMapa() {
         : 'No se pudo leer tu ubicación ahora: se muestra la última que quedó guardada.';
     }
     let ubicaciones;
-    let L;
+    let gl;
+    let mapaL;
     try {
-      [ubicaciones, L] = await Promise.all([leerUbicaciones(nube, pareja), cargandoMapa]);
+      ubicaciones = await leerUbicaciones(nube, pareja);
+      ({ gl, mapa: mapaL } = await crearMapa(lienzo));
     } catch (e) {
       console.warn('Okupa: el mapa no cargó', e);
-      lienzo.replaceChildren(el('p', { clase: 'vacio' }, 'No se pudo cargar el mapa. Revisa la conexión.'));
+      lienzo.replaceChildren(el('p', { clase: 'vacio' }, 'No se pudo cargar el mapa. Revisa la conexión.'),
+        el('button', { clase: 'boton', type: 'button', onclick: () => ctx.refrescar() }, 'Reintentar'));
       return;
     }
-
-    const mapaL = L.map(lienzo, { zoomControl: true, attributionControl: true }).setView(CENTRO_COLOMBIA, 5);
-    capaFondo(L).addTo(mapaL);
     window.addEventListener('hashchange', () => mapaL.remove(), { once: true });
     const puntos = [];
     for (const l of [yo, otro]) {
       const u = ubicaciones[l];
       if (!u) continue;
-      marcador(L, { nombre: nombre(l), lugar: l, ubicacion: u }).addTo(mapaL);
+      ponerMarcador(gl, mapaL, elementoPareja({ nombre: nombre(l), lugar: l, ubicacion: u }), u);
       puntos.push([u.lat, u.lng]);
     }
     if (!ubicaciones[otro]) detalle.textContent = `${nombre(otro)} todavía no ha abierto el mapa.`;
-    if (puntos.length === 1) mapaL.setView(puntos[0], 14);
+    encuadrar(mapaL, puntos);
     if (puntos.length < 2) { distancia.textContent = ''; return; }
 
-    mapaL.fitBounds(puntos, { padding: [60, 60] });
     distancia.textContent = 'Calculando la ruta…';
     const ruta = await calcularRuta(ubicaciones[yo], ubicaciones[otro]);
-    L.polyline(ruta.linea, { color: ROJO_RUTA, weight: 5, opacity: 0.9, dashArray: ruta.porVias ? null : '10 10' }).addTo(mapaL);
-    mapaL.fitBounds(L.latLngBounds([...ruta.linea, ...puntos]), { padding: [60, 60] });
+    dibujarLinea(mapaL, 'ruta', ruta.linea, { color: ROJO_RUTA, punteada: !ruta.porVias });
+    encuadrar(mapaL, [...ruta.linea, ...puntos]);
     distancia.textContent = `${formatearDistancia(ruta.km)} · ≈ ${ruta.minutos} min en moto`;
     detalle.textContent = ruta.porVias
       ? 'Por las vías. El tiempo en moto es un estimado a partir de la ruta en carro.'

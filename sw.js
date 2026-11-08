@@ -25,6 +25,7 @@ const PRECACHE = [
   "js/modulos/mapa/pantallas.js",
   "js/modulos/mapa/ubicacion.js",
   "js/modulos/mapa/ruta.js",
+  "js/modulos/mapa/motor.js",
   "js/modulos/diario/archivo.js",
   "iconos/mapa/carlos.png",
   "iconos/mapa/yuli.png",
@@ -105,10 +106,10 @@ async function desdeCache(req) {
   return null;
 }
 
-// Librerías externas con la versión en la dirección (Firebase, Leaflet): nunca cambian, así que se
+// Librerías externas con la versión en la dirección (Firebase, MapLibre): nunca cambian, así que se
 // guardan la primera vez y después salen del celular, sin esperar la red.
 const CACHE_LIBRERIAS = 'okupa-libs';
-const LIBRERIAS = [/^https:\/\/www\.gstatic\.com\/firebasejs\/\d+\.\d+\.\d+\//, /^https:\/\/cdnjs\.cloudflare\.com\/ajax\/libs\/leaflet\/\d+\.\d+\.\d+\//];
+const LIBRERIAS = [/^https:\/\/www\.gstatic\.com\/firebasejs\/\d+\.\d+\.\d+\//, /^https:\/\/cdnjs\.cloudflare\.com\/ajax\/libs\/maplibre-gl\/\d+\.\d+\.\d+\//];
 
 async function libreria(req) {
   const guardada = await caches.match(req, { cacheName: CACHE_LIBRERIAS });

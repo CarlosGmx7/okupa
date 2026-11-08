@@ -784,20 +784,19 @@ ul.chips { padding: 0; margin: 0; list-style: none; }
 .archivo-pregunta .coincidencia { margin: 6px 0 0; font-size: 13px; }
 
 /* ---------- Mapa ---------- */
-/* Colores más suaves y limpios sobre el mapa de OpenStreetMap, sin perder nombres ni detalles. */
-.capa-fondo { filter: saturate(.72) brightness(1.04) contrast(.94); }
+/* Mapa Liberty de OpenFreeMap (MapLibre); los controles toman los colores de Okupa. */
 .mapa-lienzo {
+  position: relative;
   height: min(62vh, 520px); margin: 8px 0 14px; border-radius: var(--radio); overflow: hidden;
   border: 1px solid var(--dorado-suave); box-shadow: 0 18px 40px rgba(0, 0, 0, .45);
   background: #f2efe9;
 }
-.mapa-lienzo .leaflet-control-zoom a {
-  width: 44px; height: 44px; line-height: 42px; font-size: 22px; font-weight: 700;
-  background: var(--superficie); color: var(--dorado); border-color: var(--dorado-suave);
-}
-.mapa-lienzo .leaflet-control-attribution { font-size: 10px; background: rgba(20, 10, 14, .75); color: var(--tenue); }
-.mapa-lienzo .leaflet-control-attribution a { color: var(--dorado); }
-.marcador-contenedor { background: none; border: none; }
+.mapa-lienzo .maplibregl-ctrl-group { background: var(--superficie); border: 1px solid var(--dorado-suave); }
+.mapa-lienzo .maplibregl-ctrl-group button { width: 40px; height: 40px; }
+.mapa-lienzo .maplibregl-ctrl-group button + button { border-top-color: var(--dorado-suave); }
+.mapa-lienzo .maplibregl-ctrl-icon { filter: invert(78%) sepia(30%) saturate(560%) hue-rotate(2deg); }
+.mapa-lienzo .maplibregl-ctrl-attrib { font-size: 10px; }
+.mapa-lienzo .vacio { color: #1c0e13; }
 .marcador-pareja { --color: var(--dorado); display: flex; flex-direction: column; align-items: center; gap: 2px; }
 .marcador-nombre, .marcador-hora {
   padding: 1px 6px; background: rgba(20, 10, 14, .85); color: var(--crema); font-size: 11px; white-space: nowrap;
