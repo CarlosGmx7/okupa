@@ -4,10 +4,12 @@ import { exigirPareja } from '../../nucleo/pantallas-pareja.js';
 import { guardarUbicacion, leerUbicaciones, formatearDistancia, haceCuanto, avatarDe } from './ubicacion.js';
 import { calcularRuta } from './ruta.js';
 import { cargarMapLibre, crearMapa, marcador as ponerMarcador, dibujarLinea, encuadrar } from './motor.js';
+import { montarLugares } from './lugares-ui.js';
 
 export { cargarMapLibre };
 
 const CLAVE_APROXIMADA = 'okupa:mapa:aproximada';
+const CLAVE_CAPAS = 'okupa:mapa:capas';
 const ROJO_RUTA = '#e0292f';
 const COLOR_LUGAR = { a: '#c9a45c', b: '#a8344f' };
 
@@ -55,9 +57,28 @@ export function crearPantallasMapa() {
     const detalle = el('p', { clase: 'campo-ayuda' });
     const aproximada = el('input', { type: 'checkbox', id: 'mapa-aproximada', checked: Boolean(ctx.almacen.leer(CLAVE_APROXIMADA, false)) });
     aproximada.addEventListener('change', () => { ctx.almacen.escribir(CLAVE_APROXIMADA, aproximada.checked); ctx.refrescar(); });
+
+    // Capas: "Nosotros" (ubicaciones y ruta) y "Lugares" (deseos y recuerdos), recordadas en el celular.
+    const capas = { nosotros: true, lugares: true, ...ctx.almacen.leer(CLAVE_CAPAS, {}) };
+    let aplicarCapa = () => {};
+    const chip = (id, texto) => {
+      const b = el('button', { clase: 'chip-capa', type: 'button', 'aria-pressed': String(capas[id]),
+        onclick: () => {
+          capas[id] = !capas[id];
+          b.setAttribute('aria-pressed', String(capas[id]));
+          ctx.almacen.escribir(CLAVE_CAPAS, capas);
+          aplicarCapa(id);
+        } }, texto);
+      return b;
+    };
+    const nuevoLugar = el('button', { clase: 'boton boton-principal boton-lugar', type: 'button', disabled: true }, '＋ Lugar');
     zona.replaceChildren(
       el('h1', { clase: 'titulo-pantalla' }, 'Mapa'),
+      el('div', { clase: 'barra-mapa' },
+        el('div', { clase: 'chips-capas', role: 'group', 'aria-label': 'Qué mostrar' }, chip('nosotros', '∞ Nosotros'), chip('lugares', '★ Lugares')),
+        nuevoLugar),
       estado, lienzo,
+      el('p', { clase: 'campo-ayuda' }, 'Deja el dedo presionado sobre el mapa para agregar un deseo o un recuerdo ahí.'),
       el('section', { clase: 'panel-mapa' }, distancia, detalle,
         el('label', { clase: 'interruptor-mapa', for: 'mapa-aproximada' }, aproximada, ' Compartir mi ubicación aproximada (el barrio, unos 500 m)'),
         el('p', { clase: 'campo-ayuda' }, 'Tu ubicación se guarda cada vez que abres el mapa. Solo ustedes dos la ven.'),
@@ -85,14 +106,29 @@ export function crearPantallasMapa() {
         el('button', { clase: 'boton', type: 'button', onclick: () => ctx.refrescar() }, 'Reintentar'));
       return;
     }
-    window.addEventListener('hashchange', () => mapaL.remove(), { once: true });
+    window.addEventListener('hashchange', () => { document.querySelectorAll('.hoja-fondo').forEach((h) => h.remove()); mapaL.remove(); }, { once: true });
+
+    const lugares = montarLugares({ gl, mapa: mapaL, nube, pareja });
+    nuevoLugar.disabled = false;
+    nuevoLugar.addEventListener('click', () => lugares.nuevo());
+    const marcadoresPareja = [];
+    aplicarCapa = (id) => {
+      if (id === 'lugares') lugares.mostrar(capas.lugares);
+      if (id === 'nosotros') {
+        marcadoresPareja.forEach((m) => { m.getElement().hidden = !capas.nosotros; });
+        if (mapaL.getLayer('ruta')) mapaL.setLayoutProperty('ruta', 'visibility', capas.nosotros ? 'visible' : 'none');
+      }
+    };
+    lugares.mostrar(capas.lugares);
+
     const puntos = [];
     for (const l of [yo, otro]) {
       const u = ubicaciones[l];
       if (!u) continue;
-      ponerMarcador(gl, mapaL, elementoPareja({ nombre: nombre(l), lugar: l, ubicacion: u }), u);
+      marcadoresPareja.push(ponerMarcador(gl, mapaL, elementoPareja({ nombre: nombre(l), lugar: l, ubicacion: u }), u));
       puntos.push([u.lat, u.lng]);
     }
+    aplicarCapa('nosotros');
     if (!ubicaciones[otro]) detalle.textContent = `${nombre(otro)} todavía no ha abierto el mapa.`;
     encuadrar(mapaL, puntos);
     if (puntos.length < 2) { distancia.textContent = ''; return; }
@@ -100,6 +136,7 @@ export function crearPantallasMapa() {
     distancia.textContent = 'Calculando la ruta…';
     const ruta = await calcularRuta(ubicaciones[yo], ubicaciones[otro]);
     dibujarLinea(mapaL, 'ruta', ruta.linea, { color: ROJO_RUTA, punteada: !ruta.porVias });
+    aplicarCapa('nosotros');
     encuadrar(mapaL, [...ruta.linea, ...puntos]);
     distancia.textContent = `${formatearDistancia(ruta.km)} · ≈ ${ruta.minutos} min en moto`;
     detalle.textContent = ruta.porVias

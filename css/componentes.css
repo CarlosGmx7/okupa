@@ -813,3 +813,63 @@ ul.chips { padding: 0; margin: 0; list-style: none; }
 .distancia-mapa { font-family: var(--serif); font-size: 24px; color: var(--dorado); margin: 0 0 4px; }
 .interruptor-mapa { display: flex; align-items: center; gap: 10px; min-height: 44px; margin: 8px 0; font-size: 15px; }
 .interruptor-mapa input { width: 22px; height: 22px; accent-color: var(--dorado); }
+
+/* Capas y lugares del mapa */
+.barra-mapa { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin: 4px 0 6px; }
+.chips-capas { display: flex; gap: 8px; }
+.chip-capa {
+  min-height: 40px; padding: 0 14px; border-radius: 999px; cursor: pointer; font-size: 14px;
+  background: transparent; color: var(--tenue); border: 1px solid var(--dorado-suave);
+}
+.chip-capa[aria-pressed="true"] { background: var(--vino); color: var(--crema); border-color: var(--vino-claro); }
+.boton-lugar { min-height: 40px; }
+.marcador-pareja[hidden], .pin-lugar[hidden] { display: none !important; }
+.pin-lugar {
+  --color: var(--dorado);
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  background: none; border: none; padding: 0; cursor: pointer;
+}
+.pin-lugar.recuerdo { --color: #a8344f; }
+.pin-icono {
+  width: 34px; height: 34px; display: grid; place-items: center; font-size: 17px; line-height: 1;
+  border-radius: 50%; background: var(--color); color: #fff;
+  border: 2px solid #fff; box-shadow: 0 3px 8px rgba(0, 0, 0, .35);
+}
+.pin-nombre {
+  max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  padding: 1px 6px; border-radius: 6px; font-size: 11px; font-weight: 600;
+  background: rgba(255, 255, 255, .92); color: #2a1018; box-shadow: 0 1px 4px rgba(0, 0, 0, .25);
+}
+.hoja-lugar { text-align: left; }
+.hoja-cabeza { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.hoja-cabeza h2 { overflow-wrap: anywhere; }
+.buscador { display: flex; gap: 8px; }
+.buscador input {
+  flex: 1; min-width: 0; font: inherit; color: var(--crema); background: var(--fondo);
+  border: 1px solid rgba(201, 164, 92, 0.25); border-radius: 14px; padding: 10px 14px;
+}
+.resultados-busqueda { margin: 10px 0; }
+.resultados-busqueda .fila { width: 100%; text-align: left; cursor: pointer; margin: 0; }
+.hoja-lugar .campo input, .hoja-lugar .campo textarea {
+  font: inherit; color: var(--crema); background: var(--fondo);
+  border: 1px solid rgba(201, 164, 92, 0.25); border-radius: 14px; padding: 10px 14px; width: 100%;
+}
+.hoja-lugar textarea { min-height: 90px; resize: vertical; font-family: var(--serif); font-size: 17px; width: 100%;
+  color: var(--crema); background: var(--fondo); border: 1px solid rgba(201, 164, 92, 0.25); border-radius: 14px; padding: 10px 14px; }
+.ficha-tipo { color: var(--dorado); margin: 0 0 6px; }
+.ficha-nota { font-family: var(--serif); font-size: 18px; margin: 0 0 12px; overflow-wrap: anywhere; }
+.ficha-seccion { margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(201, 164, 92, 0.15); }
+.ficha-seccion h3 { font-size: 19px; margin: 0 0 10px; }
+.version { padding: 12px 14px; border-radius: 16px; background: var(--fondo); margin-bottom: 8px; }
+.version.mia { border: 1px solid var(--dorado-suave); }
+.version p { margin: 4px 0 0; font-family: var(--serif); font-size: 17px; overflow-wrap: anywhere; }
+.version-quien { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--dorado); }
+.galeria { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
+.miniatura { position: relative; aspect-ratio: 1; border-radius: 12px; overflow: hidden; }
+.miniatura-ver { padding: 0; border: none; width: 100%; height: 100%; cursor: pointer; }
+.miniatura-ver img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.miniatura-borrar {
+  position: absolute; top: 4px; right: 4px; width: 26px; height: 26px; border-radius: 50%;
+  border: none; background: rgba(20, 10, 14, .8); color: var(--crema); cursor: pointer;
+}
+.foto-completa { width: 100%; border-radius: 16px; display: block; }

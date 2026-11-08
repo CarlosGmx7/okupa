@@ -75,7 +75,12 @@ export async function crearMapa(lienzo, { centro = [4.6, -74.1], zoom = 5 } = {}
 }
 
 export function marcador(gl, mapa, elemento, { lat, lng }, anchor = 'bottom') {
-  return new gl.Marker({ element: elemento, anchor }).setLngLat([lng, lat]).addTo(mapa);
+  // MapLibre pone su propia etiqueta ("Map marker"); se conserva la nuestra si había.
+  const etiqueta = elemento.getAttribute('aria-label');
+  const m = new gl.Marker({ element: elemento, anchor }).setLngLat([lng, lat]).addTo(mapa);
+  if (etiqueta) elemento.setAttribute('aria-label', etiqueta);
+  else if (elemento.title) elemento.setAttribute('aria-label', elemento.title);
+  return m;
 }
 
 export function dibujarLinea(mapa, id, linea, { color, ancho = 5, punteada = false }) {
