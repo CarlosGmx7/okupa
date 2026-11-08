@@ -722,3 +722,34 @@ ul.chips { padding: 0; margin: 0; list-style: none; }
 .archivo-respuesta { margin: 2px 0; font-size: 15px; color: var(--tenue); }
 .archivo-respuesta.mia { color: var(--crema); }
 .archivo-pregunta .coincidencia { margin: 6px 0 0; font-size: 13px; }
+
+/* ---------- Mapa pixelado ---------- */
+.mapa-lienzo {
+  height: min(62vh, 520px); margin: 8px 0 14px; border-radius: 6px; overflow: hidden;
+  border: 4px solid var(--dorado); box-shadow: 4px 4px 0 var(--vino), 0 18px 40px rgba(0, 0, 0, .45);
+  background: #3f76e4; image-rendering: pixelated;
+}
+.cuadro-pixel canvas, .cuadro-pixel img { width: 256px; height: 256px; image-rendering: pixelated; image-rendering: crisp-edges; display: block; }
+.mapa-lienzo .leaflet-control-zoom a {
+  width: 44px; height: 44px; line-height: 42px; font-size: 22px; font-weight: 700;
+  background: var(--superficie); color: var(--dorado); border-color: var(--dorado-suave); border-radius: 0;
+}
+.mapa-lienzo .leaflet-control-attribution { font-size: 10px; background: rgba(20, 10, 14, .75); color: var(--tenue); }
+.mapa-lienzo .leaflet-control-attribution a { color: var(--dorado); }
+.marcador-contenedor { background: none; border: none; }
+.marcador-pareja { --color: var(--dorado); display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.marcador-nombre, .marcador-hora {
+  padding: 1px 6px; background: rgba(20, 10, 14, .85); color: var(--crema); font-size: 11px; white-space: nowrap;
+  border: 2px solid var(--color);
+}
+.marcador-hora { font-size: 10px; color: var(--tenue); }
+.avatar-pixel {
+  width: 44px; height: 44px; image-rendering: pixelated; border: 3px solid var(--color);
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, .55); background: var(--color);
+}
+.avatar-generico { display: grid; place-items: center; color: #1c0e13; font-weight: 800; font-size: 20px; }
+.estado-mapa { color: var(--tenue); font-size: 14px; min-height: 20px; margin: 0; }
+.panel-mapa { padding: 14px 16px; border: 3px solid var(--dorado-suave); background: var(--superficie); box-shadow: 4px 4px 0 rgba(0, 0, 0, .35); }
+.distancia-mapa { font-family: var(--serif); font-size: 24px; color: var(--dorado); margin: 0 0 4px; }
+.interruptor-mapa { display: flex; align-items: center; gap: 10px; min-height: 44px; margin: 8px 0; font-size: 15px; }
+.interruptor-mapa input { width: 22px; height: 22px; accent-color: var(--dorado); }
