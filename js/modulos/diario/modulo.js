@@ -17,6 +17,7 @@ export default {
     perfil: pantallas.perfil,
     pendientes: pantallas.pendientes,
     historial: pantallas.historial,
+    archivo: pantallas.historial,
     sabe: pantallas.sabe,
   },
 };

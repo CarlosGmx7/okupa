@@ -83,7 +83,7 @@ prueba('diario pantallas: el perfil abre lleno con lo guardado', async () => {
 
 // ---------- Hoy, revelado y reto ----------
 const valorInicial = (p) => (p.tipo === 'escala' ? { valor: 1 } : { opcion: 0 });
-function itemsDe(datos, dia, { comentario = '' } = {}) {
+export function itemsDe(datos, dia, { comentario = '' } = {}) {
   const porId = new Map(datos.preguntas.map((p) => [p.id, p]));
   return dia.gustos.map((id, i) => {
     const p = porId.get(id);
@@ -212,10 +212,10 @@ prueba('diario pantallas: historial muestra porcentaje y racha', async () => {
     await enviar(b.nube, b.pareja, fecha, 'gustos', { items: itemsDe(datos, dia) });
   }
   await a.pantallas.historial(a.div, {}, a.ctx);
-  await hasta(() => a.div.querySelector('.lista'));
+  await hasta(() => a.div.querySelector('.archivo-dia'));
   verdadero(a.div.textContent.includes('Qué tanto se conocen: 100 % de adivinanzas'), a.div.textContent);
   verdadero(a.div.textContent.includes('Racha: 2 días con los dos al día'), a.div.textContent);
-  igual([...a.div.querySelectorAll('.lista a')].map((x) => x.getAttribute('href')), [`#/diario/dia/${FECHA}`, '#/diario/dia/2026-11-04']);
+  igual([...a.div.querySelectorAll('.archivo-fecha')].map((x) => x.getAttribute('href')), [`#/diario/dia/${FECHA}`, '#/diario/dia/2026-11-04']);
   salir();
 });
 // ---------- Etapa 4: aprender y plantillas ----------
@@ -255,7 +255,7 @@ prueba('diario pantallas: el historial aprende los días revelados que faltaban'
     await enviar(b.nube, b.pareja, fecha, 'gustos', { items: itemsDe(datos, dia) });
   }
   await a.pantallas.historial(a.div, {}, a.ctx);
-  await hasta(() => a.div.querySelector('.lista'));
+  await hasta(() => a.div.querySelector('.archivo-dia'));
   igual((await aprendidosDe(a)).sort(), ['2026-11-03', '2026-11-04']);
   salir();
 });

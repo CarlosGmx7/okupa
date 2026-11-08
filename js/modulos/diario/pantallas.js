@@ -8,6 +8,7 @@ import {
   corregirRasgo, cambiarFavorito,
 } from './dia.js';
 import { resolverPlantilla, describirRasgos, favoritosDe } from './aprender.js';
+import { filtrarArchivo, ocultarDia, ocultosDe } from './archivo.js';
 import { estadoParte, coincidencia, adivino, rachaAmbos, porcentajeAdivinanzas, otroLugar, valorDe, reflejar } from './revelar.js';
 
 export const CLAVE_ESTADO = 'okupa:diario:estado';
@@ -220,7 +221,7 @@ export function crearPantallasDiario({ cargar, hoy = () => fechaBogota() } = {})
     zona.replaceChildren(
       titulo(), el('p', { clase: 'subtitulo' }, esHoy ? `Hoy, ${fechaLegible(fecha)}` : fechaLegible(fecha)),
       el('nav', { clase: 'nav-diario', 'aria-label': 'Diario' }, enlacePendientes,
-        el('a', { clase: 'boton-texto', href: '#/diario/historial' }, 'Historial'),
+        el('a', { clase: 'boton-texto', href: '#/diario/historial' }, 'Archivo'),
         el('a', { clase: 'boton-texto', href: '#/diario/sabe' }, 'Lo que sabe de mí'),
         el('a', { clase: 'boton-texto', href: '#/diario/perfil' }, 'Mi perfil')),
       gustos, ingles);
@@ -444,43 +445,95 @@ export function crearPantallasDiario({ cargar, hoy = () => fechaBogota() } = {})
         : vacio('Estás al día ✓', el('a', { clase: 'boton', href: '#/diario' }, 'Ir a hoy')));
   }
 
-  // ---------- Historial ----------
+  // ---------- Archivo (antes "Historial") ----------
+  // Los días revelados con lo que respondió cada uno; se busca por palabra, tema o fecha, y cada
+  // celular puede quitar días de su propio archivo sin tocar el del otro.
   async function historial(contenedor, _params, ctx) {
     const zona = el('div', { clase: 'diario' });
     contenedor.append(el('a', { clase: 'volver', href: '#/diario' }, '← Diario'), zona);
     const r = await preparar(zona, ctx);
     if (!r) return;
-    const { nube, pareja, porId, nombre, otro } = r;
+    const { nube, pareja, porId, nombre, temas } = r;
     const yo = pareja.lugar;
     let lista;
-    let adivinanzas = [];
+    let conRespuestas;
+    let perfiles;
     try {
       lista = await listarDias(nube, pareja);
       const revelados = lista.filter((x) => estadoParte(x, 'gustos', yo) === 'revelado');
-      const conRespuestas = await Promise.all(revelados.map(async (x) => ({ x, ambas: await leerAmbas(nube, pareja, x.fecha, 'gustos', x) })));
-      adivinanzas = conRespuestas.map(({ x, ambas }) => {
-        const pregunta = porId.get(x.gustos?.[x.adivinar]);
-        return ambas && pregunta ? { pregunta, a: ambas.a.items[x.adivinar], b: ambas.b.items[x.adivinar] } : null;
-      }).filter(Boolean);
+      [conRespuestas, perfiles] = await Promise.all([
+        Promise.all(revelados.map(async (x) => ({ x, ambas: await leerAmbas(nube, pareja, x.fecha, 'gustos', x) }))),
+        leerPerfiles(nube, pareja),
+      ]);
       // Lo revelado mientras este celular no lo abrió también se aprende (una vez por día).
-      const aprendidos = new Set((await leerPerfiles(nube, pareja))[yo]?.aprendidos || []);
+      const aprendidos = new Set(perfiles[yo]?.aprendidos || []);
       for (const { x, ambas } of conRespuestas) {
         if (ambas && !aprendidos.has(x.fecha)) await aprenderDia(nube, pareja, x, ambas[yo], porId).catch((e) => console.warn('Okupa:', e));
       }
     } catch (e) { sinConexion(zona, ctx, e); return; }
+
+    const comoLaVe = (p, l) => resolverPlantilla(p, { yo: l, nombres: pareja.nombres, perfiles, respaldo: true });
+    const entradas = conRespuestas.filter(({ ambas }) => ambas).map(({ x, ambas }) => ({
+      fecha: x.fecha,
+      preguntas: (x.gustos || []).map((id, i) => {
+        const original = porId.get(id);
+        if (!original) return null;
+        const de = (l) => ({ respuesta: textoRespuesta(comoLaVe(original, l), ambas[l].items[i] || {}), comentario: ambas[l].items[i]?.comentario || '' });
+        const p = comoLaVe(original, yo);
+        return { texto: p.texto, tema: p.tema, coincidencia: coincidencia(p, ambas.a.items[i] || {}, ambas.b.items[i] || {}), a: de('a'), b: de('b') };
+      }).filter(Boolean),
+    })).reverse();
+    const adivinanzas = conRespuestas.map(({ x, ambas }) => {
+      const pregunta = porId.get(x.gustos?.[x.adivinar]);
+      return ambas && pregunta ? { pregunta, a: ambas.a.items[x.adivinar], b: ambas.b.items[x.adivinar] } : null;
+    }).filter(Boolean);
     const porcentaje = porcentajeAdivinanzas(adivinanzas);
     const racha = rachaAmbos(lista, 'gustos', hoy());
-    const estadoTexto = (x) => ({ revelado: 'Revelado', esperando: `Esperando a ${nombre(otro)}`, responder: 'Te toca' })[estadoParte(x, 'gustos', yo)];
-    zona.replaceChildren(titulo('Historial'),
+
+    const filtros = { palabra: '', tema: '', fecha: '' };
+    const buscar = el('input', { type: 'search', clase: 'buscar-archivo', placeholder: 'Buscar una palabra…', 'aria-label': 'Buscar en el archivo' });
+    const tema = el('select', { 'aria-label': 'Tema' }, el('option', { value: '' }, 'Todos los temas'),
+      [...temas.values()].map((t) => el('option', { value: t.id }, t.nombre)));
+    const fecha = el('input', { type: 'date', 'aria-label': 'Fecha' });
+    const resultados = el('div', { clase: 'archivo-resultados', 'aria-live': 'polite' });
+    buscar.addEventListener('input', () => { filtros.palabra = buscar.value; pintar(); });
+    tema.addEventListener('change', () => { filtros.tema = tema.value; pintar(); });
+    fecha.addEventListener('change', () => { filtros.fecha = fecha.value; pintar(); });
+
+    const tarjeta = (e) => el('article', { clase: 'archivo-dia' },
+      el('header', { clase: 'archivo-cabecera' },
+        el('a', { clase: 'archivo-fecha', href: `#/diario/dia/${e.fecha}` }, fechaLegible(e.fecha)),
+        el('button', {
+          clase: 'boton-texto borrar-archivo', type: 'button', 'aria-label': `Borrar el ${fechaLegible(e.fecha)} de mi archivo`,
+          onclick: () => {
+            if (!confirm('¿Quitar este día de tu archivo? Solo se quita en tu celular; tu pareja lo sigue viendo.')) return;
+            ocultarDia(ctx.almacen, pareja.codigo, e.fecha);
+            pintar();
+          },
+        }, '✕ Quitar')),
+      e.preguntas.map((p) => {
+        const caja = el('div', { clase: 'archivo-pregunta' },
+          el('p', { clase: 'archivo-texto' }, chipTema(temas.get(p.tema)), ` ${p.texto}`),
+          ['a', 'b'].map((l) => el('p', { clase: `archivo-respuesta${l === yo ? ' mia' : ''}` },
+            el('strong', {}, `${nombre(l)}: `), p[l].respuesta, p[l].comentario ? el('span', { clase: 'comentario' }, ` «${p[l].comentario}»`) : null)),
+          el('p', { clase: `coincidencia ${p.coincidencia}` }, ETIQUETA[p.coincidencia]));
+        return caja;
+      }));
+
+    function pintar() {
+      const visibles = filtrarArchivo(entradas, { ...filtros, ocultos: ocultosDe(ctx.almacen, pareja.codigo) });
+      resultados.replaceChildren(
+        el('p', { clase: 'campo-ayuda' }, visibles.length === 1 ? '1 día' : `${visibles.length} días`),
+        ...(visibles.length ? visibles.map(tarjeta) : [vacio(entradas.length ? 'Nada coincide con la búsqueda' : 'Todavía no hay días revelados', el('a', { clase: 'boton', href: '#/diario' }, 'Ir a hoy'))]));
+    }
+
+    zona.replaceChildren(titulo('Archivo'),
       el('div', { clase: 'resumen-diario' },
         el('p', {}, porcentaje === null ? 'Todavía no hay adivinanzas reveladas' : `Qué tanto se conocen: ${porcentaje} % de adivinanzas`),
         el('p', {}, `Racha: ${racha} ${racha === 1 ? 'día' : 'días'} con los dos al día`)),
-      lista.length
-        ? el('ul', { clase: 'lista' }, [...lista].reverse().map((x) => el('li', {},
-          el('a', { clase: 'fila', href: `#/diario/dia/${x.fecha}` },
-            el('span', { clase: 'fila-cuerpo' }, el('span', { clase: 'fila-titulo' }, fechaLegible(x.fecha))),
-            el('span', { clase: 'fila-marca' }, estadoTexto(x))))))
-        : vacio('Todavía no hay días', el('a', { clase: 'boton', href: '#/diario' }, 'Ir a hoy')));
+      el('div', { clase: 'filtros-archivo' }, buscar, tema, fecha),
+      resultados);
+    pintar();
   }
 
   // ---------- Lo que Okupa sabe de mí ----------
