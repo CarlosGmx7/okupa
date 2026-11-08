@@ -1,5 +1,5 @@
 // Bancos de la trivia: carga, forma de cada pregunta, validación y selección de cada partida.
-import { generarMatematica } from './matematicas.js';
+import { generarMatematica, PLANTILLAS_MATE } from './matematicas.js';
 import { generarPreguntaIngles } from '../../compartido/ingles.js';
 
 export const TEMAS_BANCO = ['arte', 'historia', 'ciencia', 'deportes', 'canserbero', 'lana'];
@@ -61,39 +61,57 @@ function enOrdenDePreferencia(lista, idDe, vistasTema = [], fallidas, rnd) {
   return [...nuevas, ...viejas];
 }
 
+const NORMALES_POR_PARTIDA = 3; // el resto (7) son de nivel medio-fácil
+const MATE_FACILES = new Set(['porcentaje', 'descuento', 'regla3', 'raiz', 'sucesion', 'unidades']);
+const nivelDe = (p) => (p.nivel === 'facil' ? 'facil' : 'normal');
+
 // Las 10 preguntas de una partida: una de cada tema, y dos más al azar, sin pasar de 2 por tema.
+// 7 son de nivel medio-fácil y 3 normales; si un tema no tiene de ese nivel, se usa la que haya.
 export function elegirPartida({ bancos, vocabulario, vistas = {}, fallidas = [], rnd = Math.random }) {
   const usados = new Set();
   const fallas = new Set(fallidas);
-  const conteo = {};
-  const elegidas = [];
-  const libres = (tema) => {
+  const libres = (tema, usadosTema = 0) => {
     if (tema === 'matematicas') return Infinity;
-    if (tema === 'ingles') return vocabulario.filter((e) => !usados.has(e.id)).length;
-    return (bancos[tema] || []).filter((p) => !usados.has(p.id)).length;
+    const total = tema === 'ingles' ? vocabulario.length : (bancos[tema] || []).length;
+    return total - usadosTema;
   };
-  const tomar = (tema) => {
+  // 1) Qué temas salen.
+  const conteo = {};
+  const temas = [];
+  for (const tema of TEMAS_PARTIDA) if (libres(tema) > 0) { temas.push(tema); conteo[tema] = 1; }
+  while (temas.length < POR_PARTIDA) {
+    const posibles = TEMAS_PARTIDA.filter((t) => (conteo[t] || 0) < MAX_POR_TEMA && libres(t, conteo[t] || 0) > 0);
+    if (!posibles.length) break;
+    const t = posibles[Math.floor(rnd() * posibles.length)];
+    temas.push(t);
+    conteo[t] = (conteo[t] || 0) + 1;
+  }
+  // 2) Qué casillas son normales.
+  const normales = new Set(barajar(temas.map((_, i) => i), rnd).slice(0, NORMALES_POR_PARTIDA));
+  // 3) La pregunta de cada casilla.
+  const tomar = (tema, nivel) => {
     let pregunta;
     if (tema === 'matematicas') {
-      do { pregunta = generarMatematica(rnd); } while (usados.has(pregunta.id));
+      const plantillas = PLANTILLAS_MATE.filter((p) => nivel === 'normal' || MATE_FACILES.has(p.id));
+      do { pregunta = generarMatematica(rnd, plantillas[Math.floor(rnd() * plantillas.length)]); } while (usados.has(pregunta.id));
     } else if (tema === 'ingles') {
-      const [entrada] = enOrdenDePreferencia(vocabulario.filter((e) => !usados.has(e.id)), (e) => e.id, vistas.ingles, fallas, rnd);
-      pregunta = generarPreguntaIngles(entrada, vocabulario, rnd);
+      const disponibles = vocabulario.filter((e) => !usados.has(e.id));
+      const delNivel = nivel === 'facil' ? disponibles.filter((e) => e.tipo === 'palabra') : disponibles;
+      const [entrada] = enOrdenDePreferencia(delNivel.length ? delNivel : disponibles, (e) => e.id, vistas.ingles, fallas, rnd);
+      const tipo = nivel === 'facil' && entrada.tipo === 'palabra' ? (rnd() < 0.5 ? 'es_en' : 'en_es') : undefined;
+      pregunta = generarPreguntaIngles(entrada, vocabulario, rnd, tipo);
       usados.add(entrada.id);
     } else {
-      [pregunta] = enOrdenDePreferencia(bancos[tema].filter((p) => !usados.has(p.id)), (p) => p.id, vistas[tema], fallas, rnd);
+      const disponibles = bancos[tema].filter((p) => !usados.has(p.id));
+      const delNivel = disponibles.filter((p) => nivelDe(p) === nivel);
+      [pregunta] = enOrdenDePreferencia(delNivel.length ? delNivel : disponibles, (p) => p.id, vistas[tema], fallas, rnd);
+      usados.add(pregunta.id);
+      return { ...pregunta, nivel: nivelDe(pregunta) };
     }
     usados.add(pregunta.id);
-    conteo[tema] = (conteo[tema] || 0) + 1;
-    elegidas.push(pregunta);
+    return { ...pregunta, nivel };
   };
-  for (const tema of TEMAS_PARTIDA) if (libres(tema) > 0) tomar(tema);
-  while (elegidas.length < POR_PARTIDA) {
-    const posibles = TEMAS_PARTIDA.filter((t) => (conteo[t] || 0) < MAX_POR_TEMA && libres(t) > 0);
-    if (!posibles.length) break;
-    tomar(posibles[Math.floor(rnd() * posibles.length)]);
-  }
-  return barajar(elegidas, rnd);
+  return barajar(temas.map((tema, i) => tomar(tema, normales.has(i) ? 'normal' : 'facil')), rnd);
 }
 
 // Anota lo que salió en una partida (lo más reciente al final). Las matemáticas no se guardan.

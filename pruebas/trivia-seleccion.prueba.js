@@ -24,6 +24,33 @@ prueba('selección: 10 preguntas sin repetir, ≤ 2 por tema y todos los temas d
   }
 });
 
+// Bancos con `n` normales y `n` fáciles por tema.
+function bancosMixtos(n) {
+  const b = bancosDe(2 * n);
+  for (const lista of Object.values(b)) lista.forEach((p, i) => { if (i % 2) p.nivel = 'facil'; });
+  return b;
+}
+
+prueba('selección: cada partida trae 7 fáciles y 3 normales', () => {
+  for (let s = 1; s <= 30; s++) {
+    const partida = elegirPartida({ bancos: bancosMixtos(5), vocabulario, rnd: semilla(s) });
+    igual(partida.length, 10);
+    const faciles = partida.filter((p) => p.nivel === 'facil');
+    igual([faciles.length, partida.filter((p) => p.nivel === 'normal').length], [7, 3], `semilla ${s}`);
+    const banco = bancosMixtos(5);
+    for (const p of partida.filter((x) => x.tema !== 'matematicas' && x.tema !== 'ingles')) {
+      const original = banco[p.tema].find((x) => x.id === p.id);
+      igual(original.nivel === 'facil' ? 'facil' : 'normal', p.nivel, `${p.id} quedó con el nivel equivocado`);
+    }
+  }
+});
+
+prueba('selección: si un tema no tiene fáciles, usa las que hay', () => {
+  const partida = elegirPartida({ bancos: bancosDe(5), vocabulario, rnd: semilla(3) });
+  igual(partida.length, 10);
+  igual(new Set(partida.map((p) => p.id)).size, 10);
+});
+
 prueba('selección: prefiere las que no han salido', () => {
   const bancos = bancosDe(3);
   const vistas = Object.fromEntries(TEMAS_BANCO.map((t) => [t, [`${PREFIJO[t]}-001`, `${PREFIJO[t]}-002`]]));
