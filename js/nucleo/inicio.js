@@ -1,6 +1,7 @@
 // Pantallas propias del núcleo: inicio y "Acerca de".
 import { el } from './ui.js';
 import { miPareja } from './pareja.js';
+import { PORTADA_ORIGINAL, fuentePortada, abrirEditorPortada } from './portada.js';
 
 // Acceso destacado a enlazar los celulares y, ya enlazados, a lo que se juega entre los dos
 // (los módulos que declaran `accesoJuntos`). Se pinta con lo guardado en el celular, sin internet.
@@ -37,7 +38,10 @@ export function pantallaInicio(contenedor, _params, ctx) {
   });
   contenedor.append(
     el('header', { clase: 'inicio-cabecera' },
-      el('img', { clase: 'inicio-portada', src: 'iconos/portada-circular.png', alt: '', onerror: (e) => e.target.remove() }),
+      el('button', {
+        clase: 'inicio-portada-boton', type: 'button', 'aria-label': 'Cambiar foto de inicio',
+        onclick: () => abrirEditorPortada(ctx.almacen, () => ctx.refrescar?.()),
+      }, el('img', { clase: 'inicio-portada', src: fuentePortada(ctx.almacen), alt: '', onerror: (e) => { if (!e.target.src.endsWith(PORTADA_ORIGINAL)) e.target.src = PORTADA_ORIGINAL; } })),
       el('h1', { clase: 'logo' }, 'Okupa'),
       el('p', { clase: 'lema' }, 'Preguntas para conocerse de verdad')),
     tarjetaJuntos(ctx.almacen, ctx.modulos),
