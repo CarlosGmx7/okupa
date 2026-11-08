@@ -7,7 +7,6 @@ import {
   guardarUbicacion, leerUbicaciones,
 } from '../js/modulos/mapa/ubicacion.js';
 import { calcularRuta } from '../js/modulos/mapa/ruta.js';
-import { colorPixel, PALETA } from '../js/modulos/mapa/pixeles.js';
 
 const BOGOTA = { lat: 4.711, lng: -74.0721 };
 const MEDELLIN = { lat: 6.2442, lng: -75.5812 };
@@ -47,16 +46,6 @@ prueba('mapa: cada nombre tiene su muñequito y los demás uno genérico', () =>
   igual(avatarDe('Yuli Andrea'), 'iconos/mapa/yuli.png');
   igual(avatarDe('Sofi'), null);
   igual(avatarDe(null), null);
-});
-
-prueba('mapa: los colores del mapa real pasan a la paleta tipo Minecraft', () => {
-  igual(colorPixel(170, 211, 223), PALETA.agua);
-  igual(colorPixel(200, 250, 204), PALETA.pasto);
-  igual(colorPixel(173, 209, 158), PALETA.pasto);
-  igual(colorPixel(255, 255, 255), PALETA.via);
-  igual(colorPixel(242, 239, 233), PALETA.suelo);
-  igual(colorPixel(217, 208, 201), PALETA.edificio);
-  igual(colorPixel(40, 40, 40), PALETA.texto);
 });
 
 prueba('mapa: la ruta por las vías usa OSRM y da km y minutos', async () => {

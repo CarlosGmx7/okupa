@@ -1,9 +1,8 @@
-// Pantalla del mapa: la última ubicación de cada uno sobre un mapa pixelado, unidos por la ruta.
+// Pantalla del mapa: la última ubicación de cada uno sobre un mapa claro y detallado, unidos por la ruta.
 import { el } from '../../nucleo/ui.js';
 import { exigirPareja } from '../../nucleo/pantallas-pareja.js';
 import { guardarUbicacion, leerUbicaciones, formatearDistancia, haceCuanto, avatarDe } from './ubicacion.js';
 import { calcularRuta } from './ruta.js';
-import { pixelarCuadro } from './pixeles.js';
 
 const LEAFLET = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4';
 const CLAVE_APROXIMADA = 'okupa:mapa:aproximada';
@@ -39,24 +38,15 @@ function miUbicacion() {
   });
 }
 
-// Capa de cuadros pixelados: cada cuadro de OpenStreetMap se reduce a 64×64 y se recolorea.
-function capaPixelada(L) {
-  const Capa = L.GridLayer.extend({
-    createTile(coords, listo) {
-      const cuadro = document.createElement('div');
-      cuadro.className = 'cuadro-pixel';
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.onload = () => {
-        try { cuadro.append(pixelarCuadro(img, 64)); } catch { cuadro.append(img); }
-        listo(null, cuadro);
-      };
-      img.onerror = (e) => listo(e, cuadro);
-      img.src = `https://tile.openstreetmap.org/${coords.z}/${coords.x}/${coords.y}.png`;
-      return cuadro;
-    },
+// Fondo claro y detallado: el mapa de OpenStreetMap (gratis y sin clave), con calles, pueblos,
+// barrios y lugares con sus nombres; los colores se suavizan con CSS (.capa-fondo).
+function capaFondo(L) {
+  return L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    minZoom: 3,
+    className: 'capa-fondo',
+    attribution: '© colaboradores de OpenStreetMap',
   });
-  return new Capa({ maxZoom: 18, minZoom: 3, attribution: '© colaboradores de OpenStreetMap' });
 }
 
 function marcador(L, { nombre, lugar, ubicacion }) {
@@ -125,7 +115,7 @@ export function crearPantallasMapa() {
     }
 
     const mapaL = L.map(lienzo, { zoomControl: true, attributionControl: true }).setView(CENTRO_COLOMBIA, 5);
-    capaPixelada(L).addTo(mapaL);
+    capaFondo(L).addTo(mapaL);
     window.addEventListener('hashchange', () => mapaL.remove(), { once: true });
     const puntos = [];
     for (const l of [yo, otro]) {

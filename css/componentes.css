@@ -723,16 +723,17 @@ ul.chips { padding: 0; margin: 0; list-style: none; }
 .archivo-respuesta.mia { color: var(--crema); }
 .archivo-pregunta .coincidencia { margin: 6px 0 0; font-size: 13px; }
 
-/* ---------- Mapa pixelado ---------- */
+/* ---------- Mapa ---------- */
+/* Colores más suaves y limpios sobre el mapa de OpenStreetMap, sin perder nombres ni detalles. */
+.capa-fondo { filter: saturate(.72) brightness(1.04) contrast(.94); }
 .mapa-lienzo {
-  height: min(62vh, 520px); margin: 8px 0 14px; border-radius: 6px; overflow: hidden;
-  border: 4px solid var(--dorado); box-shadow: 4px 4px 0 var(--vino), 0 18px 40px rgba(0, 0, 0, .45);
-  background: #3f76e4; image-rendering: pixelated;
+  height: min(62vh, 520px); margin: 8px 0 14px; border-radius: var(--radio); overflow: hidden;
+  border: 1px solid var(--dorado-suave); box-shadow: 0 18px 40px rgba(0, 0, 0, .45);
+  background: #f2efe9;
 }
-.cuadro-pixel canvas, .cuadro-pixel img { width: 256px; height: 256px; image-rendering: pixelated; image-rendering: crisp-edges; display: block; }
 .mapa-lienzo .leaflet-control-zoom a {
   width: 44px; height: 44px; line-height: 42px; font-size: 22px; font-weight: 700;
-  background: var(--superficie); color: var(--dorado); border-color: var(--dorado-suave); border-radius: 0;
+  background: var(--superficie); color: var(--dorado); border-color: var(--dorado-suave);
 }
 .mapa-lienzo .leaflet-control-attribution { font-size: 10px; background: rgba(20, 10, 14, .75); color: var(--tenue); }
 .mapa-lienzo .leaflet-control-attribution a { color: var(--dorado); }
@@ -749,7 +750,7 @@ ul.chips { padding: 0; margin: 0; list-style: none; }
 }
 .avatar-generico { display: grid; place-items: center; color: #1c0e13; font-weight: 800; font-size: 20px; }
 .estado-mapa { color: var(--tenue); font-size: 14px; min-height: 20px; margin: 0; }
-.panel-mapa { padding: 14px 16px; border: 3px solid var(--dorado-suave); background: var(--superficie); box-shadow: 4px 4px 0 rgba(0, 0, 0, .35); }
+.panel-mapa { padding: 16px 18px; border-radius: var(--radio); border: 1px solid var(--dorado-suave); background: var(--superficie); }
 .distancia-mapa { font-family: var(--serif); font-size: 24px; color: var(--dorado); margin: 0 0 4px; }
 .interruptor-mapa { display: flex; align-items: center; gap: 10px; min-height: 44px; margin: 8px 0; font-size: 15px; }
 .interruptor-mapa input { width: 22px; height: 22px; accent-color: var(--dorado); }
