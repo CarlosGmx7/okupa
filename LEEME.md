@@ -21,6 +21,9 @@ Esther Perel, Shirley Glass y R&A Psicólogos.
 | `js/nucleo/nube*.js`, `js/nucleo/pareja.js` | Conexión con Firebase y enlace de la pareja (lo único que usa internet) |
 | `js/modulos/trivia/`, `data/trivia/` | Trivia en vivo y sus bancos de preguntas |
 | `js/modulos/diario/`, `data/diario/` | Diario: las 3 preguntas del día, el reto de inglés y el perfil |
+| `js/modulos/match/`, `data/match/` | Match de deseos: tarjetas para votar en secreto y sus matches |
+| `js/modulos/mapa/` | Mapa (MapLibre + estilo Liberty de OpenFreeMap): ubicaciones, ruta y lugares |
+| `js/nucleo/portada.js` | Foto de inicio que cada celular elige de su galería |
 | `firebase/` | Reglas de seguridad de Firebase y sus pruebas (no forman parte de la app) |
 | `pruebas-nube.html` | Prueba de la conexión real contra los emuladores de Firebase |
 
@@ -187,6 +190,40 @@ Con eso:
 - **Debate**: salen más las preguntas sobre rasgos en los que ustedes están en lados opuestos.
 - **¿Cuánto me conoces?**: cuando cada uno tiene 5 días revelados, la trivia mete hasta 2
   preguntas en las que cada uno adivina qué respondió el otro en el diario.
+
+## El Match de deseos
+
+Cada uno vota en su celular tarjetas de planes (citas, viajes, fin de semana, aprender, retos e
+intimidad): **Me encantaría**, **Solo si tú quieres** o **No**. Hay match cuando los dos votan
+positivo y al menos uno dijo "Me encantaría". Lo que alguno dijo que no **nunca se revela**: el
+"no" solo queda en el registro privado de quien vota, y las reglas de Firebase solo dejan ver el
+voto del otro en una tarjeta a quien ya votó positivo esa misma tarjeta.
+
+Cada semana la app propone un **plan de la semana** entre los matches que no han hecho, igual en
+los dos celulares. Las tarjetas están en `data/match/tarjetas.json`:
+
+```json
+{ "id": "mat-151", "mazo": "citas", "texto": "Plan concreto y realizable (5 a 140 caracteres)" }
+```
+
+Los `mazo` válidos son `citas`, `viajes`, `finde`, `aprender`, `retos` e `intimidad`. Desde la
+app también pueden crear tarjetas propias; al otro le llegan sin autor.
+
+## El Mapa y sus lugares
+
+El mapa usa **MapLibre** con el estilo **Liberty de OpenFreeMap** (gratis, sin clave), con los
+nombres en español cuando existen. Además de la ubicación de cada uno y la ruta, guarda
+**lugares**: deseos (★, a donde quieren ir) y recuerdos (♥, donde ya estuvieron). Se agregan con
+**＋ Lugar** (búsqueda con Photon) o dejando el dedo presionado sobre el mapa. En un deseo,
+**¡Fuimos!** lo vuelve recuerdo; en un recuerdo cada uno escribe su versión (la del otro se ve al
+escribir la propia) y pueden subir hasta 6 fotos, que se comprimen a 1200 px y se guardan en
+Firestore. El mapa necesita internet.
+
+## Foto de inicio
+
+Tocando la foto del inicio cada celular puede elegir una de su galería, encuadrarla en el
+círculo y guardarla **solo en ese celular**; "Volver a la foto original" deja la de siempre. El
+ícono instalado no cambia (las apps web no pueden cambiarlo).
 
 ## Agregar una sección nueva al ecosistema
 
