@@ -60,7 +60,7 @@ export async function borrarLugar(nube, pareja, id) {
   const base = `${ruta(pareja.codigo)}/${id}`;
   const fotos = await nube.listar(`${base}/fotos`);
   await Promise.all(fotos.map((f) => nube.borrar(`${base}/fotos/${f.id}`)));
-  await nube.borrar(`${base}/versiones/${pareja.lugar}`);
+  await Promise.all(['a', 'b'].map((l) => nube.borrar(`${base}/versiones/${l}`)));
   await nube.borrar(base);
 }
 

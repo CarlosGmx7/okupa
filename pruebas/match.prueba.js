@@ -2,10 +2,17 @@ import { prueba, igual, verdadero } from './corredor.js';
 import { crearMundoFalso } from './nube-falsa.js';
 import { esMatch, crearMatch, planDeLaSemana, semanaISO, validarTarjeta, cargarTarjetas, MAZOS } from '../js/modulos/match/logica.js';
 
+import { conReglasMatch } from './reglas-match-falsas.js';
+
 const parejaDe = (lugar) => ({ codigo: 'ABC234', lugar, nombres: { a: 'Carlos', b: 'Yuli' } });
 const dos = () => {
   const mundo = crearMundoFalso();
-  return { mundo, a: crearMatch(mundo.nube('u1'), parejaDe('a')), b: crearMatch(mundo.nube('u2'), parejaDe('b')) };
+  const admin = mundo.nube('admin');
+  return {
+    mundo,
+    a: crearMatch(conReglasMatch(mundo.nube('u1'), 'a', admin), parejaDe('a')),
+    b: crearMatch(conReglasMatch(mundo.nube('u2'), 'b', admin), parejaDe('b')),
+  };
 };
 
 prueba('match: sí+sí y sí+solo-si-quieres hacen match; el resto no', () => {
@@ -23,6 +30,13 @@ prueba('match: si los dos dicen que sí, el segundo descubre el match y ambos lo
   igual((await b.votar('mat-001', 'quizas')).match, true);
   igual((await a.listarMatches()).map((m) => [m.id, m.hecho]), [['mat-001', false]]);
   igual((await b.listarMatches()).map((m) => m.id), ['mat-001']);
+});
+
+prueba('match: solo-si-quieres de los dos no es match y ninguno ve el voto del otro', async () => {
+  const { a, b } = dos();
+  igual((await a.votar('mat-003', 'quizas')).match, false);
+  igual((await b.votar('mat-003', 'quizas')).match, false);
+  igual(await a.listarMatches(), []);
 });
 
 prueba('match: un "no" no deja rastro que el otro pueda leer', async () => {

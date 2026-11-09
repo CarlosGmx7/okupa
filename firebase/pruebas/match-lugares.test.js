@@ -54,6 +54,15 @@ describe('lugares', () => {
     await assertSucceeds(setDoc(d('u1', 'lugares/x1/versiones/a'), { texto: 'Lo mío', horaMs: 2 }));
     await assertSucceeds(getDoc(d('u1', 'lugares/x1/versiones/b')));
   });
+  it('una versión escrita no se puede cambiar después', async () => {
+    await sembrar({ [`${RUTA}/lugares/x1/versiones/a`]: { texto: 'Lo mío', horaMs: 1 } });
+    await assertFails(setDoc(d('u1', 'lugares/x1/versiones/a'), { texto: 'Lo cambio', horaMs: 2 }));
+  });
+  it('al borrar un lugar, cualquiera de los dos borra las dos versiones', async () => {
+    await sembrar({ [`${RUTA}/lugares/x1/versiones/b`]: { texto: 'Lo de Yuli', horaMs: 1 } });
+    await assertSucceeds(deleteDoc(d('u1', 'lugares/x1/versiones/b')));
+    await assertFails(deleteDoc(d('u9', 'lugares/x1/versiones/a')));
+  });
   it('nadie escribe la versión del otro ni una vacía o de más de 1000', async () => {
     await assertFails(setDoc(d('u1', 'lugares/x1/versiones/b'), { texto: 'Suplantado', horaMs: 1 }));
     await assertFails(setDoc(d('u1', 'lugares/x1/versiones/a'), { texto: '', horaMs: 1 }));
@@ -80,12 +89,17 @@ describe('match', () => {
     await assertFails(setDoc(d('u1', 'match_si/mat-003_a'), { voto: 'no' }));
     await assertFails(setDoc(d('u1', 'match_si/mat-001_b'), { voto: 'si' }));
   });
-  it('el voto del otro solo se lee si ya votaste positivo esa tarjeta', async () => {
-    await sembrar({ [`${RUTA}/match_si/mat-001_b`]: { voto: 'si' } });
+  it('nadie lee el voto del otro, ni siquiera después de votar positivo', async () => {
+    await sembrar({ [`${RUTA}/match_si/mat-001_b`]: { voto: 'quizas' } });
     await assertFails(getDoc(d('u1', 'match_si/mat-001_b')));
     await assertFails(getDocs(collection(db('u1'), `${RUTA}/match_si`)));
     await assertSucceeds(setDoc(d('u1', 'match_si/mat-001_a'), { voto: 'quizas' }));
-    await assertSucceeds(getDoc(d('u1', 'match_si/mat-001_b')));
+    await assertFails(getDoc(d('u1', 'match_si/mat-001_b')));
+    await assertSucceeds(getDoc(d('u1', 'match_si/mat-001_a')));
+  });
+  it('un extraño no crea matches', async () => {
+    await sembrar({ [`${RUTA}/match_si/mat-001_a`]: { voto: 'si' }, [`${RUTA}/match_si/mat-001_b`]: { voto: 'si' } });
+    await assertFails(setDoc(d('u9', 'match_matches/mat-001'), { creadoMs: 1, hecho: false }));
   });
   it('el match solo se crea si los dos votaron positivo y al menos uno dijo que sí', async () => {
     const nuevo = { creadoMs: 1, hecho: false };

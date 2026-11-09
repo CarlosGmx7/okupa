@@ -73,7 +73,6 @@ export function barajar(lista, rnd = Math.random) {
 export function crearMatch(nube, pareja) {
   const base = `parejas/${pareja.codigo}`;
   const yo = pareja.lugar;
-  const otro = yo === 'a' ? 'b' : 'a';
   const privado = `${base}/match_privado/${yo}`;
 
   async function misVotos() {
@@ -85,15 +84,17 @@ export function crearMatch(nube, pareja) {
     await nube.escribir(privado, { votos: { [tarjetaId]: voto } }, { combinar: true });
     if (!POSITIVOS.has(voto)) return { match: false };
     await nube.escribir(`${base}/match_si/${tarjetaId}_${yo}`, { voto });
-    const delOtro = await nube.leer(`${base}/match_si/${tarjetaId}_${otro}`);
-    if (!delOtro || !esMatch(voto, delOtro.voto)) return { match: false };
-    // Si los dos llegan al mismo tiempo, el segundo en escribir ya lo encuentra creado.
+    // Nadie lee el voto del otro: se intenta crear el match y las reglas de Firebase solo lo
+    // permiten si los dos votaron positivo y alguno dijo que sí. Si lo rechazan, no hay match.
+    const ruta = `${base}/match_matches/${tarjetaId}`;
+    if (await nube.leer(ruta)) return { match: true };
     try {
-      if (!(await nube.leer(`${base}/match_matches/${tarjetaId}`))) {
-        await nube.escribir(`${base}/match_matches/${tarjetaId}`, { creadoMs: Date.now(), hecho: false });
-      }
-    } catch (e) { console.warn('Okupa: el match ya existía', e); }
-    return { match: true };
+      await nube.escribir(ruta, { creadoMs: Date.now(), hecho: false });
+      return { match: true };
+    } catch {
+      // Rechazado: no hay match todavía (o el otro lo creó justo ahora).
+      return { match: Boolean(await nube.leer(ruta).catch(() => null)) };
+    }
   }
 
   async function pendientes(tarjetas) {

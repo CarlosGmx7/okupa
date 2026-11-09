@@ -49,6 +49,12 @@ export function crearPantallasMatch({ cargar, ordenar = barajar, hoy = hoyLocal 
     return { ...r, logica, todas, porId: new Map(todas.map((t) => [t.id, t])) };
   }
 
+  function sinConexion(zona, ctx) {
+    zona.replaceChildren(el('div', { clase: 'vacio' },
+      el('p', {}, 'Se necesita conexión para el Match.'),
+      el('button', { clase: 'boton boton-principal', type: 'button', onclick: () => ctx.refrescar() }, 'Reintentar')));
+  }
+
   // Calcula y guarda (para el inicio) el plan de la semana.
   function recordarPlan(ctx, matches, porId) {
     const id = planDeLaSemana(matches, hoy());
@@ -64,10 +70,17 @@ export function crearPantallasMatch({ cargar, ordenar = barajar, hoy = hoyLocal 
     if (!p) return;
     const { logica, todas, porId } = p;
     const activos = new Set(ctx.almacen.leer(CLAVE_MAZOS, MAZOS.map((m) => m.id)));
-    const matches = await logica.listarMatches().catch(() => []);
+    let matches;
+    let pila;
+    try {
+      matches = await logica.listarMatches();
+      pila = ordenar(await logica.pendientes(todas.filter((t) => activos.has(t.mazo))));
+    } catch {
+      sinConexion(zona, ctx);
+      return;
+    }
     const planId = recordarPlan(ctx, matches, porId);
 
-    let pila = ordenar(await logica.pendientes(todas.filter((t) => activos.has(t.mazo))));
     const contador = el('p', { clase: 'contador-match' });
     const zonaCarta = el('div', { clase: 'zona-carta-match' });
     const mensaje = el('p', { clase: 'campo-ayuda', role: 'status' });
@@ -140,8 +153,7 @@ export function crearPantallasMatch({ cargar, ordenar = barajar, hoy = hoyLocal 
       const m = MAZO_DE[t.mazo] || { icono: '✦', nombre: '' };
       const carta = el('article', { clase: 'carta carta-match', 'data-id': t.id },
         el('header', { clase: 'carta-cabecera' },
-          el('span', { clase: 'carta-categoria' }, el('span', { 'aria-hidden': 'true' }, m.icono), ` ${m.nombre}`),
-          t.propia ? el('span', { clase: 'carta-propia' }, 'De ustedes') : null),
+          el('span', { clase: 'carta-categoria' }, el('span', { 'aria-hidden': 'true' }, m.icono), ` ${m.nombre}`)),
         el('p', { clase: 'carta-texto' }, t.texto),
         el('p', { clase: 'carta-pista', 'aria-hidden': 'true' }, '← No · ↑ Solo si tú quieres · Me encantaría →'));
       habilitarGestos(carta);

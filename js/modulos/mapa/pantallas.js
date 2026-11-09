@@ -40,7 +40,21 @@ function elementoPareja({ nombre, lugar, ubicacion }) {
 }
 
 export function crearPantallasMapa() {
+  // Un solo mapa vivo a la vez: cada mapa usa WebGL y memoria. Se borra al salir de la pantalla o
+  // al repintarla (Actualizar, Reintentar), y un mapa que termina de cargar tarde se descarta.
+  let mapaVivo = null;
+  let generacion = 0;
+  const limpiar = () => {
+    document.querySelectorAll('.hoja-fondo').forEach((h) => h.remove());
+    mapaVivo?.remove();
+    mapaVivo = null;
+  };
+  window.addEventListener('hashchange', () => { generacion++; limpiar(); });
+
   async function mapa(contenedor, _params, ctx) {
+    const mia = ++generacion;
+    limpiar();
+    const vigente = () => mia === generacion;
     const zona = el('div', { clase: 'mapa-pantalla' });
     contenedor.append(el('a', { clase: 'volver', href: '#/' }, '← Inicio'), zona);
     cargarMapLibre().catch(() => {});
@@ -102,11 +116,13 @@ export function crearPantallasMapa() {
       ({ gl, mapa: mapaL } = await crearMapa(lienzo));
     } catch (e) {
       console.warn('Okupa: el mapa no cargó', e);
+      if (!vigente()) return;
       lienzo.replaceChildren(el('p', { clase: 'vacio' }, 'No se pudo cargar el mapa. Revisa la conexión.'),
         el('button', { clase: 'boton', type: 'button', onclick: () => ctx.refrescar() }, 'Reintentar'));
       return;
     }
-    window.addEventListener('hashchange', () => { document.querySelectorAll('.hoja-fondo').forEach((h) => h.remove()); mapaL.remove(); }, { once: true });
+    if (!vigente()) { mapaL.remove(); return; }
+    mapaVivo = mapaL;
 
     const lugares = montarLugares({ gl, mapa: mapaL, nube, pareja });
     nuevoLugar.disabled = false;
@@ -135,6 +151,7 @@ export function crearPantallasMapa() {
 
     distancia.textContent = 'Calculando la ruta…';
     const ruta = await calcularRuta(ubicaciones[yo], ubicaciones[otro]);
+    if (!vigente()) return;
     dibujarLinea(mapaL, 'ruta', ruta.linea, { color: ROJO_RUTA, punteada: !ruta.porVias });
     aplicarCapa('nosotros');
     encuadrar(mapaL, [...ruta.linea, ...puntos]);

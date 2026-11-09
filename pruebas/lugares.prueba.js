@@ -109,6 +109,14 @@ prueba('lugares: borrar un lugar borra también sus fotos y versiones', async ()
   igual(await nube.leer(`parejas/ABC234/lugares/${id}/versiones/a`), null);
 });
 
+prueba('lugares: borrar un lugar borra también la versión que escribió el otro', async () => {
+  const mundo = crearMundoFalso();
+  const { id } = await crearLugar(mundo.nube('u1'), parejaDe('a'), { ...base, tipo: 'recuerdo' });
+  await guardarVersion(mundo.nube('u2'), parejaDe('b'), id, 'Lo de Yuli');
+  await borrarLugar(mundo.nube('u1'), parejaDe('a'), id);
+  igual(await mundo.nube('u2').leer(`parejas/ABC234/lugares/${id}/versiones/b`), null);
+});
+
 prueba('lugares: buscarLugares usa Photon y devuelve nombre, detalle y coordenadas', async () => {
   let pedida = '';
   const fetchFalso = async (url) => {

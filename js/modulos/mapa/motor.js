@@ -5,6 +5,7 @@
 export const MAPLIBRE = 'https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1';
 export const ESTILO_LIBERTY = 'https://tiles.openfreemap.org/styles/liberty';
 const ESPANOL = ['coalesce', ['get', 'name:es'], ['get', 'name']];
+const ESPERA_MAXIMA = 25000;
 
 export const aLngLat = ([lat, lng]) => [lng, lat];
 
@@ -67,10 +68,17 @@ export async function crearMapa(lienzo, { centro = [4.6, -74.1], zoom = 5 } = {}
   });
   mapa.touchZoomRotate.disableRotation();
   mapa.addControl(new gl.NavigationControl({ showCompass: false }), 'top-right');
-  await new Promise((listo, fallo) => {
-    mapa.once('load', listo);
-    mapa.once('error', (e) => { if (!mapa.loaded()) fallo(e.error || new Error('El mapa no cargó')); });
-  });
+  // Un error suelto (un pedazo del mapa, un ícono) no es fatal: se espera a que cargue y solo se
+  // rinde si no carga en un tiempo razonable.
+  mapa.on('error', (e) => console.warn('Okupa: aviso del mapa', e?.error || e));
+  const cargo = await Promise.race([
+    new Promise((listo) => mapa.once('load', () => listo(true))),
+    new Promise((listo) => setTimeout(() => listo(false), ESPERA_MAXIMA)),
+  ]);
+  if (!cargo) {
+    mapa.remove();
+    throw new Error('El mapa no cargó a tiempo');
+  }
   return { gl, mapa };
 }
 

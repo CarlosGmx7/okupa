@@ -247,16 +247,30 @@ export function montarLugares({ gl, mapa, nube, pareja }) {
     });
   }
 
-  // Dejar el dedo presionado (o clic derecho) sobre el mapa agrega un lugar ahí.
+  // Dejar el dedo presionado (o clic derecho) sobre el mapa agrega un lugar ahí. Tolera el
+  // temblor normal del dedo, no se dispara sobre un pin y no abre dos formularios a la vez
+  // (en Android el toque largo también produce "contextmenu").
   let temporizador = null;
-  const agregarEn = (lngLat) => abrirFormularioLugar({ nube, pareja, punto: { lat: lngLat.lat, lng: lngLat.lng }, alGuardar: recargar });
+  let inicio = null;
+  let ultimo = 0;
+  const sobreMarcador = (e) => Boolean(e.originalEvent?.target?.closest?.('.pin-lugar, .marcador-pareja'));
+  const agregarEn = (lngLat) => {
+    if (Date.now() - ultimo < 1200 || document.querySelector('.hoja-fondo')) return;
+    ultimo = Date.now();
+    abrirFormularioLugar({ nube, pareja, punto: { lat: lngLat.lat, lng: lngLat.lng }, alGuardar: recargar });
+  };
+  const cancelar = () => { clearTimeout(temporizador); inicio = null; };
   mapa.on('touchstart', (e) => {
-    if (e.originalEvent.touches.length !== 1) return;
-    clearTimeout(temporizador);
+    cancelar();
+    if (e.originalEvent.touches.length !== 1 || sobreMarcador(e)) return;
+    inicio = e.point;
     temporizador = setTimeout(() => agregarEn(e.lngLat), 650);
   });
-  for (const ev of ['touchend', 'touchcancel', 'touchmove', 'movestart']) mapa.on(ev, () => clearTimeout(temporizador));
-  mapa.on('contextmenu', (e) => agregarEn(e.lngLat));
+  mapa.on('touchmove', (e) => {
+    if (inicio && Math.hypot(e.point.x - inicio.x, e.point.y - inicio.y) > 10) cancelar();
+  });
+  for (const ev of ['touchend', 'touchcancel', 'zoomstart']) mapa.on(ev, cancelar);
+  mapa.on('contextmenu', (e) => { if (!sobreMarcador(e)) agregarEn(e.lngLat); });
 
   recargar();
   return {

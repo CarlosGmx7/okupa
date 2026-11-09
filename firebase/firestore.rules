@@ -84,11 +84,14 @@ service cloud.firestore {
           }
           allow get: if esMiembro(codigo) && (esMia() || yaEscribiLaMia());
           allow list: if false;
-          allow create, update: if esMiembro(codigo) && esMia()
+          // Se escribe una sola vez (no se puede cambiar tras leer la del otro); se borran las dos
+          // cuando se borra el lugar.
+          allow create: if esMiembro(codigo) && esMia()
             && request.resource.data.keys().hasOnly(['texto', 'horaMs'])
             && request.resource.data.texto is string
             && request.resource.data.texto.size() >= 1 && request.resource.data.texto.size() <= 1000;
-          allow delete: if esMiembro(codigo) && esMia();
+          allow update: if false;
+          allow delete: if esMiembro(codigo);
         }
         match /fotos/{foto} {
           allow read: if esMiembro(codigo);
@@ -103,18 +106,16 @@ service cloud.firestore {
       }
 
       // Match de deseos. El voto completo (incluido el "no") vive en match_privado, que solo lee su
-      // dueño. En match_si solo hay votos positivos ({tarjeta}_{lugar}), y el del otro se lee solo
-      // si ya existe el propio positivo de esa tarjeta: un "no" es indistinguible de "no ha votado".
+      // dueño. En match_si solo hay votos positivos ({tarjeta}_{lugar}) y cada uno lee solo los
+      // suyos: nadie ve nunca el voto del otro. Que hay match lo decide esta regla al crear
+      // match_matches; si se rechaza, el celular solo sabe "no hay match (todavía)".
       match /match_privado/{quien} {
         allow read, write: if esMiembro(codigo) && quien == miLugar(codigo);
       }
       match /match_si/{clave} {
         function partes() { return clave.split('_'); }
         function propio() { return partes()[1] == miLugar(codigo); }
-        function tengoPositivo() {
-          return exists(/databases/$(db)/documents/parejas/$(codigo)/match_si/$(partes()[0] + '_' + miLugar(codigo)));
-        }
-        allow get: if esMiembro(codigo) && partes().size() == 2 && (propio() || tengoPositivo());
+        allow get: if esMiembro(codigo) && partes().size() == 2 && propio();
         allow list: if false;
         allow create, update: if esMiembro(codigo) && partes().size() == 2 && propio()
           && request.resource.data.keys().hasOnly(['voto'])
