@@ -15,7 +15,10 @@ export function conReglasMatch(nube, lugar, admin) {
     },
     async escribir(ruta, datos, opciones) {
       const m = ruta.match(/^(parejas\/[^/]+)\/match_matches\/([^/]+)$/);
-      if (m && !(await admin.leer(ruta))) {
+      const existe = m ? await admin.leer(ruta) : null;
+      // Crear: los dos positivos y alguno "si". Sobre uno existente solo se puede cambiar "hecho".
+      if (m && existe && Object.keys(datos).some((k) => k !== 'hecho')) throw denegado();
+      if (m && !existe) {
         const [a, b] = await Promise.all(['a', 'b'].map((l) => admin.leer(`${m[1]}/match_si/${m[2]}_${l}`)));
         if (!a || !b || !esMatch(a.voto, b.voto)) throw denegado();
       }

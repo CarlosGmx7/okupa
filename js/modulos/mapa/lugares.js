@@ -79,12 +79,15 @@ export async function leerLugar(nube, pareja, id) {
   return datos ? { id, ...datos } : null;
 }
 
-// La del otro solo se pide si ya existe la propia (las reglas también lo exigen).
+// Las dos se piden a la vez para no esperar dos viajes. Las reglas niegan la del otro mientras no
+// exista la propia; en ese caso (o si llega) se descarta y no se muestra.
 export async function leerVersiones(nube, pareja, id) {
   const base = `${ruta(pareja.codigo)}/${id}/versiones`;
-  const mia = await nube.leer(`${base}/${pareja.lugar}`);
+  const [mia, otra] = await Promise.all([
+    nube.leer(`${base}/${pareja.lugar}`),
+    nube.leer(`${base}/${otroDe(pareja.lugar)}`).catch(() => null),
+  ]);
   if (!mia) return { mia: null, otra: null, otraEscrita: null };
-  const otra = await nube.leer(`${base}/${otroDe(pareja.lugar)}`);
   return { mia: mia.texto, otra: otra?.texto ?? null, otraEscrita: Boolean(otra) };
 }
 

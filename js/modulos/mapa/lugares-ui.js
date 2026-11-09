@@ -127,77 +127,75 @@ function cargarImagen(archivo) {
   });
 }
 
+// Fotos ya vistas en esta sesión de la app: la ficha las muestra al instante la próxima vez y las
+// refresca por detrás (cada foto pesa hasta ~380 KB).
+const fotosVistas = new Map();
+
+// La ficha se abre al instante con lo que ya se sabe del lugar; versiones y fotos se cargan en
+// paralelo y cada sección se pinta sola cuando llega lo suyo.
 export async function abrirFichaLugar({ nube, pareja, lugar, alCambiar = () => {} }) {
   const { hoja, cuerpo, cerrar } = abrirHoja(lugar.nombre);
   const otro = pareja.lugar === 'a' ? 'b' : 'a';
   const nombreOtro = pareja.nombres?.[otro] || 'Tu pareja';
   const mensaje = el('p', { clase: 'campo-ayuda', role: 'status' });
+  const cabeza = el('div');
+  const zonaVersiones = el('section', { clase: 'ficha-seccion' });
+  const zonaFotos = el('section', { clase: 'ficha-seccion' });
+  const cargando = () => el('p', { clase: 'campo-ayuda' }, 'Cargando…');
 
-  async function pintar() {
-    // Datos al día (el otro pudo escribir su versión o cambiar el tipo).
-    Object.assign(lugar, (await leerLugar(nube, pareja, lugar.id).catch(() => null)) || {});
-    const partes = [
+  function pintarCabeza() {
+    cabeza.replaceChildren(
       el('p', { clase: 'ficha-tipo' }, `${ICONO[lugar.tipo]} ${NOMBRE_TIPO[lugar.tipo]}${lugar.fecha ? ` · ${fechaLegible(lugar.fecha)}` : ''}`),
-      lugar.nota ? el('p', { clase: 'ficha-nota' }, lugar.nota) : null,
-    ];
-    if (lugar.tipo === 'deseo') {
-      partes.push(el('div', { clase: 'hoja-acciones' }, el('button', {
+      lugar.nota ? el('p', { clase: 'ficha-nota' }, lugar.nota) : el('span'),
+      lugar.tipo === 'deseo' ? el('div', { clase: 'hoja-acciones' }, el('button', {
         clase: 'boton boton-principal', type: 'button',
-        onclick: async () => {
+        onclick: async (e) => {
+          e.currentTarget.disabled = true;
           const fecha = hoy();
-          await marcarFuimos(nube, pareja, lugar.id, fecha);
+          try {
+            await marcarFuimos(nube, pareja, lugar.id, fecha);
+          } catch {
+            mensaje.textContent = 'No se pudo guardar. Revisa la conexión.';
+            e.currentTarget.disabled = false;
+            return;
+          }
           Object.assign(lugar, { tipo: 'recuerdo', fecha });
           alCambiar();
-          await pintar();
+          armar();
         },
-      }, '¡Fuimos!')));
-    } else {
-      partes.push(await seccionVersiones(), await seccionFotos());
-    }
-    partes.push(mensaje, el('div', { clase: 'hoja-acciones' }, el('button', {
-      clase: 'boton-texto boton-peligro', type: 'button',
-      onclick: async () => {
-        if (!confirm(`¿Borrar "${lugar.nombre}" con sus fotos y versiones?`)) return;
-        await borrarLugar(nube, pareja, lugar.id);
-        cerrar();
-        alCambiar();
-      },
-    }, 'Borrar lugar')));
-    cuerpo.replaceChildren(...partes.filter(Boolean));
+      }, '¡Fuimos!')) : el('span'));
   }
 
-  async function seccionVersiones() {
+  async function cargarVersiones() {
+    zonaVersiones.replaceChildren(el('h3', {}, 'Cómo lo vivió cada uno'), cargando());
     const v = await leerVersiones(nube, pareja, lugar.id).catch(() => null);
-    const caja = el('section', { clase: 'ficha-seccion' }, el('h3', {}, 'Cómo lo vivió cada uno'));
-    if (!v) { caja.append(el('p', { clase: 'campo-ayuda' }, 'No se pudieron cargar. Revisa la conexión.')); return caja; }
-    if (!v.mia) {
-      const texto = el('textarea', { maxlength: '1000', placeholder: '¿Qué recuerdas de ese día?' });
-      const error = el('p', { clase: 'error-formulario', role: 'alert' });
-      caja.append(
-        el('p', { clase: 'campo-ayuda' }, 'Escribe tu versión; la de tu pareja se ve cuando escribas la tuya.'),
-        texto, error,
-        el('button', {
-          clase: 'boton', type: 'button',
-          onclick: async () => {
-            const r = await guardarVersion(nube, pareja, lugar.id, texto.value).catch(() => ({ ok: false, error: 'No se pudo guardar.' }));
-            if (!r.ok) { error.textContent = r.error; return; }
-            await pintar();
-          },
-        }, 'Guardar mi versión'),
-        lugar.versiones?.[otro] ? el('p', { clase: 'campo-ayuda' }, `${nombreOtro} ya escribió la suya.`) : null);
-      return caja;
+    const titulo = el('h3', {}, 'Cómo lo vivió cada uno');
+    if (!v) { zonaVersiones.replaceChildren(titulo, el('p', { clase: 'campo-ayuda' }, 'No se pudieron cargar. Revisa la conexión.')); return; }
+    if (v.mia) {
+      zonaVersiones.replaceChildren(titulo,
+        el('div', { clase: 'version mia' }, el('span', { clase: 'version-quien' }, 'Tú'), el('p', {}, v.mia)),
+        el('div', { clase: 'version' }, el('span', { clase: 'version-quien' }, nombreOtro),
+          el('p', {}, v.otraEscrita ? v.otra : `${nombreOtro} todavía no escribe su versión.`)));
+      return;
     }
-    caja.append(
-      el('div', { clase: 'version mia' }, el('span', { clase: 'version-quien' }, 'Tú'), el('p', {}, v.mia)),
-      el('div', { clase: 'version' }, el('span', { clase: 'version-quien' }, nombreOtro),
-        el('p', {}, v.otraEscrita ? v.otra : `${nombreOtro} todavía no escribe su versión.`)));
-    return caja;
+    const texto = el('textarea', { maxlength: '1000', placeholder: '¿Qué recuerdas de ese día?' });
+    const error = el('p', { clase: 'error-formulario', role: 'alert' });
+    zonaVersiones.replaceChildren(titulo,
+      el('p', { clase: 'campo-ayuda' }, 'Escribe tu versión; la de tu pareja se ve cuando escribas la tuya.'),
+      texto, error,
+      el('button', {
+        clase: 'boton', type: 'button',
+        onclick: async (e) => {
+          e.currentTarget.disabled = true;
+          const r = await guardarVersion(nube, pareja, lugar.id, texto.value).catch(() => ({ ok: false, error: 'No se pudo guardar. Revisa la conexión.' }));
+          if (!r.ok) { error.textContent = r.error; e.currentTarget.disabled = false; return; }
+          await cargarVersiones();
+        },
+      }, 'Guardar mi versión'),
+      lugar.versiones?.[otro] ? el('p', { clase: 'campo-ayuda' }, `${nombreOtro} ya escribió la suya.`) : el('span'));
   }
 
-  async function seccionFotos() {
-    const caja = el('section', { clase: 'ficha-seccion' }, el('h3', {}, 'Fotos'));
-    let fotos = [];
-    try { fotos = await listarFotos(nube, pareja, lugar.id); } catch { caja.append(el('p', { clase: 'campo-ayuda' }, 'No se pudieron cargar las fotos.')); return caja; }
+  function pintarFotos(fotos) {
     // Se pueden escoger varias a la vez; se suben una por una (cada una se comprime en el celular)
     // y, si no caben todas, se suben las primeras y se avisa.
     const archivo = el('input', { type: 'file', accept: 'image/*', multiple: true, hidden: true });
@@ -222,23 +220,71 @@ export async function abrirFichaLugar({ nube, pareja, lugar, alCambiar = () => {
       if (elegidas.length > caben) avisos.push(`Solo ${caben === 1 ? 'cabía 1' : `cabían ${caben}`} (máximo ${MAX_FOTOS} fotos por lugar).`);
       if (fallidas) avisos.push(fallidas === 1 ? '1 foto no se pudo subir.' : `${fallidas} fotos no se pudieron subir.`);
       mensaje.textContent = avisos.join(' ');
-      await pintar();
+      await cargarFotos();
     });
-    caja.append(
+    zonaFotos.replaceChildren(
+      el('h3', {}, 'Fotos'),
       el('div', { clase: 'galeria' }, fotos.map((f) => el('div', { clase: 'miniatura' },
-        el('button', { clase: 'miniatura-ver', type: 'button', 'aria-label': 'Ver foto', onclick: () => verFoto(f) }, el('img', { src: f.datos, alt: '' })),
+        el('button', { clase: 'miniatura-ver', type: 'button', 'aria-label': 'Ver foto', onclick: () => verFoto(f) }, el('img', { src: f.datos, alt: '', loading: 'lazy', decoding: 'async' })),
         el('button', {
           clase: 'miniatura-borrar', type: 'button', 'aria-label': 'Borrar foto',
-          onclick: async () => { if (!confirm('¿Borrar esta foto?')) return; await borrarFoto(nube, pareja, lugar.id, f.id); await pintar(); },
+          onclick: async () => {
+            if (!confirm('¿Borrar esta foto?')) return;
+            try { await borrarFoto(nube, pareja, lugar.id, f.id); } catch { mensaje.textContent = 'No se pudo borrar. Revisa la conexión.'; return; }
+            pintarFotos(fotos.filter((x) => x.id !== f.id));
+            fotosVistas.set(lugar.id, fotos.filter((x) => x.id !== f.id));
+          },
         }, '✕')))),
       archivo,
       fotos.length < MAX_FOTOS
-        ? [agregar, el('p', { clase: 'campo-ayuda' }, `Puedes escoger varias a la vez (te quedan ${MAX_FOTOS - fotos.length}).`)]
+        ? el('div', {}, agregar, el('p', { clase: 'campo-ayuda' }, `Puedes escoger varias a la vez (te quedan ${MAX_FOTOS - fotos.length}).`))
         : el('p', { clase: 'campo-ayuda' }, `Máximo ${MAX_FOTOS} fotos por lugar.`));
-    return caja;
   }
 
-  await pintar();
+  async function cargarFotos() {
+    const vistas = fotosVistas.get(lugar.id);
+    if (vistas) pintarFotos(vistas);
+    else zonaFotos.replaceChildren(el('h3', {}, 'Fotos'), cargando());
+    try {
+      const fotos = await listarFotos(nube, pareja, lugar.id);
+      fotosVistas.set(lugar.id, fotos);
+      pintarFotos(fotos);
+    } catch {
+      if (!vistas) zonaFotos.replaceChildren(el('h3', {}, 'Fotos'), el('p', { clase: 'campo-ayuda' }, 'No se pudieron cargar las fotos.'));
+    }
+  }
+
+  function armar() {
+    pintarCabeza();
+    const esRecuerdo = lugar.tipo === 'recuerdo';
+    cuerpo.replaceChildren(
+      cabeza,
+      esRecuerdo ? zonaVersiones : el('span'),
+      esRecuerdo ? zonaFotos : el('span'),
+      mensaje,
+      el('div', { clase: 'hoja-acciones' }, el('button', {
+        clase: 'boton-texto boton-peligro', type: 'button',
+        onclick: async () => {
+          if (!confirm(`¿Borrar "${lugar.nombre}" con sus fotos y versiones?`)) return;
+          try { await borrarLugar(nube, pareja, lugar.id); } catch { mensaje.textContent = 'No se pudo borrar. Revisa la conexión.'; return; }
+          fotosVistas.delete(lugar.id);
+          cerrar();
+          alCambiar();
+        },
+      }, 'Borrar lugar')));
+    if (esRecuerdo) { cargarVersiones(); cargarFotos(); }
+  }
+
+  armar();
+  // Por detrás: el otro pudo cambiar el lugar (marcarlo como recuerdo o escribir su versión).
+  leerLugar(nube, pareja, lugar.id).then((fresco) => {
+    if (!fresco || !hoja.isConnected) return;
+    const cambioTipo = fresco.tipo !== lugar.tipo;
+    const cambioVersion = Boolean(fresco.versiones?.[otro]) !== Boolean(lugar.versiones?.[otro]);
+    Object.assign(lugar, fresco);
+    if (cambioTipo) armar();
+    else if (cambioVersion && lugar.tipo === 'recuerdo') cargarVersiones();
+  }).catch(() => {});
   return hoja;
 }
 

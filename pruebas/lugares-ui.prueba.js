@@ -70,6 +70,7 @@ prueba('lugares-ui: la versión del otro se ve solo después de escribir la prop
   const [lugar] = await listarLugares(mundo.nube('u1'), parejaDe('a'));
   await guardarVersion(mundo.nube('u2'), parejaDe('b'), lugar.id, 'Subimos la piedra sin parar');
   const hoja = await abrirFichaLugar({ nube: mundo.nube('u1'), pareja: parejaDe('a'), lugar, alCambiar() {} });
+  for (let i = 0; i < 50 && !hoja.textContent.includes('Yuli ya escribió la suya'); i++) await esperar(20);
   verdadero(!hoja.textContent.includes('Subimos la piedra'), 'no debe verse aún');
   verdadero(hoja.textContent.includes('Yuli ya escribió la suya'), hoja.textContent.slice(0, 200));
   hoja.querySelector('textarea').value = 'Me dio vértigo arriba';
@@ -125,4 +126,36 @@ prueba('lugares-ui: si escogen más fotos de las que caben, sube las que caben y
   for (let i = 0; i < 100 && !hoja.textContent.includes('Solo cabía'); i++) await esperar(30);
   igual((await listarFotos(mundo.nube('u1'), pareja, lugar.id)).length, MAX_FOTOS);
   verdadero(hoja.textContent.includes('Solo cabía 1'), hoja.querySelector('[role=status]')?.textContent);
+}));
+
+// Nube que tarda en responder, para comprobar que la pantalla no se queda esperando.
+export function nubeLenta(nube, ms = 400) {
+  const tarde = (fn) => async (...a) => { await esperar(ms); return fn(...a); };
+  return { ...nube, leer: tarde(nube.leer), listar: tarde(nube.listar), escribir: tarde(nube.escribir), borrar: tarde(nube.borrar) };
+}
+
+prueba('lugares-ui: la ficha de un recuerdo muestra el botón de agregar fotos (sin "[object")', () => conHoja(async () => {
+  const mundo = crearMundoFalso();
+  const pareja = parejaDe('a');
+  await crearLugar(mundo.nube('u1'), pareja, { nombre: 'Jardín', lat: 5.6, lng: -75.8, tipo: 'recuerdo' });
+  const [lugar] = await listarLugares(mundo.nube('u1'), pareja);
+  const hoja = await abrirFichaLugar({ nube: mundo.nube('u1'), pareja, lugar, alCambiar() {} });
+  for (let i = 0; i < 50 && !boton(hoja, 'Agregar fotos'); i++) await esperar(20);
+  verdadero(boton(hoja, 'Agregar fotos'), 'falta el botón');
+  verdadero(!hoja.textContent.includes('[object'), hoja.textContent);
+}));
+
+prueba('lugares-ui: la ficha se abre al instante aunque la red esté lenta', () => conHoja(async () => {
+  const mundo = crearMundoFalso();
+  const pareja = parejaDe('a');
+  await crearLugar(mundo.nube('u1'), pareja, { nombre: 'Barichara', lat: 6.63, lng: -73.22, tipo: 'recuerdo', fecha: '2026-09-01' });
+  const [lugar] = await listarLugares(mundo.nube('u1'), pareja);
+  await guardarVersion(mundo.nube('u1'), pareja, lugar.id, 'Caminamos el Camino Real');
+  const inicio = performance.now();
+  const hoja = await abrirFichaLugar({ nube: nubeLenta(mundo.nube('u1')), pareja, lugar, alCambiar() {} });
+  verdadero(performance.now() - inicio < 200, `tardó ${Math.round(performance.now() - inicio)} ms`);
+  verdadero(hoja.textContent.includes('Recuerdo'), hoja.textContent);
+  verdadero(hoja.textContent.includes('Cargando'), 'debe indicar que carga lo demás');
+  for (let i = 0; i < 100 && !hoja.textContent.includes('Caminamos el Camino Real'); i++) await esperar(20);
+  verdadero(hoja.textContent.includes('Caminamos el Camino Real'));
 }));

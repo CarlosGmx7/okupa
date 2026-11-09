@@ -125,3 +125,19 @@ prueba('match pantallas: crear una tarjeta la guarda y vuelve al mazo', async ()
   igual((await b.logica.tarjetasPropias()).map((t) => t.texto), ['Ver el amanecer en Monserrate']);
   salir();
 });
+
+prueba('match pantallas: votar pasa a la siguiente carta al instante aunque la red esté lenta', async () => {
+  const { a } = await parejaMatch();
+  const nube = await a.ctx.nube();
+  const lenta = { ...nube, escribir: async (...x) => { await esperar(400); return nube.escribir(...x); } };
+  const ctx = { ...a.ctx, nube: async () => lenta };
+  await a.pantallas.mazo(a.div, {}, ctx);
+  await hasta(() => textoCarta(a.div) === 'Picnic en el parque');
+  boton(a.div, 'Me encantaría').click();
+  await esperar(60);
+  igual(textoCarta(a.div), 'Ir a Cartagena', 'debe pasar sin esperar a la red');
+  await hasta(async () => true);
+  for (let i = 0; i < 100 && !(await a.logica.misVotos())['mat-001']; i++) await esperar(20);
+  igual((await a.logica.misVotos())['mat-001'], 'si');
+  salir();
+});

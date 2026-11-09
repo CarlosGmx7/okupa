@@ -95,22 +95,22 @@ export function crearPantallasMatch({ cargar, ordenar = barajar, hoy = hoyLocal 
       return b;
     }));
 
-    let ocupado = false;
-    async function votar(voto) {
+    // La carta siguiente sale al instante; el voto se guarda por detrás, en orden. Si un voto no se
+    // pudo guardar, esa carta vuelve al frente para votarla otra vez.
+    let cola = Promise.resolve();
+    function votar(voto) {
       const t = pila[0];
-      if (!t || ocupado) return;
-      ocupado = true;
-      try {
-        const r = await logica.votar(t.id, voto);
-        pila = pila.slice(1);
+      if (!t) return;
+      pila = pila.slice(1);
+      mensaje.textContent = '';
+      pintar();
+      cola = cola.then(() => logica.votar(t.id, voto)).then((r) => {
         if (r.match) festejar(t);
-        mensaje.textContent = '';
-      } catch {
-        mensaje.textContent = 'No se pudo guardar el voto. Revisa la conexión.';
-      } finally {
-        ocupado = false;
+      }, () => {
+        pila = [t, ...pila];
+        mensaje.textContent = `No se pudo guardar tu voto de "${t.texto}". Vuelve a votarla.`;
         pintar();
-      }
+      });
     }
 
     function habilitarGestos(carta) {
