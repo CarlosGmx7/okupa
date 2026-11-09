@@ -54,6 +54,96 @@ service cloud.firestore {
         allow read: if esMiembro(codigo);
         allow write: if esMiembro(codigo) && lugar == miLugar(codigo);
       }
+      // Lugares del mapa: deseos y recuerdos. Los dos leen y escriben; cada uno solo marca su propia
+      // versión como escrita.
+      match /lugares/{id} {
+        function lugarValido(d) {
+          return d.keys().hasOnly(['nombre', 'lat', 'lng', 'tipo', 'nota', 'fecha', 'creadoPor', 'creadoMs', 'versiones'])
+            && d.nombre is string && d.nombre.size() >= 1 && d.nombre.size() <= 80
+            && d.lat is number && d.lat >= -90 && d.lat <= 90
+            && d.lng is number && d.lng >= -180 && d.lng <= 180
+            && d.tipo in ['deseo', 'recuerdo']
+            && (!('nota' in d) || (d.nota is string && d.nota.size() <= 300))
+            && (!('fecha' in d) || (d.fecha is string && d.fecha.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')));
+        }
+        function versionesPropias() {
+          let antes = resource == null || !('versiones' in resource.data) ? {} : resource.data.versiones;
+          let despues = !('versiones' in request.resource.data) ? {} : request.resource.data.versiones;
+          return despues.diff(antes).affectedKeys().hasOnly([miLugar(codigo)]);
+        }
+        allow read: if esMiembro(codigo);
+        allow create: if esMiembro(codigo) && lugarValido(request.resource.data) && !('versiones' in request.resource.data);
+        allow update: if esMiembro(codigo) && lugarValido(request.resource.data) && versionesPropias();
+        allow delete: if esMiembro(codigo);
+
+        // La versión del otro solo se lee si ya existe la propia.
+        match /versiones/{quien} {
+          function esMia() { return quien == miLugar(codigo); }
+          function yaEscribiLaMia() {
+            return exists(/databases/$(db)/documents/parejas/$(codigo)/lugares/$(id)/versiones/$(miLugar(codigo)));
+          }
+          allow get: if esMiembro(codigo) && (esMia() || yaEscribiLaMia());
+          allow list: if false;
+          allow create, update: if esMiembro(codigo) && esMia()
+            && request.resource.data.keys().hasOnly(['texto', 'horaMs'])
+            && request.resource.data.texto is string
+            && request.resource.data.texto.size() >= 1 && request.resource.data.texto.size() <= 1000;
+          allow delete: if esMiembro(codigo) && esMia();
+        }
+        match /fotos/{foto} {
+          allow read: if esMiembro(codigo);
+          allow create: if esMiembro(codigo)
+            && request.resource.data.keys().hasOnly(['datos', 'ancho', 'alto', 'por', 'creadaMs'])
+            && request.resource.data.datos is string
+            && request.resource.data.datos.size() <= 400000
+            && request.resource.data.datos.matches('^data:image/jpeg;base64,.*');
+          allow update: if false;
+          allow delete: if esMiembro(codigo);
+        }
+      }
+
+      // Match de deseos. El voto completo (incluido el "no") vive en match_privado, que solo lee su
+      // dueño. En match_si solo hay votos positivos ({tarjeta}_{lugar}), y el del otro se lee solo
+      // si ya existe el propio positivo de esa tarjeta: un "no" es indistinguible de "no ha votado".
+      match /match_privado/{quien} {
+        allow read, write: if esMiembro(codigo) && quien == miLugar(codigo);
+      }
+      match /match_si/{clave} {
+        function partes() { return clave.split('_'); }
+        function propio() { return partes()[1] == miLugar(codigo); }
+        function tengoPositivo() {
+          return exists(/databases/$(db)/documents/parejas/$(codigo)/match_si/$(partes()[0] + '_' + miLugar(codigo)));
+        }
+        allow get: if esMiembro(codigo) && partes().size() == 2 && (propio() || tengoPositivo());
+        allow list: if false;
+        allow create, update: if esMiembro(codigo) && partes().size() == 2 && propio()
+          && request.resource.data.keys().hasOnly(['voto'])
+          && request.resource.data.voto in ['si', 'quizas'];
+        allow delete: if esMiembro(codigo) && partes().size() == 2 && propio();
+      }
+      match /match_matches/{tarjeta} {
+        function ruta(l) { return /databases/$(db)/documents/parejas/$(codigo)/match_si/$(tarjeta + '_' + l); }
+        allow read: if esMiembro(codigo);
+        allow create: if esMiembro(codigo)
+          && exists(ruta('a')) && exists(ruta('b'))
+          && (get(ruta('a')).data.voto == 'si' || get(ruta('b')).data.voto == 'si')
+          && request.resource.data.keys().hasOnly(['creadoMs', 'hecho'])
+          && request.resource.data.hecho == false;
+        allow update: if esMiembro(codigo)
+          && soloCambia(resource.data, request.resource.data, ['hecho'])
+          && request.resource.data.hecho is bool;
+        allow delete: if false;
+      }
+      // Tarjetas creadas por la pareja: sin autor.
+      match /match_tarjetas/{id} {
+        allow read: if esMiembro(codigo);
+        allow create: if esMiembro(codigo) && id.matches('^n-[a-z0-9]+$')
+          && request.resource.data.keys().hasOnly(['mazo', 'texto', 'creadaMs'])
+          && request.resource.data.mazo in ['citas', 'viajes', 'finde', 'aprender', 'retos', 'intimidad']
+          && request.resource.data.texto is string
+          && request.resource.data.texto.size() >= 5 && request.resource.data.texto.size() <= 140;
+        allow update, delete: if false;
+      }
       match /dias/{fecha} {
         allow read, write: if esMiembro(codigo);
 
