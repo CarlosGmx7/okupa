@@ -198,17 +198,30 @@ export async function abrirFichaLugar({ nube, pareja, lugar, alCambiar = () => {
     const caja = el('section', { clase: 'ficha-seccion' }, el('h3', {}, 'Fotos'));
     let fotos = [];
     try { fotos = await listarFotos(nube, pareja, lugar.id); } catch { caja.append(el('p', { clase: 'campo-ayuda' }, 'No se pudieron cargar las fotos.')); return caja; }
-    const archivo = el('input', { type: 'file', accept: 'image/*', hidden: true });
+    // Se pueden escoger varias a la vez; se suben una por una (cada una se comprime en el celular)
+    // y, si no caben todas, se suben las primeras y se avisa.
+    const archivo = el('input', { type: 'file', accept: 'image/*', multiple: true, hidden: true });
+    const agregar = el('button', { clase: 'boton', type: 'button', onclick: () => archivo.click() }, '＋ Agregar fotos');
     archivo.addEventListener('change', async () => {
-      const f = archivo.files?.[0];
-      if (!f) return;
-      mensaje.textContent = 'Subiendo la foto…';
-      try {
-        const r = await agregarFoto(nube, pareja, lugar.id, comprimirFoto(await cargarImagen(f)));
-        mensaje.textContent = r.ok ? '' : r.error;
-      } catch {
-        mensaje.textContent = 'No se pudo subir esa foto.';
+      const elegidas = [...(archivo.files || [])];
+      if (!elegidas.length) return;
+      const caben = Math.max(0, MAX_FOTOS - fotos.length);
+      const aSubir = elegidas.slice(0, caben);
+      agregar.disabled = true;
+      let fallidas = 0;
+      for (const [i, f] of aSubir.entries()) {
+        mensaje.textContent = aSubir.length > 1 ? `Subiendo ${i + 1} de ${aSubir.length}…` : 'Subiendo la foto…';
+        try {
+          const r = await agregarFoto(nube, pareja, lugar.id, comprimirFoto(await cargarImagen(f)));
+          if (!r.ok) fallidas++;
+        } catch {
+          fallidas++;
+        }
       }
+      const avisos = [];
+      if (elegidas.length > caben) avisos.push(`Solo ${caben === 1 ? 'cabía 1' : `cabían ${caben}`} (máximo ${MAX_FOTOS} fotos por lugar).`);
+      if (fallidas) avisos.push(fallidas === 1 ? '1 foto no se pudo subir.' : `${fallidas} fotos no se pudieron subir.`);
+      mensaje.textContent = avisos.join(' ');
       await pintar();
     });
     caja.append(
@@ -220,7 +233,7 @@ export async function abrirFichaLugar({ nube, pareja, lugar, alCambiar = () => {
         }, '✕')))),
       archivo,
       fotos.length < MAX_FOTOS
-        ? el('button', { clase: 'boton', type: 'button', onclick: () => archivo.click() }, '＋ Agregar foto')
+        ? [agregar, el('p', { clase: 'campo-ayuda' }, `Puedes escoger varias a la vez (te quedan ${MAX_FOTOS - fotos.length}).`)]
         : el('p', { clase: 'campo-ayuda' }, `Máximo ${MAX_FOTOS} fotos por lugar.`));
     return caja;
   }

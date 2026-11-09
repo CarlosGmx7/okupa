@@ -1,6 +1,6 @@
 import { prueba, igual, verdadero } from './corredor.js';
 import { crearMundoFalso } from './nube-falsa.js';
-import { crearLugar, listarLugares, guardarVersion } from '../js/modulos/mapa/lugares.js';
+import { crearLugar, listarLugares, guardarVersion, agregarFoto, listarFotos, MAX_FOTOS } from '../js/modulos/mapa/lugares.js';
 import { abrirFormularioLugar, abrirFichaLugar } from '../js/modulos/mapa/lugares-ui.js';
 
 const parejaDe = (lugar) => ({ codigo: 'ABC234', lugar, nombres: { a: 'Carlos', b: 'Yuli' } });
@@ -77,4 +77,52 @@ prueba('lugares-ui: la versión del otro se ve solo después de escribir la prop
   await esperar(60);
   verdadero(hoja.textContent.includes('Subimos la piedra sin parar'));
   verdadero(hoja.textContent.includes('Me dio vértigo arriba'));
+}));
+
+async function archivosPng(n) {
+  const archivos = [];
+  for (let i = 0; i < n; i++) {
+    const c = document.createElement('canvas');
+    c.width = 40 + i;
+    c.height = 30;
+    c.getContext('2d').fillRect(0, 0, 10, 10);
+    const blob = await new Promise((r) => c.toBlob(r, 'image/png'));
+    archivos.push(new File([blob], `foto${i}.png`, { type: 'image/png' }));
+  }
+  return archivos;
+}
+
+async function elegirArchivos(hoja, archivos) {
+  const input = hoja.querySelector('input[type=file]');
+  verdadero(input.multiple, 'el selector debe permitir escoger varias');
+  const dt = new DataTransfer();
+  archivos.forEach((f) => dt.items.add(f));
+  input.files = dt.files;
+  input.dispatchEvent(new Event('change'));
+}
+
+prueba('lugares-ui: se pueden escoger y subir varias fotos al tiempo', () => conHoja(async () => {
+  const mundo = crearMundoFalso();
+  const pareja = parejaDe('a');
+  await crearLugar(mundo.nube('u1'), pareja, { nombre: 'Guatapé', lat: 6.23, lng: -75.16, tipo: 'recuerdo' });
+  const [lugar] = await listarLugares(mundo.nube('u1'), pareja);
+  const hoja = await abrirFichaLugar({ nube: mundo.nube('u1'), pareja, lugar, alCambiar() {} });
+  await elegirArchivos(hoja, await archivosPng(3));
+  for (let i = 0; i < 100 && (await listarFotos(mundo.nube('u1'), pareja, lugar.id)).length < 3; i++) await esperar(30);
+  igual((await listarFotos(mundo.nube('u2'), parejaDe('b'), lugar.id)).length, 3);
+  await esperar(60);
+  igual(hoja.querySelectorAll('.miniatura').length, 3);
+}));
+
+prueba('lugares-ui: si escogen más fotos de las que caben, sube las que caben y avisa', () => conHoja(async () => {
+  const mundo = crearMundoFalso();
+  const pareja = parejaDe('a');
+  await crearLugar(mundo.nube('u1'), pareja, { nombre: 'Salento', lat: 4.63, lng: -75.57, tipo: 'recuerdo' });
+  const [lugar] = await listarLugares(mundo.nube('u1'), pareja);
+  for (let i = 0; i < MAX_FOTOS - 1; i++) await agregarFoto(mundo.nube('u1'), pareja, lugar.id, { datos: 'data:image/jpeg;base64,AA', ancho: 1, alto: 1 });
+  const hoja = await abrirFichaLugar({ nube: mundo.nube('u1'), pareja, lugar, alCambiar() {} });
+  await elegirArchivos(hoja, await archivosPng(3));
+  for (let i = 0; i < 100 && !hoja.textContent.includes('Solo cabía'); i++) await esperar(30);
+  igual((await listarFotos(mundo.nube('u1'), pareja, lugar.id)).length, MAX_FOTOS);
+  verdadero(hoja.textContent.includes('Solo cabía 1'), hoja.querySelector('[role=status]')?.textContent);
 }));
