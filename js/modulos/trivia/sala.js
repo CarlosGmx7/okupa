@@ -1,6 +1,7 @@
 // La partida de trivia en la nube: crear, unirse, responder y avanzar sin pisarse entre los dos celulares.
 import { nuevaPartida, responder, avanzar, ganador, resultadoPregunta } from './partida.js';
 import { marcarVistas } from './banco.js';
+import { avisar, idAviso } from '../../nucleo/avisos.js';
 
 const MAX_FALLIDAS = 200;
 const MAX_CONTADAS = 50;
@@ -18,6 +19,7 @@ export async function crearSala(nube, pareja, { preguntas, id = nuevoId() }) {
   });
   // Puntero a la última sala: buscar la pendiente es una lectura, no listar todas las partidas.
   await nube.escribir(rutaUso(pareja.codigo), { salaAbierta: id }, { combinar: true });
+  await avisar(nube, pareja, 'trivia', idAviso('trivia', { idPartida: id }));
   return id;
 }
 

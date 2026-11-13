@@ -1,5 +1,6 @@
 // Lugares de la pareja en el mapa: deseos (a donde quieren ir) y recuerdos (donde ya estuvieron),
 // con la versión de cada uno (la del otro se ve al escribir la propia) y fotos comprimidas.
+import { avisar, idAviso } from '../../nucleo/avisos.js';
 
 export const MAX_FOTOS = 6;
 const MAX_NOMBRE = 80;
@@ -44,6 +45,7 @@ export async function crearLugar(nube, pareja, datos) {
     creadoPor: pareja.lugar,
     creadoMs: Date.now(),
   });
+  await avisar(nube, pareja, 'mapa', idAviso('mapa', { idLugar: id, lugar: pareja.lugar, clase: 'nuevo' }));
   return { ok: true, id };
 }
 
@@ -71,6 +73,7 @@ export async function guardarVersion(nube, pareja, id, texto) {
   await nube.escribir(`${ruta(pareja.codigo)}/${id}/versiones/${pareja.lugar}`, { texto: t, horaMs: Date.now() });
   // Marca visible para los dos (solo "ya escribió", nunca el texto).
   await nube.escribir(`${ruta(pareja.codigo)}/${id}`, { versiones: { [pareja.lugar]: true } }, { combinar: true });
+  await avisar(nube, pareja, 'mapa', idAviso('mapa', { idLugar: id, lugar: pareja.lugar, clase: 'version' }));
   return { ok: true };
 }
 

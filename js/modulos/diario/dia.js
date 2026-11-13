@@ -5,6 +5,7 @@ import { sumarDias } from './contenido.js';
 import { normalizarPerfil } from './perfil.js';
 import { otroLugar } from './revelar.js';
 import { aprenderDeDia } from './aprender.js';
+import { avisar, idAviso } from '../../nucleo/avisos.js';
 
 const DIAS_RECIENTES = 2;
 
@@ -56,14 +57,17 @@ export async function listarDias(nube, pareja) {
 }
 
 // Crea la respuesta propia y marca el día en una sola transacción. Si ya existía, no cambia nada.
-export function enviar(nube, pareja, fecha, parte, datos) {
+export async function enviar(nube, pareja, fecha, parte, datos) {
   const ruta = rutaRespuesta(pareja, fecha, parte, pareja.lugar);
-  return nube.transaccion(async (tx) => {
+  const creada = await nube.transaccion(async (tx) => {
     if (await tx.leer(ruta)) return false;
     tx.escribir(ruta, { ...datos, enviada: nube.horaServidor() });
     tx.escribir(rutaDia(pareja, fecha), { hechos: { [`${parte}_${pareja.lugar}`]: true } }, { combinar: true });
     return true;
   });
+  // Avisa a los demás solo la primera vez que esta persona responde los gustos del día.
+  if (creada && parte === 'gustos') await avisar(nube, pareja, 'diario', idAviso('diario', { fecha, lugar: pareja.lugar }));
+  return creada;
 }
 
 export const leerPropia = (nube, pareja, fecha, parte) => nube.leer(rutaRespuesta(pareja, fecha, parte, pareja.lugar));
