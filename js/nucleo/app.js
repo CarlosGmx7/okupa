@@ -5,6 +5,7 @@ import { el, transicion } from './ui.js';
 import { pantallaInicio, pantallaAcerca } from './inicio.js';
 import { obtenerNube } from './nube.js';
 import { pantallaPareja } from './pantallas-pareja.js';
+import { pantallaAjustes } from './pantalla-ajustes.js';
 import { precalentar } from './precalentar.js';
 import { crearInstalacion } from './instalacion.js';
 import { leerAjustes, alCambiarAjustes } from './ajustes.js';
@@ -65,6 +66,7 @@ async function arrancar() {
   tabla[''] = pantallaInicio;
   tabla.acerca = pantallaAcerca;
   tabla.pareja = pantallaPareja;
+  tabla.ajustes = pantallaAjustes;
   window.addEventListener('hashchange', pintar);
   // Si el navegador ofrece instalar (o ya se instaló), repinta el inicio para mostrar u ocultar el botón.
   ctx.instalacion.alCambiar(() => { if (!resolverRuta(location.hash, tabla) || location.hash.replace(/[#/]/g, '') === '') pintar(); });

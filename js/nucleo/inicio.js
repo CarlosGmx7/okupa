@@ -1,6 +1,6 @@
 // Pantallas propias del núcleo: inicio y "Acerca de".
 import { el } from './ui.js';
-import { icono } from './iconos.js';
+import { icono, iconoLinea } from './iconos.js';
 import { miPareja } from './pareja.js';
 import { PORTADA_ORIGINAL, fuentePortada, abrirEditorPortada } from './portada.js';
 
@@ -39,6 +39,7 @@ export function pantallaInicio(contenedor, _params, ctx) {
   });
   contenedor.append(
     el('header', { clase: 'inicio-cabecera' },
+      el('a', { clase: 'engranaje', href: '#/ajustes', 'aria-label': 'Ajustes' }, iconoLinea('ajustes', 'engranaje-icono')),
       el('button', {
         clase: 'inicio-portada-boton', type: 'button', 'aria-label': 'Cambiar foto de inicio',
         onclick: () => abrirEditorPortada(ctx.almacen, () => ctx.refrescar?.()),
@@ -75,17 +76,6 @@ export function pantallaAcerca(contenedor, _params, ctx) {
     el('a', { clase: 'volver', href: '#/' }, '← Inicio'),
     el('h1', { clase: 'titulo-pantalla' }, 'Acerca de Okupa'),
     ...secciones.filter(Boolean),
-    el('section', { clase: 'bloque-texto' },
-      el('h2', {}, 'Empezar de cero'),
-      el('p', {}, 'Borra lo que esta app recuerda en este celular: preguntas vistas, avance de sesiones y todo lo que hayan creado.'),
-      el('button', {
-        clase: 'boton boton-peligro',
-        onclick: () => {
-          if (!confirm('¿Seguro? Se borrará todo lo guardado en este celular, incluidas sus preguntas propias.')) return;
-          for (const clave of ctx.almacen.claves('okupa:')) ctx.almacen.borrar(clave);
-          location.hash = '#/';
-          location.reload();
-        },
-      }, 'Reiniciar todo')),
+    el('p', { clase: 'bloque-texto' }, 'Para borrar lo guardado en este celular, ve a ', el('a', { href: '#/ajustes' }, 'Ajustes'), '.'),
   );
 }
