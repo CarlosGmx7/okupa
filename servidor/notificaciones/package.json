@@ -1,0 +1,14 @@
+{
+  "name": "okupa-notificaciones",
+  "private": true,
+  "type": "module",
+  "description": "Envía las notificaciones de Okupa desde GitHub Actions (bandeja de avisos y recordatorios del Diario).",
+  "scripts": {
+    "test": "node --test logica.test.mjs",
+    "test:pasada": "node ../../firebase/emuladores.mjs exec \"node --test ../servidor/notificaciones/pasada.test.mjs\"",
+    "enviar": "node enviar.mjs"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.10.0"
+  }
+}
