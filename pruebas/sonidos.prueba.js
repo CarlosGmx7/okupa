@@ -64,17 +64,41 @@ prueba('sonidos: vibrar respeta el ajuste', () => {
   preparar({ sinVibrador: true }).s.vibrar(8);
 });
 
-prueba('sonidos: tocar un botón vibra, tocar un texto no', () => {
+prueba('sonidos: tocar un botón vibra, tocar un texto o empezar a deslizar no', () => {
   const { patrones, s } = preparar();
   const raiz = document.createElement('div');
   const boton = document.createElement('button');
   const texto = document.createElement('p');
   raiz.append(boton, texto);
   s.instalarToque(raiz);
-  texto.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
-  igual(patrones, []);
+  // Al deslizar la pantalla el dedo baja sobre un botón pero no hay click: no debe vibrar.
   boton.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+  igual(patrones, []);
+  texto.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+  igual(patrones, []);
+  boton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
   igual(patrones, [8]);
+});
+
+prueba('sonidos: el primer toque despierta el audio aunque aún no haya sonado nada', () => {
+  const { audio, s } = preparar();
+  let creados = 0;
+  let despertados = 0;
+  audio.state = 'suspended';
+  audio.resume = () => { despertados++; audio.state = 'running'; return Promise.resolve(); };
+  const s2 = crearSonidos({ almacen: preparar().almacen, crearContexto: () => { creados++; return audio; }, vibrador: null });
+  const raiz = document.createElement('div');
+  const boton = document.createElement('button');
+  raiz.append(boton);
+  s2.instalarToque(raiz);
+  boton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+  igual([creados, despertados], [1, 1]);
+  verdadero(s, 'preparar');
+});
+
+prueba('estilos: los pines y controles del mapa no reciben el resorte', async () => {
+  const texto = await (await fetch('css/componentes.css', { cache: 'no-store' })).text();
+  verdadero(/\.maplibregl-marker[^{]*\{[^}]*scale: none !important/.test(texto), 'MapLibre mueve sus marcadores con transform: el scale los descuadra');
 });
 
 prueba('estilos: la carta del Match no recibe el resorte y el resorte usa scale', async () => {

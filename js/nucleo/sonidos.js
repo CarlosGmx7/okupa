@@ -58,12 +58,16 @@ export function crearSonidos({ almacen, crearContexto = contextoPorDefecto, vibr
   function instalarToque(raiz = document) {
     // iOS solo aplica :active (el hundido del resorte) si hay un touchstart registrado.
     raiz.addEventListener('touchstart', () => {}, { passive: true });
-    raiz.addEventListener('pointerdown', (e) => {
+    // Se usa 'click' (no 'pointerdown'): no salta al empezar a deslizar la pantalla, y en iPhone
+    // es el evento que el navegador acepta como toque real para dejar sonar.
+    raiz.addEventListener('click', (e) => {
+      if (leerAjustes(almacen).sonidos) {
+        const c = obtenerContexto();
+        if (c?.state === 'suspended') c.resume?.()?.catch?.(() => {});
+      }
       const objetivo = e.target?.closest?.(SELECTOR_TOCABLE);
       if (!objetivo || objetivo.disabled) return;
       vibrar(8);
-      // El navegador solo deja sonar después de un toque: se despierta el audio aquí.
-      if (contexto?.state === 'suspended') contexto.resume().catch(() => {});
     }, { passive: true });
   }
 
