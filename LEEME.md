@@ -242,12 +242,11 @@ día se pasa a Firebase Functions, solo cambia quién vacía la bandeja.
 1. **Clave web push (pública).** Firebase → ⚙ Configuración del proyecto → pestaña **Cloud Messaging** →
    sección **Configuración web** → **Certificados web push** → **Generar par de claves**. Copia la clave (empieza
    por `B…`) y pégala en `js/nucleo/nube-config.js` en `CLAVE_VAPID = '…'`. No es secreta.
-2. **Cuenta para GitHub con permisos mínimos.** En https://console.cloud.google.com, con el proyecto `okupa-abbdc`
-   elegido arriba: menú → **IAM y administración** → **Cuentas de servicio** → **Crear cuenta de servicio** →
-   nombre `okupa-avisos` → **Crear y continuar** → agrega solo dos roles: **Usuario de Cloud Datastore**
-   (*Cloud Datastore User*) y **Administrador de la API de Firebase Cloud Messaging**
-   (*Firebase Cloud Messaging API Admin*) → **Listo**. Entra a la cuenta → pestaña **Claves** → **Agregar clave** →
-   **Crear clave nueva** → **JSON**. Se descarga un archivo.
+2. **Llave para GitHub.** Firebase → ⚙ Configuración del proyecto → pestaña **Cuentas de servicio** →
+   **SDK de Firebase Admin** → **Generar nueva clave privada** → **Generar clave**. Se descarga un archivo JSON.
+   (No hace falta entrar a Google Cloud ni poner método de pago. Esta cuenta tiene todos los permisos del proyecto:
+   trátala como una contraseña. Si algún día se puede entrar a Google Cloud, se puede cambiar por una cuenta con
+   solo los roles *Cloud Datastore User* y *Firebase Cloud Messaging API Admin*.)
 3. **Guardarla en GitHub.** Repo `okupa` → **Settings** → **Secrets and variables** → **Actions** →
    **New repository secret** → nombre `FIREBASE_CUENTA_SERVICIO`, y en el valor pega **todo** el contenido del
    archivo JSON → **Add secret**. Luego **borra el archivo** del computador (y de la papelera): con él se puede
@@ -262,7 +261,8 @@ Cuidados:
 - El repositorio debe seguir siendo **público**: así los minutos de GitHub Actions son gratis (en uno privado, 96 pasadas al día superan los 2.000 minutos gratis del mes).
 - Si algún día restringes la clave web de Firebase en Google Cloud, deja permitidas **Firebase Installations API** y **FCM Registration API**; si no, los celulares no pueden registrarse.
 
-Si la llave se filtra: en Google Cloud borra esa clave de la cuenta `okupa-avisos`, crea otra y reemplaza el secreto.
+Si la llave se filtra: en Firebase → Configuración → **Cuentas de servicio** → **Administrar los permisos de la
+cuenta de servicio** (o desde Google Cloud si se puede entrar) borra esa clave, genera otra y reemplaza el secreto.
 
 Pruebas: `servidor/notificaciones` → `npm install` y `npm test` (lógica) y `npm run test:pasada` (con el emulador;
 necesita Java, como las reglas).

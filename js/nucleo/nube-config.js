@@ -15,4 +15,4 @@ export const EMULADORES = null;
 
 // Clave pública de notificaciones web (Firebase → Configuración → Cloud Messaging → Certificados web push).
 // No es secreta. Mientras sea null, Ajustes dice que las notificaciones aún no están configuradas.
-export const CLAVE_VAPID = null;
+export const CLAVE_VAPID = 'BHgVvZSMSnTD9FwiQXJyXVAz64WnaYflAfiJLq4010-Ay19msI7IBHxKEvEcF-bZTkORsrTZrB3hJmKNOyABz0s';
