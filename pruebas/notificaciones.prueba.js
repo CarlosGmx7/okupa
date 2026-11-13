@@ -4,7 +4,7 @@ import { crearMundoFalso } from './nube-falsa.js';
 import { salir } from '../js/nucleo/pareja.js';
 import {
   PREF_DEFECTO, leerPreferencias, guardarPreferencias, franjaUTC, soporteNotificaciones,
-  crearNotificaciones, datosDeNotificacion, conectarConPareja,
+  crearNotificaciones, datosDeNotificacion, conectarConPareja, notificacionDePush, escucharRutasDelServiceWorker,
 } from '../js/nucleo/notificaciones.js';
 
 const ENLAZADA = { codigo: 'K7PQ2M', lugar: 'a' };
@@ -129,8 +129,64 @@ prueba('notificaciones: datos del push para mostrar', () => {
   igual(datosDeNotificacion({ data: {} }), null);
 });
 
+prueba('notificaciones: salir sin conexión deja pendiente el borrado y se reintenta', async () => {
+  const p = preparar();
+  await p.n.activar();
+  p.mundo.desconectar();
+  await p.n.olvidar();
+  igual(p.registros().length, 1, 'sin red no se pudo borrar');
+  p.mundo.reconectar();
+  p.almacen.borrar('okupa:pareja:actual');
+  await p.n.refrescar();
+  igual(p.registros(), [], 'refrescar reintenta el borrado pendiente');
+});
+
+prueba('notificaciones: desactivar sin conexión también queda pendiente', async () => {
+  const p = preparar();
+  await p.n.activar();
+  p.mundo.desconectar();
+  await p.n.desactivar();
+  p.mundo.reconectar();
+  await p.n.refrescar();
+  igual(p.registros(), []);
+});
+
+prueba('notificaciones: cerrar el aviso de permiso sin elegir no es "bloqueadas"', async () => {
+  igual(await preparar({ permiso: 'default' }).n.activar(), { ok: false, motivo: 'sin-permiso' });
+});
+
+prueba('notificaciones: un cambio de aviso que no llegó a la nube se sincroniza al refrescar', async () => {
+  const p = preparar();
+  await p.n.activar();
+  p.mundo.desconectar();
+  await p.n.cambiar({ avisos: { mapa: false } });
+  p.mundo.reconectar();
+  await p.n.refrescar();
+  igual(p.registro().avisos.mapa, false);
+});
+
+prueba('notificaciones: un push sin datos igual muestra algo', () => {
+  const r = notificacionDePush(null);
+  igual(r.titulo, 'Okupa');
+  igual(r.opciones.body, 'Tienes novedades en Okupa.');
+  igual(r.opciones.data.ruta, '#/');
+  igual(notificacionDePush({ data: { titulo: 'A', ruta: '#/mapa' } }).titulo, 'A');
+});
+
+prueba('notificaciones: la app abre la ruta que le pide el service worker', () => {
+  const sw = new EventTarget();
+  const rutas = [];
+  const dejar = escucharRutasDelServiceWorker(sw, (r) => rutas.push(r));
+  sw.dispatchEvent(new MessageEvent('message', { data: { okupaRuta: '#/diario' } }));
+  sw.dispatchEvent(new MessageEvent('message', { data: { okupaRuta: 'https://malo.com' } }));
+  sw.dispatchEvent(new MessageEvent('message', { data: 'otra cosa' }));
+  dejar();
+  igual(rutas, ['#/diario']);
+});
+
 prueba('sw: maneja push y notificationclick con la misma función', async () => {
   const sw = await (await fetch('sw.js', { cache: 'no-store' })).text();
   verdadero(sw.includes("addEventListener('push'") && sw.includes("addEventListener('notificationclick'"));
-  verdadero(sw.includes('function datosDeNotificacion('), 'falta la copia de datosDeNotificacion en sw.js');
+  verdadero(sw.includes('function datosDeNotificacion(') && sw.includes('function notificacionDePush('), 'faltan las copias en sw.js');
+  verdadero(sw.includes('okupaRuta'), 'si navigate falla, el service worker le pide la ruta a la app');
 });

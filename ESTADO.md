@@ -12,8 +12,10 @@ App web instalable (PWA) para Carlos y su pareja: preguntas para conocerse, Triv
 - Botones: un solo "resorte" con la propiedad `scale` (no `transform`). Sonidos sintetizados (Web Audio) solo en match, acierto de Trivia y guardados; vibración corta al tocar (en `click`).
 - Notificaciones (v17): GitHub Actions cada 15 min + Firebase Cloud Messaging (gratis, sin plan Blaze); recordatorio del Diario a la hora elegida y avisos de pareja.
 ## Estado actual
-- Funciona y está verificado: v16 publicada en GitHub Pages con caché `okupa-v16` (pruebas.html: 350 pasan; revisión final hecha y arreglada).
-- A medias: sin probar en un celular real (sonido en iPhone, vibración, resorte, tema Grafito).
+- Funciona y está verificado: v16 publicada en GitHub Pages con caché `okupa-v16`.
+- v17 (notificaciones) terminada en la rama `v17-notificaciones`, sin publicar: pruebas.html 379 pasan; reglas + servidor 67 pasan (`firebase/`: `node emuladores.mjs exec "node --test pruebas/ ../servidor/notificaciones/pasada.test.mjs ../servidor/notificaciones/logica.test.mjs"`); revisión final hecha y arreglada.
+- A medias: Carlos debe hacer los 4 pasos de LEEME → Notificaciones (clave VAPID → `CLAVE_VAPID` en `js/nucleo/nube-config.js`, cuenta de servicio `okupa-avisos`, secreto `FIREBASE_CUENTA_SERVICIO` en GitHub, pegar reglas). Luego: poner la clave, merge a `main`, push, "Run workflow" en Actions y probar en los dos celulares.
+- Pendientes menores v17: recordatorio que se atrasa justo después de la medianoche de Bogotá usa el día nuevo; ids de trivia/mapa no atados a una partida/lugar real (solo la pareja podría abusar); recrear el registro reinicia `ultimoRecordatorio`.
 - Pendientes menores: reglas `transition: none` de movimiento reducido en componentes.css quedaron sin efecto; el `:is(... button)` del resorte gana a transiciones de botones declaradas antes; fotos de lugares se descargan completas la primera vez.
 ## Archivos clave
 - `js/nucleo/ajustes.js`, `tema.js`, `iconos.js`, `sonidos.js`, `pantalla-ajustes.js`: lo nuevo de la v16.
@@ -24,7 +26,7 @@ App web instalable (PWA) para Carlos y su pareja: preguntas para conocerse, Triv
 - `sw.js`: caché sin internet (`CACHE` y `PRECACHE`).
 - `docs/superpowers/specs|plans/2026-11-13-ajustes-temas-animaciones*`: diseño y plan de la v16.
 ## Próximo paso
-Tras publicar la v16 y que Carlos la pruebe: diseñar la v17 (notificaciones) con brainstorming, partiendo del resumen al final del spec de la v16.
+Recibir la clave VAPID de Carlos, ponerla en `nube-config.js`, confirmar que pegó las reglas y guardó el secreto, publicar la v17 (caché `okupa-v17`) y probar un aviso real. Después: proyecto de grupos de 3+ personas (los avisos ya van a "todos menos quien lo hizo").
 ## Cómo verificar
 - App: `python herramientas/servidor.py` y abrir http://127.0.0.1:8080/pruebas.html → debe decir "0 fallaron".
 - Reglas: en `firebase/`, `npm install` (la primera vez) y luego `npm test`; al terminar cerrar el java del puerto 8085.

@@ -11,13 +11,14 @@ import { crearInstalacion } from './instalacion.js';
 import { leerAjustes, alCambiarAjustes } from './ajustes.js';
 import { aplicarTema } from './tema.js';
 import { sonidos } from './sonidos.js';
-import { notificacionesDeLaApp, conectarConPareja } from './notificaciones.js';
+import { notificacionesDeLaApp, conectarConPareja, escucharRutasDelServiceWorker } from './notificaciones.js';
 
 aplicarTema(leerAjustes(almacen).tema);
 alCambiarAjustes((a) => aplicarTema(a.tema));
 sonidos.instalarToque();
 const notificaciones = notificacionesDeLaApp(almacen);
 conectarConPareja(notificaciones);
+escucharRutasDelServiceWorker(navigator.serviceWorker, (ruta) => { location.hash = ruta; });
 
 const vista = document.getElementById('vista');
 const tabla = {};

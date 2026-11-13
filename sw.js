@@ -160,21 +160,31 @@ function datosDeNotificacion(payload) {
   };
 }
 
+// Copia idéntica de notificacionDePush: siempre se muestra algo (Chrome castiga los push silenciosos).
+function notificacionDePush(payload) {
+  return datosDeNotificacion(payload) || {
+    titulo: 'Okupa',
+    opciones: { body: 'Tienes novedades en Okupa.', tag: 'okupa', icon: 'iconos/icono-192.png', badge: 'iconos/favicon-48.png', data: { ruta: '#/' } },
+  };
+}
+
 self.addEventListener('push', (e) => {
   let payload = null;
   try { payload = e.data?.json(); } catch { /* push sin JSON */ }
-  const n = datosDeNotificacion(payload);
-  if (n) e.waitUntil(self.registration.showNotification(n.titulo, n.opciones));
+  const n = notificacionDePush(payload);
+  e.waitUntil(self.registration.showNotification(n.titulo, n.opciones));
 });
 
 self.addEventListener('notificationclick', (e) => {
   e.notification.close();
-  const destino = new URL(`./${e.notification.data?.ruta || '#/'}`, self.registration.scope).href;
+  const ruta = e.notification.data?.ruta || '#/';
+  const destino = new URL(`./${ruta}`, self.registration.scope).href;
   e.waitUntil((async () => {
     const ventanas = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
     const abierta = ventanas.find((v) => v.url.startsWith(self.registration.scope));
     if (abierta) {
-      await abierta.navigate(destino).catch(() => {});
+      // navigate() solo sirve con ventanas que este service worker controla; si no, se le pide a la app.
+      await abierta.navigate(destino).catch(() => abierta.postMessage({ okupaRuta: ruta }));
       return abierta.focus();
     }
     return self.clients.openWindow(destino);

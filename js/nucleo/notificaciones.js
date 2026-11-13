@@ -6,6 +6,7 @@ import { obtenerNube, VERSION_FIREBASE } from './nube.js';
 
 const CLAVE = 'okupa:notificaciones';
 const CLAVE_ID = 'okupa:dispositivo';
+const CLAVE_PENDIENTE = 'okupa:dispositivo:borrar';
 const TIPOS = ['diario', 'trivia', 'mapa', 'recordatorio'];
 const REGEX_HORA = /^([01]\d|2[0-3]):[0-5]\d$/;
 
@@ -78,7 +79,25 @@ export function datosDeNotificacion(payload) {
   };
 }
 
-const zonaDelCelular = () => Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Bogota';
+// Lo que se muestra siempre: Chrome castiga los push que no muestran nada. Copia idéntica en sw.js.
+export function notificacionDePush(payload) {
+  return datosDeNotificacion(payload) || {
+    titulo: 'Okupa',
+    opciones: { body: 'Tienes novedades en Okupa.', tag: 'okupa', icon: 'iconos/icono-192.png', badge: 'iconos/favicon-48.png', data: { ruta: '#/' } },
+  };
+}
+
+// Si el service worker no pudo llevar la ventana a la ruta del aviso, se la pide a la app con un mensaje.
+export function escucharRutasDelServiceWorker(sw, irA) {
+  const oyente = (e) => {
+    const ruta = e.data?.okupaRuta;
+    if (typeof ruta === 'string' && ruta.startsWith('#/')) irA(ruta);
+  };
+  sw?.addEventListener?.('message', oyente);
+  return () => sw?.removeEventListener?.('message', oyente);
+}
+
+const zonaDelCelular =() => Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Bogota';
 
 export function crearNotificaciones({
   almacen, nube, obtenerToken, borrarToken = async () => {}, pedirPermiso,
@@ -108,7 +127,9 @@ export function crearNotificaciones({
       hora: prefs.hora, zona: z, franja: franjaUTC(prefs.hora, z),
     };
     await n.escribir(ruta(), { ...datos, actualizado: n.horaServidor() }, { combinar: true });
-    guardarPreferencias(almacen, {}, { token, pareja: datos.pareja, lugar: datos.lugar, franja: datos.franja, zona: z });
+    guardarPreferencias(almacen, {}, {
+      token, pareja: datos.pareja, lugar: datos.lugar, franja: datos.franja, zona: z, hora: datos.hora, avisos: datos.avisos,
+    });
     return true;
   }
 
@@ -118,7 +139,9 @@ export function crearNotificaciones({
     if (s !== 'ok') return { ok: false, motivo: s };
     if (!miPareja(almacen)) return { ok: false, motivo: 'sin-pareja' };
     // El permiso se pide primero, todavía dentro del toque del interruptor.
-    if ((await pedirPermiso()) !== 'granted') return { ok: false, motivo: 'denegado' };
+    const permiso = await pedirPermiso();
+    if (permiso === 'denied') return { ok: false, motivo: 'denegado' };
+    if (permiso !== 'granted') return { ok: false, motivo: 'sin-permiso' }; // cerró el aviso sin elegir
     try {
       const token = await obtenerToken();
       if (!token) throw new Error('sin-token');
@@ -132,12 +155,29 @@ export function crearNotificaciones({
     }
   }
 
+  // Si no hay red, el borrado queda pendiente y se reintenta en refrescar(): un celular que salió de la
+  // pareja no debe seguir recibiendo avisos (en la nube su uid sigue siendo el del lugar).
   async function borrarRegistro() {
+    const id = idDispositivo();
+    guardarPreferencias(almacen, {}, null);
     try {
       const n = await nube();
-      await n.borrar(ruta());
-    } catch (e) { console.warn('Okupa: no se pudo borrar el registro de notificaciones', e); }
-    guardarPreferencias(almacen, {}, null);
+      await n.borrar(`dispositivos/${id}`);
+      almacen.borrar(CLAVE_PENDIENTE);
+    } catch (e) {
+      console.warn('Okupa: no se pudo borrar el registro de notificaciones; se reintentará', e);
+      almacen.escribir(CLAVE_PENDIENTE, id);
+    }
+  }
+
+  async function reintentarPendiente() {
+    const id = almacen.leer(CLAVE_PENDIENTE, null);
+    if (typeof id !== 'string') return;
+    try {
+      const n = await nube();
+      await n.borrar(`dispositivos/${id}`);
+      almacen.borrar(CLAVE_PENDIENTE);
+    } catch { /* sigue pendiente */ }
   }
 
   async function desactivar() {
@@ -158,6 +198,7 @@ export function crearNotificaciones({
   // Al abrir la app o al enlazarse: renueva token, franja o pareja si cambiaron. Nunca lanza.
   async function refrescar() {
     try {
+      await reintentarPendiente();
       const prefs = leerPreferencias(almacen);
       const pareja = miPareja(almacen);
       if (!prefs.activas || !pareja || !claveVapid || soporte() !== 'ok') return false;
@@ -168,7 +209,8 @@ export function crearNotificaciones({
       const local = leerRegistroLocal(almacen);
       const z = zona();
       const igual = local && local.token === token && local.pareja === pareja.codigo && local.lugar === pareja.lugar
-        && local.zona === z && local.franja === franjaUTC(prefs.hora, z);
+        && local.zona === z && local.franja === franjaUTC(prefs.hora, z) && local.hora === prefs.hora
+        && TIPOS.every((t) => local.avisos?.[t] === prefs.avisos[t]);
       if (igual) return false;
       return await registrar(token);
     } catch (e) {

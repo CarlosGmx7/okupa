@@ -3,10 +3,11 @@
 import { fechaBogota, franjasPendientes, textoDe, vencido, destinatarios, quiereRecordatorio, registroVigente } from './logica.mjs';
 
 const MAX_NOTAS = 500;
+// Solo errores que dicen que el token ya no sirve. 'invalid-argument' no: puede ser un error del mensaje
+// y borraría los registros de todos.
 const TOKEN_INVALIDO = new Set([
   'messaging/registration-token-not-registered',
   'messaging/invalid-registration-token',
-  'messaging/invalid-argument',
 ]);
 
 export async function pasada({ db, mandar, ahora = new Date() }) {

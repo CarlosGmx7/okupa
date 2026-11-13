@@ -69,6 +69,15 @@ test('token inválido borra el dispositivo y sigue con los demás', async () => 
   assert.equal(await existe('dispositivos/db2'), true);
 });
 
+test('un error de formato (invalid-argument) no borra el registro', async () => {
+  await sembrar({ 'parejas/K7PQ2M': pareja, 'dispositivos/db': disp('u2', 'b'),
+    'parejas/K7PQ2M/avisos/diario_2026-11-13_a': nota('diario', 'a') });
+  const m = mandador({ fallar: { 't-b': 'messaging/invalid-argument' } });
+  const r = await pasada({ db, mandar: m.mandar, ahora: AHORA });
+  assert.equal(r.invalidos, 0);
+  assert.equal(await existe('dispositivos/db'), true);
+});
+
 test('no manda a un registro cuyo uid ya no es el del lugar', async () => {
   await sembrar({ 'parejas/K7PQ2M': pareja, 'dispositivos/viejo': disp('u9', 'b'),
     'parejas/K7PQ2M/avisos/diario_2026-11-13_a': nota('diario', 'a') });

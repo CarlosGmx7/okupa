@@ -126,6 +126,7 @@ prueba('ajustes: si no se puede activar queda apagado y explica por qué', async
     denegado: 'Las notificaciones están bloqueadas. En Chrome: toca el candado junto a la dirección → Notificaciones → Permitir.',
     'sin-conexion': 'No se pudo activar. Revisa la conexión.',
     'sin-config': 'Notificaciones aún no configuradas.',
+    'sin-permiso': 'No diste permiso para las notificaciones. Vuelve a intentarlo y toca Permitir.',
   };
   for (const [motivo, texto] of Object.entries(casos)) {
     const almacen = almacenEnMemoria();

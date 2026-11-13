@@ -70,10 +70,13 @@ export async function guardarVersion(nube, pareja, id, texto) {
   const t = limpiar(texto);
   if (!t) return { ok: false, error: 'Escribe tu versión.' };
   if (t.length > MAX_VERSION) return { ok: false, error: `Máximo ${MAX_VERSION} caracteres.` };
-  await nube.escribir(`${ruta(pareja.codigo)}/${id}/versiones/${pareja.lugar}`, { texto: t, horaMs: Date.now() });
+  const rutaVersion = `${ruta(pareja.codigo)}/${id}/versiones/${pareja.lugar}`;
+  // Solo la primera versión avisa; corregirla después no.
+  const previa = await nube.leer(rutaVersion).catch(() => null);
+  await nube.escribir(rutaVersion, { texto: t, horaMs: Date.now() });
   // Marca visible para los dos (solo "ya escribió", nunca el texto).
   await nube.escribir(`${ruta(pareja.codigo)}/${id}`, { versiones: { [pareja.lugar]: true } }, { combinar: true });
-  await avisar(nube, pareja, 'mapa', idAviso('mapa', { idLugar: id, lugar: pareja.lugar, clase: 'version' }));
+  if (!previa) await avisar(nube, pareja, 'mapa', idAviso('mapa', { idLugar: id, lugar: pareja.lugar, clase: 'version' }));
   return { ok: true };
 }
 

@@ -62,6 +62,17 @@ prueba('avisos: enviar gustos deja nota de diario una sola vez', async () => {
   igual(notas(mundo), []);
 });
 
+prueba('avisos: corregir la versión propia no vuelve a avisar', async () => {
+  const mundo = crearMundoFalso();
+  const nube = mundo.nube('u1');
+  const r = await crearLugar(nube, PAREJA, { nombre: 'Lago', lat: 4.6, lng: -74.05, tipo: 'recuerdo', nota: '' });
+  await guardarVersion(nube, PAREJA, r.id, 'Primera');
+  // El servidor ya mandó y borró las notas:
+  for (const id of notas(mundo)) mundo.datos.delete(`${BANDEJA}${id}`);
+  igual((await guardarVersion(nube, PAREJA, r.id, 'Corregida')).ok, true);
+  igual(notas(mundo), []);
+});
+
 prueba('avisos: si la nota falla, lo principal igual se guarda', async () => {
   const mundo = crearMundoFalso();
   const nube = sinBandeja(mundo.nube('u1'));

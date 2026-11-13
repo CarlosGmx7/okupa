@@ -257,6 +257,11 @@ día se pasa a Firebase Functions, solo cambia quién vacía la bandeja.
 5. **Probar.** En GitHub → pestaña **Actions** → **Notificaciones** → **Run workflow**. Debe terminar en verde y en
    el registro decir `Notificaciones: {"enviados":…}`. Luego corre solo cada 15 minutos.
 
+Cuidados:
+- GitHub **apaga las tareas programadas** si el repositorio pasa 60 días sin cambios (te avisa por correo). Si las notificaciones dejan de llegar, entra a **Actions → Notificaciones** y toca **Enable workflow**, o sube cualquier cambio.
+- El repositorio debe seguir siendo **público**: así los minutos de GitHub Actions son gratis (en uno privado, 96 pasadas al día superan los 2.000 minutos gratis del mes).
+- Si algún día restringes la clave web de Firebase en Google Cloud, deja permitidas **Firebase Installations API** y **FCM Registration API**; si no, los celulares no pueden registrarse.
+
 Si la llave se filtra: en Google Cloud borra esa clave de la cuenta `okupa-avisos`, crea otra y reemplaza el secreto.
 
 Pruebas: `servidor/notificaciones` → `npm install` y `npm test` (lógica) y `npm run test:pasada` (con el emulador;
