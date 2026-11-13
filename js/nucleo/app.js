@@ -11,10 +11,13 @@ import { crearInstalacion } from './instalacion.js';
 import { leerAjustes, alCambiarAjustes } from './ajustes.js';
 import { aplicarTema } from './tema.js';
 import { sonidos } from './sonidos.js';
+import { notificacionesDeLaApp, conectarConPareja } from './notificaciones.js';
 
 aplicarTema(leerAjustes(almacen).tema);
 alCambiarAjustes((a) => aplicarTema(a.tema));
 sonidos.instalarToque();
+const notificaciones = notificacionesDeLaApp(almacen);
+conectarConPareja(notificaciones);
 
 const vista = document.getElementById('vista');
 const tabla = {};
@@ -23,6 +26,7 @@ const ctx = {
   instalacion: crearInstalacion(),
   modulos: [],
   nube: obtenerNube,
+  notificaciones,
   ir(ruta) { location.hash = `#/${ruta}`; },
   refrescar() { pintar(); },
 };
@@ -73,7 +77,11 @@ async function arrancar() {
   await pintar();
   // Con la app ya pintada, adelanta Firebase y las preguntas para que Trivia y Diario abran rápido.
   const luego = window.requestIdleCallback || ((fn) => setTimeout(fn, 400));
-  luego(() => precalentar(ctx));
+  luego(() => {
+    precalentar(ctx);
+    // Renueva el registro de notificaciones si cambió el token, la zona o la pareja.
+    notificaciones.refrescar();
+  });
 }
 
 arrancar();

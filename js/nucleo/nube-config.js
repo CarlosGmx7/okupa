@@ -12,3 +12,7 @@ export const CONFIG_FIREBASE = {
 // Solo para probar en el computador con los emuladores (firebase/: npm run emuladores):
 // { auth: 'http://127.0.0.1:9099', firestore: { host: '127.0.0.1', puerto: 8085 } }
 export const EMULADORES = null;
+
+// Clave pública de notificaciones web (Firebase → Configuración → Cloud Messaging → Certificados web push).
+// No es secreta. Mientras sea null, Ajustes dice que las notificaciones aún no están configuradas.
+export const CLAVE_VAPID = null;

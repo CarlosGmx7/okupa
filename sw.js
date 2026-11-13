@@ -145,3 +145,36 @@ self.addEventListener('fetch', (e) => {
   }
   e.respondWith(desdeCache(req).then((r) => r || fetch(req)));
 });
+
+// ---------- Notificaciones (FCM manda solo datos; aquí se decide cómo mostrarlas) ----------
+// Copia idéntica de datosDeNotificacion en js/nucleo/notificaciones.js (el service worker no importa módulos).
+function datosDeNotificacion(payload) {
+  const d = payload?.data;
+  if (!d || typeof d.titulo !== 'string' || !d.titulo) return null;
+  const ruta = typeof d.ruta === 'string' && d.ruta.startsWith('#/') ? d.ruta : '#/';
+  return {
+    titulo: d.titulo,
+    opciones: { body: String(d.texto || ''), tag: String(d.tipo || 'okupa'), icon: 'iconos/icono-192.png', badge: 'iconos/favicon-48.png', data: { ruta } },
+  };
+}
+
+self.addEventListener('push', (e) => {
+  let payload = null;
+  try { payload = e.data?.json(); } catch { /* push sin JSON */ }
+  const n = datosDeNotificacion(payload);
+  if (n) e.waitUntil(self.registration.showNotification(n.titulo, n.opciones));
+});
+
+self.addEventListener('notificationclick', (e) => {
+  e.notification.close();
+  const destino = new URL(`./${e.notification.data?.ruta || '#/'}`, self.registration.scope).href;
+  e.waitUntil((async () => {
+    const ventanas = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    const abierta = ventanas.find((v) => v.url.startsWith(self.registration.scope));
+    if (abierta) {
+      await abierta.navigate(destino).catch(() => {});
+      return abierta.focus();
+    }
+    return self.clients.openWindow(destino);
+  })());
+});

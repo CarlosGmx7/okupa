@@ -58,7 +58,7 @@ export function crearNube({ config, emuladores = null, nombreApp = '[DEFAULT]', 
       sdk.auth.connectAuthEmulator(auth, emuladores.auth, { disableWarnings: true });
       sdk.fs.connectFirestoreEmulator(db, emuladores.firestore.host, emuladores.firestore.puerto);
     }
-    return { auth, db };
+    return { auth, db, app };
   })().catch((e) => { preparado = null; throw e; }));
 
   async function iniciar() {
@@ -103,6 +103,11 @@ export function crearNube({ config, emuladores = null, nombreApp = '[DEFAULT]', 
       return () => { activo = false; cancelar?.(); };
     },
     horaServidor: () => (sdk ? sdk.fs.serverTimestamp() : Date.now()),
+    // La app de Firebase, para servicios que no pasan por aquí (las notificaciones).
+    async appFirebase() {
+      await iniciar();
+      return (await preparar()).app;
+    },
   };
 }
 

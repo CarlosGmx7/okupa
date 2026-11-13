@@ -49,8 +49,14 @@ export function miPareja(almacen) {
   return p && normalizarCodigo(p.codigo) === p.codigo && LUGARES.includes(p.lugar) ? { codigo: p.codigo, lugar: p.lugar } : null;
 }
 
+// Avisa al resto de la app (p. ej. las notificaciones) que este celular se enlazó o salió de la pareja.
+const anunciar = (enlazada) => {
+  try { globalThis.dispatchEvent?.(new CustomEvent('okupa:pareja', { detail: { enlazada } })); } catch { /* sin eventos */ }
+};
+
 const recordar = (almacen, codigo, lugar) => {
   almacen.escribir(CLAVE, { codigo, lugar });
+  anunciar(true);
   return { codigo, lugar };
 };
 const ruta = (codigo) => `parejas/${codigo}`;
@@ -159,6 +165,7 @@ export async function cambiarNombre(nube, almacen, nombre) {
 
 export function salir(almacen) {
   almacen.borrar(CLAVE);
+  anunciar(false);
 }
 
 // Borra para los dos todo lo que la pareja tiene en la nube.
