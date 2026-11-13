@@ -14,7 +14,7 @@ App web instalable (PWA) para Carlos y su pareja: preguntas para conocerse, Triv
 ## Estado actual
 - Funciona y está verificado: v16 publicada en GitHub Pages con caché `okupa-v16`.
 - v17 (notificaciones) publicada con caché `okupa-v17` y `CLAVE_VAPID` puesta; Carlos guardó el secreto (llave del SDK Admin desde la consola de Firebase, sin Google Cloud) y pegó las reglas. pruebas.html 379 pasan; reglas + servidor 67 pasan (`firebase/`: `node emuladores.mjs exec "node --test pruebas/ ../servidor/notificaciones/pasada.test.mjs ../servidor/notificaciones/logica.test.mjs"`); revisión final hecha y arreglada.
-- A medias: falta el primer "Run workflow" en GitHub → Actions → Notificaciones (debe salir verde) y probar un aviso real entre los dos celulares (activar en Ajustes en ambos, responder el Diario en uno, esperar ≤30 min).
+- El workflow Notificaciones corrió en verde (2026-11-13, manual). A medias: probar un aviso real entre los dos celulares (activar en Ajustes en ambos, responder el Diario en uno, esperar ≤30 min).
 - Pendientes menores v17: recordatorio que se atrasa justo después de la medianoche de Bogotá usa el día nuevo; ids de trivia/mapa no atados a una partida/lugar real (solo la pareja podría abusar); recrear el registro reinicia `ultimoRecordatorio`.
 - Pendientes menores: reglas `transition: none` de movimiento reducido en componentes.css quedaron sin efecto; el `:is(... button)` del resorte gana a transiciones de botones declaradas antes; fotos de lugares se descargan completas la primera vez.
 ## Archivos clave
