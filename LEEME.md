@@ -225,6 +225,43 @@ Tocando la foto del inicio cada celular puede elegir una de su galería, encuadr
 círculo y guardarla **solo en ese celular**; "Volver a la foto original" deja la de siempre. El
 ícono instalado no cambia (las apps web no pueden cambiarlo).
 
+## Notificaciones
+
+Okupa avisa a cada celular con notificaciones: el recordatorio del Diario (a la hora que cada uno elige y solo si
+falta responder) y cuando la pareja respondió el Diario, invitó a la Trivia o agregó algo al mapa. Cada uno las
+enciende en **Ajustes → Notificaciones**. Llegan con 5 a 30 minutos de retraso: las manda GitHub cada 15 minutos.
+En iPhone solo funcionan con Okupa instalada en la pantalla de inicio (iOS 16.4 o más nuevo).
+
+Cómo funciona: cuando alguien hace algo, su celular deja una nota en `parejas/{código}/avisos`; cada celular con
+notificaciones queda registrado en `dispositivos/{id}`. El programa de `servidor/notificaciones/` corre en GitHub
+Actions (`.github/workflows/notificaciones.yml`), manda las notas con Firebase Cloud Messaging y las borra. Si algún
+día se pasa a Firebase Functions, solo cambia quién vacía la bandeja.
+
+### Configurarlas (una vez)
+
+1. **Clave web push (pública).** Firebase → ⚙ Configuración del proyecto → pestaña **Cloud Messaging** →
+   sección **Configuración web** → **Certificados web push** → **Generar par de claves**. Copia la clave (empieza
+   por `B…`) y pégala en `js/nucleo/nube-config.js` en `CLAVE_VAPID = '…'`. No es secreta.
+2. **Cuenta para GitHub con permisos mínimos.** En https://console.cloud.google.com, con el proyecto `okupa-abbdc`
+   elegido arriba: menú → **IAM y administración** → **Cuentas de servicio** → **Crear cuenta de servicio** →
+   nombre `okupa-avisos` → **Crear y continuar** → agrega solo dos roles: **Usuario de Cloud Datastore**
+   (*Cloud Datastore User*) y **Administrador de la API de Firebase Cloud Messaging**
+   (*Firebase Cloud Messaging API Admin*) → **Listo**. Entra a la cuenta → pestaña **Claves** → **Agregar clave** →
+   **Crear clave nueva** → **JSON**. Se descarga un archivo.
+3. **Guardarla en GitHub.** Repo `okupa` → **Settings** → **Secrets and variables** → **Actions** →
+   **New repository secret** → nombre `FIREBASE_CUENTA_SERVICIO`, y en el valor pega **todo** el contenido del
+   archivo JSON → **Add secret**. Luego **borra el archivo** del computador (y de la papelera): con él se puede
+   escribir en la base de datos.
+4. **Reglas.** Firebase → Firestore Database → **Reglas** → pega el contenido de `firebase/firestore.rules` →
+   **Publicar**. Hazlo antes de publicar la versión nueva de la app.
+5. **Probar.** En GitHub → pestaña **Actions** → **Notificaciones** → **Run workflow**. Debe terminar en verde y en
+   el registro decir `Notificaciones: {"enviados":…}`. Luego corre solo cada 15 minutos.
+
+Si la llave se filtra: en Google Cloud borra esa clave de la cuenta `okupa-avisos`, crea otra y reemplaza el secreto.
+
+Pruebas: `servidor/notificaciones` → `npm install` y `npm test` (lógica) y `npm run test:pasada` (con el emulador;
+necesita Java, como las reglas).
+
 ## Agregar una sección nueva al ecosistema
 
 1. Crea `js/modulos/<nombre>/modulo.js` que exporte `{ id, nombre, rutas, tarjetasInicio, iniciar?, acerca? }`
