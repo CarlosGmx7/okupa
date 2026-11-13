@@ -38,7 +38,45 @@
   --gutter: 16px;
   --ancho: 560px;
   --suave: cubic-bezier(.2, .8, .2, 1);
+  /* Colores que antes iban escritos a mano en componentes.css (mismos valores). */
+  --sobre-resalte: #1c0e13;
+  --peligro: #f0a3b3;
+  --vino-oscuro: #3a1220;
+  --dorado-rgb: 201, 164, 92;
+  --vino-rgb: 110, 31, 53;
+  --vino-claro-rgb: 168, 52, 79;
+  --fondo-rgb: 20, 10, 14;
+  --velo-rgb: 10, 4, 7;
 }
+
+/* Tema "Grafito y rosa": limpio y oscuro. Los nombres se conservan; cambia lo que valen. */
+:root[data-tema="grafito"] {
+  --fondo: #0E0E11;
+  --superficie: #18181C;
+  --superficie-alta: #232329;
+  --vino: #3A1F2C;
+  --vino-claro: #EC4899;
+  --dorado: #F472B6;
+  --dorado-suave: rgba(255, 255, 255, 0.12);
+  --crema: #F4F4F5;
+  --tenue: #A1A1AA;
+  --sobre-resalte: #1A0B12;
+  --peligro: #F87171;
+  --vino-oscuro: #18181C;
+  --dorado-rgb: 244, 114, 182;
+  --vino-rgb: 0, 0, 0;
+  --vino-claro-rgb: 236, 72, 153;
+  --fondo-rgb: 14, 14, 17;
+  --velo-rgb: 8, 8, 10;
+  --serif: var(--sans);
+  --radio: 20px;
+  --radio-chico: 14px;
+}
+:root[data-tema="grafito"] body::before,
+:root[data-tema="grafito"] body::after { display: none; }
+:root[data-tema="grafito"] :is(h1, h2, h3) { font-weight: 600; letter-spacing: -0.02em; }
+/* Inter no trae cursiva: los títulos que iban en itálica se ven rectos. */
+:root[data-tema="grafito"] :is(h1, h2, h3, .festejo-titulo, .titulo-final, .adivina-texto, .opcion-separador, .lema) { font-style: normal; }
 
 * { box-sizing: border-box; }
 

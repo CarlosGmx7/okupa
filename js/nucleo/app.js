@@ -7,6 +7,11 @@ import { obtenerNube } from './nube.js';
 import { pantallaPareja } from './pantallas-pareja.js';
 import { precalentar } from './precalentar.js';
 import { crearInstalacion } from './instalacion.js';
+import { leerAjustes, alCambiarAjustes } from './ajustes.js';
+import { aplicarTema } from './tema.js';
+
+aplicarTema(leerAjustes(almacen).tema);
+alCambiarAjustes((a) => aplicarTema(a.tema));
 
 const vista = document.getElementById('vista');
 const tabla = {};

@@ -16,6 +16,19 @@
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/componentes.css">
   <script>
+    // Tema elegido en Ajustes (okupa:ajustes), aplicado antes de pintar. Misma lógica que js/nucleo/tema.js.
+    (function () {
+      var tema = 'vino';
+      try {
+        var a = JSON.parse(localStorage.getItem('okupa:ajustes'));
+        if (a && a.tema === 'grafito') tema = 'grafito';
+      } catch (e) { /* ajustes dañados o sin almacenamiento: tema por defecto */ }
+      document.documentElement.setAttribute('data-tema', tema);
+      var meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) meta.content = tema === 'grafito' ? '#0E0E11' : '#140a0e';
+    })();
+  </script>
+  <script>
     // Guarda el aviso de "instalar app" del navegador para mostrar nuestro propio botón.
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
