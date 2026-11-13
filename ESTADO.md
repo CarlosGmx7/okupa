@@ -27,7 +27,7 @@ App web instalable (PWA) para Carlos y su pareja: preguntas para conocerse, Triv
 Esperar lo que Carlos pida tras probar la v15 en el celular (sin tarea pendiente asignada).
 ## Cómo verificar
 - App: `python herramientas/servidor.py` y abrir http://127.0.0.1:8080/pruebas.html → debe decir "0 fallaron".
-- Reglas: en `firebase/`, `npm test` (Node + Java); al terminar cerrar el java que queda en el puerto 8085.
+- Reglas: en `firebase/`, `npm install` (la primera vez; `node_modules` se borró para ahorrar espacio) y luego `npm test` (Node + Java); al terminar cerrar el java que queda en el puerto 8085.
 - Publicado: `https://carlosgmx7.github.io/okupa/sw.js` debe mostrar la `CACHE` actual.
 ## Cuidado con
 - Cada cambio: subir `CACHE` en `sw.js` (próxima `okupa-v16`) y agregar archivos nuevos a `PRECACHE` y a `pruebas/pwa.prueba.js`.
