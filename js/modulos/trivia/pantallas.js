@@ -1,5 +1,6 @@
 // Pantallas de la trivia en vivo: sala (invitar, unirse, victorias) y juego (pregunta, revelado, final).
 import { el, movimientoReducido } from '../../nucleo/ui.js';
+import { icono } from '../../nucleo/iconos.js';
 import { exigirPareja } from '../../nucleo/pantallas-pareja.js';
 import { elegirPartida } from './banco.js';
 import { preguntasConoces, insertarConoces } from './conoces.js';
@@ -215,7 +216,7 @@ export function crearPantallasTrivia({ cargar, ahora = () => performance.now(), 
     }
 
     const ruleta = (tema) => {
-      const r = el('div', { clase: 'ruleta' }, el('span', { clase: 'ruleta-icono', 'aria-hidden': 'true' }, tema.icono), el('span', {}, tema.nombre));
+      const r = el('div', { clase: 'ruleta' }, el('span', { clase: 'ruleta-icono', 'aria-hidden': 'true' }, icono(tema.icono)), el('span', {}, tema.nombre));
       r.style.setProperty('--acento', tema.color);
       return r;
     };
@@ -235,7 +236,7 @@ export function crearPantallasTrivia({ cargar, ahora = () => performance.now(), 
       const estado = el('p', { clase: 'estado-juego', role: 'status' });
       const dato = el('p', { clase: 'dato-juego', hidden: true }, p.dato);
       const pie = el('div', { clase: 'pie-juego' });
-      const chip = el('span', { clase: 'chip-tema' }, el('span', { 'aria-hidden': 'true' }, tema.icono), ` ${tema.nombre}`);
+      const chip = el('span', { clase: 'chip-tema' }, el('span', { 'aria-hidden': 'true' }, icono(tema.icono)), ` ${tema.nombre}`);
       chip.style.setProperty('--acento', tema.color);
       const contenedorPregunta = el('div', { clase: 'pregunta-juego' },
         el('div', { clase: 'cabecera-juego' }, chip,

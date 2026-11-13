@@ -1,4 +1,5 @@
 // Componentes de interfaz compartidos por todos los módulos.
+import { icono } from './iconos.js';
 
 export function el(etiqueta, atributos = {}, ...hijos) {
   const nodo = document.createElement(etiqueta);
@@ -62,7 +63,7 @@ export function crearCarta(pregunta, { categoria, fuente } = {}) {
   const carta = el('article', { clase: 'carta', 'data-id': pregunta.id },
     el('header', { clase: 'carta-cabecera' },
       el('span', { clase: 'carta-categoria' },
-        categoria?.icono ? el('span', { clase: 'carta-icono', 'aria-hidden': 'true' }, categoria.icono) : null,
+        categoria?.icono ? el('span', { clase: 'carta-icono', 'aria-hidden': 'true' }, icono(categoria.icono)) : null,
         categoria?.nombre || ''),
       el('span', { clase: 'carta-profundidad', role: 'img', 'aria-label': `Profundidad ${p} de 3` },
         '●'.repeat(p) + '○'.repeat(3 - p))),

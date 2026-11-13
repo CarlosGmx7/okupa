@@ -1,5 +1,6 @@
 // Interfaz de los lugares del mapa: formulario para agregar, ficha de cada lugar y los pines.
 import { el } from '../../nucleo/ui.js';
+import { icono } from '../../nucleo/iconos.js';
 import {
   crearLugar, listarLugares, leerLugar, marcarFuimos, borrarLugar, guardarVersion, leerVersiones,
   comprimirFoto, agregarFoto, listarFotos, borrarFoto, buscarLugares, MAX_FOTOS,
@@ -42,7 +43,7 @@ function selectorTipo(inicial, alCambiar) {
   const grupo = el('div', { clase: 'segmentado', role: 'group', 'aria-label': 'Tipo de lugar' });
   const pintar = (actual) => grupo.replaceChildren(...['deseo', 'recuerdo'].map((t) =>
     el('button', { type: 'button', 'aria-pressed': String(t === actual), onclick: () => { alCambiar(t); pintar(t); } },
-      `${ICONO[t]} ${NOMBRE_TIPO[t]}`)));
+      icono(ICONO[t]), ` ${NOMBRE_TIPO[t]}`)));
   pintar(inicial);
   return grupo;
 }
@@ -145,7 +146,7 @@ export async function abrirFichaLugar({ nube, pareja, lugar, alCambiar = () => {
 
   function pintarCabeza() {
     cabeza.replaceChildren(
-      el('p', { clase: 'ficha-tipo' }, `${ICONO[lugar.tipo]} ${NOMBRE_TIPO[lugar.tipo]}${lugar.fecha ? ` · ${fechaLegible(lugar.fecha)}` : ''}`),
+      el('p', { clase: 'ficha-tipo' }, icono(ICONO[lugar.tipo]), ` ${NOMBRE_TIPO[lugar.tipo]}${lugar.fecha ? ` · ${fechaLegible(lugar.fecha)}` : ''}`),
       lugar.nota ? el('p', { clase: 'ficha-nota' }, lugar.nota) : el('span'),
       lugar.tipo === 'deseo' ? el('div', { clase: 'hoja-acciones' }, el('button', {
         clase: 'boton boton-principal', type: 'button',
@@ -299,7 +300,7 @@ export function montarLugares({ gl, mapa, nube, pareja }) {
     pines = lista.map((l) => {
       const pin = el('button', { clase: `pin-lugar ${l.tipo}`, type: 'button', 'aria-label': `${NOMBRE_TIPO[l.tipo]}: ${l.nombre}`,
         onclick: (e) => { e.stopPropagation(); abrirFichaLugar({ nube, pareja, lugar: l, alCambiar: recargar }); } },
-      el('span', { clase: 'pin-icono', 'aria-hidden': 'true' }, ICONO[l.tipo]),
+      el('span', { clase: 'pin-icono', 'aria-hidden': 'true' }, icono(ICONO[l.tipo])),
       el('span', { clase: 'pin-nombre' }, l.nombre));
       pin.hidden = !visibles;
       return marcador(gl, mapa, pin, l);

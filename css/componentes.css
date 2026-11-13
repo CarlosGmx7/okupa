@@ -929,3 +929,10 @@ ul.chips { padding: 0; margin: 0; list-style: none; }
 :root[data-tema="grafito"] .juntos.enlazados .juntos-accion { background: none; color: var(--dorado); }
 :root[data-tema="grafito"] .del-dia { background: var(--superficie); transform: none; box-shadow: none; }
 :root[data-tema="grafito"] .inicio-portada { border-color: var(--dorado-suave); box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.04); }
+
+/* ---------- Íconos: glifo en el tema vino, línea en Grafito ---------- */
+.ico { display: inline-flex; align-items: center; justify-content: center; line-height: 1; vertical-align: -0.12em; }
+.ico-linea { display: none; width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+:root[data-tema="grafito"] .ico.con-linea .ico-glifo { display: none; }
+:root[data-tema="grafito"] .ico.con-linea .ico-linea { display: block; }
+.juntos-acceso-nombre { white-space: nowrap; }

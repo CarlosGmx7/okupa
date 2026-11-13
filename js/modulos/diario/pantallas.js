@@ -1,5 +1,6 @@
 // Pantallas del diario: hoy (gustos y reto de inglés), un día anterior, perfil, pendientes e historial.
 import { el } from '../../nucleo/ui.js';
+import { icono } from '../../nucleo/iconos.js';
 import { exigirPareja } from '../../nucleo/pantallas-pareja.js';
 import { fechaBogota, fechaLegible } from './contenido.js';
 import { normalizarPerfil, problemaDePerfil } from './perfil.js';
@@ -65,7 +66,7 @@ function selector(p, alEscoger, { marcado } = {}) {
 }
 
 function chipTema(tema) {
-  const chip = el('span', { clase: 'chip-tema' }, el('span', { 'aria-hidden': 'true' }, tema?.icono || '✦'), ` ${tema?.nombre || ''}`);
+  const chip = el('span', { clase: 'chip-tema' }, el('span', { 'aria-hidden': 'true' }, icono(tema?.icono || '✦')), ` ${tema?.nombre || ''}`);
   if (tema?.color) chip.style.setProperty('--acento', tema.color);
   return chip;
 }

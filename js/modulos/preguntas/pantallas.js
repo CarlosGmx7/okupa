@@ -1,5 +1,6 @@
 // Pantallas del módulo de preguntas: categorías, al azar, sesiones guiadas y carta suelta.
 import { el, crearCarta, mazo, habilitarDeslizar, temporizador } from '../../nucleo/ui.js';
+import { icono } from '../../nucleo/iconos.js';
 import { filtrar, preguntaDelDia, fechaLocalISO } from './datos.js';
 import { posicionValida } from './progreso.js';
 
@@ -128,7 +129,7 @@ export function crearPantallas(estado, { alOcultar } = {}) {
       el('nav', { clase: 'nube' }, estado.contenido.categorias.map((c, i) => {
         const a = avanceCategoria(estado.contenido.preguntas, vistas, c.id);
         const b = el('a', { clase: `burbuja${i % 5 === 0 ? ' grande' : ''}`, href: `#/preguntas/categoria/${encodeURIComponent(c.id)}` },
-          el('span', { clase: 'burbuja-icono', 'aria-hidden': 'true' }, c.icono || '✦'),
+          el('span', { clase: 'burbuja-icono', 'aria-hidden': 'true' }, icono(c.icono || '✦')),
           el('span', { clase: 'burbuja-nombre' }, c.nombre),
           el('span', { clase: 'burbuja-avance' }, `${a.vistas} de ${a.total} vistas`),
           el('span', { clase: 'barra' }, el('span', { style: `width:${a.total ? (100 * a.vistas) / a.total : 0}%` })));
@@ -362,9 +363,9 @@ export function crearPantallas(estado, { alOcultar } = {}) {
   return { categorias, categoria, azar, carta, sesiones, sesion, tarjetasInicio, acerca };
 }
 
-function acceso(ruta, icono, nombre, detalle) {
+function acceso(ruta, glifo, nombre, detalle) {
   return el('a', { clase: 'acceso', href: `#/${ruta}` },
-    el('span', { clase: 'acceso-icono', 'aria-hidden': 'true' }, icono),
+    el('span', { clase: 'acceso-icono', 'aria-hidden': 'true' }, icono(glifo)),
     el('span', { clase: 'acceso-nombre' }, nombre),
     el('span', { clase: 'acceso-detalle' }, detalle));
 }

@@ -1,5 +1,6 @@
 // "Mis preguntas": la pareja crea, oculta y organiza su propio contenido.
 import { el } from '../../nucleo/ui.js';
+import { icono } from '../../nucleo/iconos.js';
 import { exportarRespaldo, importarRespaldo, validarRespaldo } from '../../nucleo/almacen.js';
 import { fechaLocalISO } from './datos.js';
 import { VALIDADORES_RESPALDO } from './propio.js';
@@ -62,7 +63,7 @@ export function crearEditor(estado, { alCambiar = () => {}, alImportar = () => {
         'Todavía no han creado preguntas.'),
       seccion('Nuestras categorías', 'preguntas/mis/categoria/nueva', 'Nueva categoría',
         datos.categorias.map((c) => el('li', {}, el('div', { clase: 'fila' },
-          el('span', { 'aria-hidden': 'true' }, c.icono),
+          icono(c.icono),
           el('div', { clase: 'fila-cuerpo' }, el('div', { clase: 'fila-titulo' }, c.nombre)),
           el('button', {
             clase: 'boton-texto', type: 'button',

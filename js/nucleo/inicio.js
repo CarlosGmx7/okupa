@@ -1,5 +1,6 @@
 // Pantallas propias del núcleo: inicio y "Acerca de".
 import { el } from './ui.js';
+import { icono } from './iconos.js';
 import { miPareja } from './pareja.js';
 import { PORTADA_ORIGINAL, fuentePortada, abrirEditorPortada } from './portada.js';
 
@@ -8,7 +9,7 @@ import { PORTADA_ORIGINAL, fuentePortada, abrirEditorPortada } from './portada.j
 function tarjetaJuntos(almacen, modulos = []) {
   const enlazados = Boolean(almacen && miPareja(almacen));
   const cabeza = (titulo, detalle) => [
-    el('span', { clase: 'juntos-icono', 'aria-hidden': 'true' }, '∞'),
+    el('span', { clase: 'juntos-icono', 'aria-hidden': 'true' }, icono('∞')),
     el('span', { clase: 'juntos-cuerpo' },
       el('span', { clase: 'juntos-titulo' }, titulo),
       el('span', { clase: 'juntos-detalle' }, detalle))];
@@ -21,7 +22,7 @@ function tarjetaJuntos(almacen, modulos = []) {
   const accesos = modulos.filter((m) => m.accesoJuntos).map(({ accesoJuntos: a }) => {
     const detalle = detalleDe(a);
     return el('a', { clase: 'juntos-acceso', href: `#/${a.ruta}` },
-      el('span', { clase: 'juntos-acceso-nombre' }, el('span', { 'aria-hidden': 'true' }, a.icono), ` ${a.nombre}`),
+      el('span', { clase: 'juntos-acceso-nombre' }, icono(a.icono), ` ${a.nombre}`),
       detalle ? el('span', { clase: 'juntos-acceso-detalle' }, detalle) : null);
   });
   return el('div', { clase: `juntos${enlazados ? ' enlazados' : ' sin-enlazar'}` },

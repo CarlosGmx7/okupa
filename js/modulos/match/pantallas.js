@@ -1,5 +1,6 @@
 // Pantallas del Match: mazo para votar deslizando, lista de matches con "¡Lo hicimos!" y crear tarjeta.
 import { el } from '../../nucleo/ui.js';
+import { icono } from '../../nucleo/iconos.js';
 import { exigirPareja } from '../../nucleo/pantallas-pareja.js';
 import { MAZOS, crearMatch, planDeLaSemana, barajar } from './logica.js';
 
@@ -91,7 +92,7 @@ export function crearPantallasMatch({ cargar, ordenar = barajar, hoy = hoyLocal 
           if (activos.has(m.id)) activos.delete(m.id); else activos.add(m.id);
           ctx.almacen.escribir(CLAVE_MAZOS, [...activos]);
           ctx.refrescar();
-        } }, `${m.icono} ${m.nombre}`);
+        } }, icono(m.icono), ` ${m.nombre}`);
       return b;
     }));
 
@@ -153,7 +154,7 @@ export function crearPantallasMatch({ cargar, ordenar = barajar, hoy = hoyLocal 
       const m = MAZO_DE[t.mazo] || { icono: '✦', nombre: '' };
       const carta = el('article', { clase: 'carta carta-match', 'data-id': t.id },
         el('header', { clase: 'carta-cabecera' },
-          el('span', { clase: 'carta-categoria' }, el('span', { 'aria-hidden': 'true' }, m.icono), ` ${m.nombre}`)),
+          el('span', { clase: 'carta-categoria' }, icono(m.icono), ` ${m.nombre}`)),
         el('p', { clase: 'carta-texto' }, t.texto),
         el('p', { clase: 'carta-pista', 'aria-hidden': 'true' }, '← No · ↑ Solo si tú quieres · Me encantaría →'));
       habilitarGestos(carta);
@@ -192,7 +193,7 @@ export function crearPantallasMatch({ cargar, ordenar = barajar, hoy = hoyLocal 
     const planId = recordarPlan(ctx, lista, porId);
     const fila = (m) => {
       const t = porId.get(m.id) || { texto: 'Tarjeta borrada', mazo: '' };
-      const icono = MAZO_DE[t.mazo]?.icono || '✦';
+      const glifo = MAZO_DE[t.mazo]?.icono || '✦';
       const b = el('button', { clase: `boton${m.hecho ? '' : ' boton-principal'}`, type: 'button', 'aria-pressed': String(m.hecho),
         onclick: async () => {
           b.disabled = true;
@@ -200,7 +201,7 @@ export function crearPantallasMatch({ cargar, ordenar = barajar, hoy = hoyLocal 
           ctx.refrescar();
         } }, m.hecho ? 'Hecho ✓' : '¡Lo hicimos!');
       return el('li', { clase: `fila fila-match${m.hecho ? ' hecho' : ''}${m.id === planId ? ' es-plan' : ''}` },
-        el('span', { 'aria-hidden': 'true', clase: 'icono-match' }, icono),
+        el('span', { 'aria-hidden': 'true', clase: 'icono-match' }, icono(glifo)),
         el('div', { clase: 'fila-cuerpo' },
           m.id === planId ? el('div', { clase: 'plan-etiqueta' }, 'Plan de la semana') : null,
           el('div', { clase: 'fila-texto' }, t.texto)),
@@ -223,7 +224,7 @@ export function crearPantallasMatch({ cargar, ordenar = barajar, hoy = hoyLocal 
     const pintarGrupo = () => grupo.replaceChildren(...MAZOS.map((m) => el('button', {
       clase: 'chip-capa', type: 'button', 'aria-pressed': String(m.id === mazoElegido),
       onclick: () => { mazoElegido = m.id; pintarGrupo(); },
-    }, `${m.icono} ${m.nombre}`)));
+    }, icono(m.icono), ` ${m.nombre}`)));
     pintarGrupo();
     const texto = el('textarea', { maxlength: '140', placeholder: 'Ej: Ver el amanecer en Monserrate' });
     const error = el('p', { clase: 'error-formulario', role: 'alert' });
