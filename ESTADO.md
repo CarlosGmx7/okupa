@@ -12,8 +12,8 @@ App web instalable (PWA) para Carlos y su pareja: preguntas para conocerse, Triv
 - Botones: un solo "resorte" con la propiedad `scale` (no `transform`). Sonidos sintetizados (Web Audio) solo en match, acierto de Trivia y guardados; vibración corta al tocar (en `click`).
 - Notificaciones (v17): GitHub Actions cada 15 min + Firebase Cloud Messaging (gratis, sin plan Blaze); recordatorio del Diario a la hora elegida y avisos de pareja.
 ## Estado actual
-- Funciona y está verificado en local: v16 en la rama `v16-ajustes` (pruebas.html: 350 pasan; revisión final hecha y arreglada). Caché `okupa-v16`.
-- A medias: falta unir `v16-ajustes` a `main` y publicar (esperando el visto bueno de Carlos); sin probar en un celular real (sonido en iPhone, vibración, resorte).
+- Funciona y está verificado: v16 publicada en GitHub Pages con caché `okupa-v16` (pruebas.html: 350 pasan; revisión final hecha y arreglada).
+- A medias: sin probar en un celular real (sonido en iPhone, vibración, resorte, tema Grafito).
 - Pendientes menores: reglas `transition: none` de movimiento reducido en componentes.css quedaron sin efecto; el `:is(... button)` del resorte gana a transiciones de botones declaradas antes; fotos de lugares se descargan completas la primera vez.
 ## Archivos clave
 - `js/nucleo/ajustes.js`, `tema.js`, `iconos.js`, `sonidos.js`, `pantalla-ajustes.js`: lo nuevo de la v16.
