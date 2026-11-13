@@ -3,6 +3,7 @@ import { almacenEnMemoria } from './pareja.prueba.js';
 import { leerAjustes } from '../js/nucleo/ajustes.js';
 import { pantallaAjustes } from '../js/nucleo/pantalla-ajustes.js';
 import { pantallaInicio, pantallaAcerca } from '../js/nucleo/inicio.js';
+import { guardarPreferencias } from '../js/nucleo/notificaciones.js';
 
 function pintar(extra = {}) {
   const almacen = extra.almacen || almacenEnMemoria();
@@ -81,6 +82,82 @@ prueba('ajustes: borrar datos usa la confirmación de siempre', () => {
   respuesta = true;
   borrar.click();
   igual([almacen.claves('okupa:').length, recargas], [0, 1]);
+});
+
+// Notificaciones falsas: guardan las preferencias como la real y registran las llamadas.
+function notifFalsa(almacen, resultado = { ok: true }) {
+  const llamadas = [];
+  return {
+    llamadas,
+    async activar() { llamadas.push(['activar']); if (resultado.ok) guardarPreferencias(almacen, { activas: true }); return resultado; },
+    async desactivar() { llamadas.push(['desactivar']); guardarPreferencias(almacen, { activas: false }); return { ok: true }; },
+    async cambiar(c) { llamadas.push(['cambiar', c]); return guardarPreferencias(almacen, c); },
+  };
+}
+const esperar = () => new Promise((r) => setTimeout(r, 0));
+const filaDe = (div, texto) => [...div.querySelectorAll('.fila-ajuste')].find((f) => f.textContent.includes(texto));
+
+prueba('ajustes: notificaciones apagadas muestran solo el interruptor general', () => {
+  const almacen = almacenEnMemoria();
+  const { div } = pintar({ almacen, notificaciones: notifFalsa(almacen) });
+  igual([...div.querySelectorAll('.grupo-ajustes-titulo')].map((h) => h.textContent), ['Tema', 'Foto', 'Sonidos y vibración', 'Notificaciones', 'Datos']);
+  verdadero(filaDe(div, 'Notificaciones'));
+  verdadero(!filaDe(div, 'Recordatorio del Diario') && !div.querySelector('input[type="time"]'));
+});
+
+prueba('ajustes: activar con éxito muestra los 4 tipos y la hora 20:00', async () => {
+  const almacen = almacenEnMemoria();
+  const notif = notifFalsa(almacen);
+  const { div } = pintar({ almacen, notificaciones: notif });
+  div.querySelector('.interruptor[data-ajuste="notificaciones"]').click();
+  await esperar();
+  igual(notif.llamadas, [['activar']]);
+  for (const t of ['Tu pareja respondió el Diario', 'Invitación a la Trivia', 'Novedades del mapa', 'Recordatorio del Diario', 'Hora del recordatorio']) {
+    verdadero(filaDe(div, t), `falta "${t}"`);
+  }
+  igual(div.querySelector('input[type="time"]').value, '20:00');
+  igual(div.querySelector('.interruptor[data-ajuste="notificaciones"]').getAttribute('aria-checked'), 'true');
+});
+
+prueba('ajustes: si no se puede activar queda apagado y explica por qué', async () => {
+  const casos = {
+    'sin-pareja': 'Enlaza tu pareja para recibir avisos',
+    'sin-soporte': 'Este navegador no puede recibir notificaciones',
+    denegado: 'Las notificaciones están bloqueadas. En Chrome: toca el candado junto a la dirección → Notificaciones → Permitir.',
+    'sin-conexion': 'No se pudo activar. Revisa la conexión.',
+    'sin-config': 'Notificaciones aún no configuradas.',
+  };
+  for (const [motivo, texto] of Object.entries(casos)) {
+    const almacen = almacenEnMemoria();
+    const { div } = pintar({ almacen, notificaciones: notifFalsa(almacen, { ok: false, motivo }) });
+    div.querySelector('.interruptor[data-ajuste="notificaciones"]').click();
+    await esperar();
+    igual(div.querySelector('.interruptor[data-ajuste="notificaciones"]').getAttribute('aria-checked'), 'false', motivo);
+    verdadero(div.textContent.includes(texto), `${motivo}: ${div.querySelector('.ajustes-estado')?.textContent}`);
+  }
+  const almacen = almacenEnMemoria();
+  const { div } = pintar({ almacen, notificaciones: notifFalsa(almacen, { ok: false, motivo: 'sin-pareja' }) });
+  div.querySelector('.interruptor[data-ajuste="notificaciones"]').click();
+  await esperar();
+  verdadero(div.querySelector('.ajustes-estado a[href="#/pareja"]'), 'enlace a enlazar la pareja');
+});
+
+prueba('ajustes: apagar un tipo o cambiar la hora guarda el cambio', async () => {
+  const almacen = almacenEnMemoria();
+  guardarPreferencias(almacen, { activas: true });
+  const notif = notifFalsa(almacen);
+  const { div } = pintar({ almacen, notificaciones: notif });
+  div.querySelector('.interruptor[data-ajuste="aviso-mapa"]').click();
+  await esperar();
+  const hora = div.querySelector('input[type="time"]');
+  hora.value = '21:30';
+  hora.dispatchEvent(new Event('change', { bubbles: true }));
+  await esperar();
+  igual(notif.llamadas, [['cambiar', { avisos: { mapa: false } }], ['cambiar', { hora: '21:30' }]]);
+  div.querySelector('.interruptor[data-ajuste="notificaciones"]').click();
+  await esperar();
+  igual(notif.llamadas.at(-1), ['desactivar']);
+  verdadero(!filaDe(div, 'Novedades del mapa'));
 });
 
 prueba('acerca: ya no trae "Reiniciar todo"', () => {
