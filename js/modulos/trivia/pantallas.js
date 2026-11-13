@@ -1,6 +1,7 @@
 // Pantallas de la trivia en vivo: sala (invitar, unirse, victorias) y juego (pregunta, revelado, final).
 import { el, movimientoReducido } from '../../nucleo/ui.js';
 import { icono } from '../../nucleo/iconos.js';
+import { sonar, vibrar } from '../../nucleo/sonidos.js';
 import { exigirPareja } from '../../nucleo/pantallas-pareja.js';
 import { elegirPartida } from './banco.js';
 import { preguntasConoces, insertarConoces } from './conoces.js';
@@ -18,7 +19,6 @@ const CIRCUNFERENCIA = 2 * Math.PI * RADIO;
 
 const otroLugar = (l) => (l === 'a' ? 'b' : 'a');
 const alSalirDeRuta = (fn) => window.addEventListener('hashchange', fn, { once: true });
-const vibrar = (patron) => { try { navigator.vibrate?.(patron); } catch { /* sin vibración */ } };
 const textoOpcion = (p, opcion) => {
   if (opcion === null || opcion === undefined) return 'Sin respuesta';
   return p.tipo === 'vf' ? (opcion ? 'Verdadero' : 'Falso') : p.opciones[opcion];
@@ -314,6 +314,7 @@ export function crearPantallasTrivia({ cargar, ahora = () => performance.now(), 
       ui.pie.replaceChildren(el('button', { clase: 'boton boton-principal', type: 'button', onclick: siguiente }, partida.indice + 1 < partida.preguntas.length ? 'Siguiente →' : 'Ver resultado'));
       relojes.push(setTimeout(siguiente, T.revelado));
       vibrar(res[yo].acerto ? 20 : [10, 40, 10]);
+      if (res[yo].acerto) sonar('acierto');
     }
 
     function final() {

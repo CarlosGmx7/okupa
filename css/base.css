@@ -47,6 +47,14 @@
   --vino-claro-rgb: 168, 52, 79;
   --fondo-rgb: 20, 10, 14;
   --velo-rgb: 10, 4, 7;
+  /* Resorte de los botones: presión rápida, regreso con un pequeño rebote. */
+  --presion-escala: .96;
+  --presion-tiempo: 90ms;
+  --resorte-tiempo: 420ms;
+  --resorte: cubic-bezier(.34, 1.56, .64, 1);
+}
+@supports (transition-timing-function: linear(0, 1)) {
+  :root { --resorte: linear(0, 0.25 5%, 0.6 12%, 0.9 20%, 1.08 30%, 1.1 36%, 1.06 46%, 1.01 58%, 0.995 70%, 1); }
 }
 
 /* Tema "Grafito y rosa": limpio y oscuro. Los nombres se conservan; cambia lo que valen. */

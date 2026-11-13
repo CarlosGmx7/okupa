@@ -1,6 +1,7 @@
 // Pantallas del Match: mazo para votar deslizando, lista de matches con "¡Lo hicimos!" y crear tarjeta.
 import { el } from '../../nucleo/ui.js';
 import { icono } from '../../nucleo/iconos.js';
+import { sonar } from '../../nucleo/sonidos.js';
 import { exigirPareja } from '../../nucleo/pantallas-pareja.js';
 import { MAZOS, crearMatch, planDeLaSemana, barajar } from './logica.js';
 
@@ -22,6 +23,7 @@ export function detalleInicio(almacen) {
 }
 
 function festejar(tarjeta) {
+  sonar('match');
   const cerrar = () => capa.remove();
   const capa = el('div', { clase: 'festejo-match', role: 'dialog', 'aria-modal': 'true', 'aria-label': '¡Match!' },
     el('div', { clase: 'festejo-caja' },

@@ -110,7 +110,6 @@
   color: var(--crema);
   transition: transform .2s var(--suave), box-shadow .2s;
 }
-.juntos:active { transform: scale(.98); }
 .juntos:focus-visible { outline: 2px solid var(--dorado); outline-offset: 3px; }
 .juntos-icono {
   flex: none;
@@ -161,7 +160,6 @@
   text-decoration: none;
   transition: transform .15s;
 }
-.juntos-acceso:active { transform: scale(.97); }
 
 /* ---------- Trivia ---------- */
 .boton-grande { min-height: 58px; padding: 0 32px; font-size: 18px; }
@@ -217,7 +215,6 @@
   font-size: 16px; cursor: pointer; transition: transform .12s, background .2s, border-color .2s;
 }
 .opciones-vf .opcion-juego { min-height: 120px; font-family: var(--serif); font-size: 22px; }
-.opcion-juego:active { transform: scale(.96); }
 .opcion-juego:disabled { cursor: default; }
 .opcion-juego[aria-pressed="true"] { background: var(--vino); border-color: var(--dorado); }
 .opcion-juego.correcta { background: rgba(127, 183, 168, .22); border-color: #7fb7a8; }
@@ -287,7 +284,6 @@
   border: 1.5px solid var(--dorado-suave); background: rgba(0, 0, 0, .2); color: var(--crema);
   font: inherit; font-size: 15px; cursor: pointer; transition: transform .12s, background .2s, border-color .2s;
 }
-.opcion-diario:active, .punto-escala:active, .chip:active { transform: scale(.96); }
 .opcion-diario[aria-pressed="true"], .punto-escala[aria-pressed="true"], .chip[aria-pressed="true"] { background: var(--vino); border-color: var(--dorado); }
 .escala-diario { display: flex; flex-direction: column; gap: 8px; }
 .puntos-escala { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; }
@@ -426,7 +422,6 @@ ul.chips { padding: 0; margin: 0; list-style: none; }
 }
 .acceso:nth-child(2n) { border-radius: 26px 10px 26px 26px; transform: translateY(8px); }
 .acceso:hover, .acceso:focus-visible { border-color: var(--dorado-suave); }
-.acceso:active { transform: scale(.98); }
 .acceso-icono { font-size: 22px; color: var(--dorado); }
 .acceso-nombre { font-family: var(--serif); font-size: 19px; }
 .acceso-detalle { font-size: 13px; color: var(--tenue); }
@@ -489,7 +484,6 @@ ul.chips { padding: 0; margin: 0; list-style: none; }
   font-size: 15px;
   transition: background .2s, transform .15s;
 }
-.boton:active { transform: scale(.97); }
 .boton-principal {
   background: var(--dorado);
   border-color: var(--dorado);
@@ -704,7 +698,6 @@ ul.chips { padding: 0; margin: 0; list-style: none; }
 .burbuja:nth-child(3n+2) { border-radius: 12px 30px 30px 30px; transform: rotate(1.1deg) translateY(6px); }
 .burbuja:nth-child(3n) { border-radius: 30px 12px 30px 30px; }
 .burbuja.grande { flex-basis: 100%; }
-.burbuja:active { transform: scale(.97); }
 .burbuja-icono { color: var(--acento); font-size: 20px; }
 .burbuja-nombre { font-family: var(--serif); font-size: 19px; line-height: 1.2; }
 .burbuja-avance { font-size: 12px; color: var(--tenue); }
@@ -893,7 +886,6 @@ ul.chips { padding: 0; margin: 0; list-style: none; }
 .voto-no { color: var(--peligro); border-color: rgba(var(--vino-claro-rgb), .7); }
 .voto-quizas { color: var(--dorado); }
 .voto-si { background: var(--vino); border-color: var(--vino-claro); }
-.voto:active { transform: scale(.97); }
 .plan-semana {
   display: block; text-decoration: none; color: var(--crema); margin: 4px 0 12px; padding: 14px 16px;
   border-radius: 22px; border: 1px solid var(--dorado-suave);
@@ -936,3 +928,16 @@ ul.chips { padding: 0; margin: 0; list-style: none; }
 :root[data-tema="grafito"] .ico.con-linea .ico-glifo { display: none; }
 :root[data-tema="grafito"] .ico.con-linea .ico-linea { display: block; }
 .juntos-acceso-nombre { white-space: nowrap; }
+
+/* ---------- Resorte suave: se hunde al presionar y vuelve con un pequeño rebote ---------- */
+/* Usa 'scale' (no 'transform') para no pisar los giros y desplazamientos de algunas tarjetas. */
+:is(.boton, .acceso, .juntos-principal, .juntos-acceso, .opcion-juego, .opcion-diario, .punto-escala, .chip, .burbuja, .voto, .engranaje, .fila-ajuste, .tema-opcion, button) {
+  transition: scale var(--resorte-tiempo) var(--resorte), background-color .2s, border-color .2s, box-shadow .2s, color .2s;
+}
+:is(.boton, .acceso, .juntos-principal, .juntos-acceso, .opcion-juego, .opcion-diario, .punto-escala, .chip, .burbuja, .voto, .engranaje, .fila-ajuste, .tema-opcion, button):not(:disabled):active {
+  scale: var(--presion-escala);
+  transition: scale var(--presion-tiempo) ease-out, background-color .2s, border-color .2s, box-shadow .2s, color .2s;
+}
+@media (prefers-reduced-motion: reduce) {
+  :is(.boton, .acceso, .juntos-principal, .juntos-acceso, .opcion-juego, .opcion-diario, .punto-escala, .chip, .burbuja, .voto, .engranaje, .fila-ajuste, .tema-opcion, button):not(:disabled):active { scale: none; opacity: .85; }
+}

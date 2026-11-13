@@ -1,6 +1,7 @@
 // Interfaz de los lugares del mapa: formulario para agregar, ficha de cada lugar y los pines.
 import { el } from '../../nucleo/ui.js';
 import { icono } from '../../nucleo/iconos.js';
+import { sonar } from '../../nucleo/sonidos.js';
 import {
   crearLugar, listarLugares, leerLugar, marcarFuimos, borrarLugar, guardarVersion, leerVersiones,
   comprimirFoto, agregarFoto, listarFotos, borrarFoto, buscarLugares, MAX_FOTOS,
@@ -96,6 +97,7 @@ export async function abrirFormularioLugar({ nube, pareja, punto = null, buscar 
       fecha: tipo === 'recuerdo' ? fecha.value : undefined,
     }).catch(() => ({ ok: false, error: 'No se pudo guardar. Revisa la conexión.' }));
     if (!r.ok) { error.textContent = r.error; return; }
+    sonar('guardado');
     cerrar();
     alGuardar(r.id);
   };

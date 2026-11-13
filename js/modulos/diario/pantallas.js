@@ -1,6 +1,7 @@
 // Pantallas del diario: hoy (gustos y reto de inglés), un día anterior, perfil, pendientes e historial.
 import { el } from '../../nucleo/ui.js';
 import { icono } from '../../nucleo/iconos.js';
+import { sonar, vibrar } from '../../nucleo/sonidos.js';
 import { exigirPareja } from '../../nucleo/pantallas-pareja.js';
 import { fechaBogota, fechaLegible } from './contenido.js';
 import { normalizarPerfil, problemaDePerfil } from './perfil.js';
@@ -20,7 +21,6 @@ const ETIQUETA = { coinciden: '¡Coincidieron!', parecido: 'Parecido', debate: '
 const NOMBRE_PARTE = { gustos: 'las preguntas', ingles: 'el reto de inglés' };
 
 const alSalirDeRuta = (fn) => window.addEventListener('hashchange', fn, { once: true });
-const vibrar = (patron) => { try { navigator.vibrate?.(patron); } catch { /* sin vibración */ } };
 const vacio = (mensaje, ...resto) => el('div', { clase: 'vacio' }, el('p', {}, mensaje), resto);
 const reintentar = (ctx) => el('button', { clase: 'boton boton-principal', type: 'button', onclick: () => ctx.refrescar() }, 'Reintentar');
 const titulo = (texto = 'Diario') => el('h1', { clase: 'titulo-pantalla' }, texto);
@@ -312,6 +312,7 @@ export function crearPantallasDiario({ cargar, hoy = () => fechaBogota() } = {})
         try {
           await enviar(nube, pareja, fecha, 'gustos', { items });
           vibrar(15);
+          sonar('guardado');
           await recargar();
         } catch (e) {
           console.warn('Okupa: no se pudo enviar', e);

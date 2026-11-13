@@ -9,9 +9,11 @@ import { precalentar } from './precalentar.js';
 import { crearInstalacion } from './instalacion.js';
 import { leerAjustes, alCambiarAjustes } from './ajustes.js';
 import { aplicarTema } from './tema.js';
+import { sonidos } from './sonidos.js';
 
 aplicarTema(leerAjustes(almacen).tema);
 alCambiarAjustes((a) => aplicarTema(a.tema));
+sonidos.instalarToque();
 
 const vista = document.getElementById('vista');
 const tabla = {};
