@@ -161,7 +161,9 @@ const modulosModerna = (detalleDiario = () => null) => [
   mod('j1', acceso('trivia', 'Trivia en vivo', { seccion: 'jugar', orden: 1 })),
   mod('j2', acceso('probable', '¿Quién es más probable?', { seccion: 'jugar', orden: 2 })),
 ];
+const navegar = () => globalThis.dispatchEvent(new Event('hashchange'));
 const pintarModerna = (modulos, almacen) => {
+  navegar(); // entrar al inicio desde otra ruta: todo cerrado
   const div = document.createElement('div');
   pantallaInicio(div, {}, ctxModerna(modulos, almacen));
   return div;
@@ -205,6 +207,9 @@ prueba('inicio moderno: la tarjeta apunta a un solo panel, región con nombre, c
   for (const b of div.querySelectorAll('.tarjeta-seccion')) igual(b.getAttribute('aria-controls'), panel.id);
   verdadero(div.querySelector('.inicio-tarjetas-seccion').compareDocumentPosition(panel) & Node.DOCUMENT_POSITION_FOLLOWING, 'el panel va debajo de las tarjetas');
   igual(panel.querySelectorAll('a.mini-modo').length, 0);
+  verdadero(panel.hasAttribute('inert'), 'cerrado desde el inicio: inert');
+  igual(panel.getAttribute('data-abierto'), 'false');
+  igual(div.querySelectorAll('.panel-modos:not([inert]) a.mini-modo').length, 0, 'ninguna mini tarjeta alcanzable');
 });
 
 prueba('inicio moderno: tocar una tarjeta abre el panel con mini tarjetas que llevan a la ruta', () => {
@@ -232,9 +237,14 @@ prueba('inicio moderno: tocar otra tarjeta cambia la sección abierta y tocar la
   igual(tarjeta(div, 'nosotros').getAttribute('aria-expanded'), 'false');
   igual(panel.getAttribute('data-abierto'), 'false');
   verdadero(panel.hasAttribute('inert'), 'cerrado no debe poder tocarse ni leerse');
+  igual(div.querySelectorAll('.panel-modos:not([inert]) a.mini-modo').length, 0, 'tras cerrar ninguna mini tarjeta alcanzable');
+  tarjeta(div, 'nosotros').click();
+  verdadero(!panel.hasAttribute('inert'), 'abierto: sin inert');
+  tarjeta(div, 'nosotros').click();
+  verdadero(panel.hasAttribute('inert'), 'inert vuelve al cerrar');
 });
 
-prueba('inicio moderno: cada vez que se pinta todo empieza cerrado', () => {
+prueba('inicio moderno: al volver al inicio desde otra ruta todo empieza cerrado', () => {
   const almacen = almacenEnMemoria();
   const div = pintarModerna(modulosModerna(), almacen);
   tarjeta(div, 'jugar').click();
@@ -284,4 +294,49 @@ prueba('inicio moderno: conserva cabecera, invitación a enlazar y tarjetas de m
   const div = pintarModerna([{ id: 'a', tarjetasInicio: () => [el('p', { clase: 't' }, 'Pregunta de hoy')] }, ...modulosModerna()]);
   verdadero(div.querySelector('.logo') && div.querySelector('a.inicio-enlazar') && div.querySelector('.t'));
   verdadero(div.querySelector('.t').compareDocumentPosition(div.querySelector('.inicio-moderno')) & Node.DOCUMENT_POSITION_FOLLOWING, 'la tarjeta de módulo va antes');
+});
+
+prueba('inicio moderno: un repintado (refrescar) deja abierta la misma sección, ya abierta y sin perder el estado', () => {
+  const almacen = conPareja();
+  const modulos = modulosModerna(() => 'Te toca responder');
+  const div = pintarModerna(modulos, almacen);
+  tarjeta(div, 'conocernos').click();
+  // Es lo que hace la app al refrescar: vacía la vista y vuelve a llamar a pantallaInicio con el mismo ctx.
+  const otra = document.createElement('div');
+  pantallaInicio(otra, {}, ctxModerna(modulos, almacen));
+  igual(['jugar', 'conocernos', 'nosotros'].map((id) => tarjeta(otra, id).getAttribute('aria-expanded')), ['false', 'true', 'false']);
+  const panel = otra.querySelector('.panel-modos');
+  igual(panel.getAttribute('data-abierto'), 'true');
+  verdadero(!panel.hasAttribute('inert'));
+  igual(panel.getAttribute('aria-label'), 'Conocernos');
+  igual([...panel.querySelectorAll('a.mini-modo')].map((a) => a.getAttribute('href')), ['#/preguntas', '#/diario']);
+  igual(textos(panel, '.mini-modo-detalle'), ['Te toca responder']);
+  navegar();
+});
+
+prueba('inicio moderno: tras navegar a otra ruta y volver, el inicio está cerrado', () => {
+  const almacen = almacenEnMemoria();
+  const div = pintarModerna(modulosModerna(), almacen);
+  tarjeta(div, 'jugar').click();
+  navegar(); // hashchange hacia otra ruta
+  const otra = document.createElement('div');
+  pantallaInicio(otra, {}, ctxModerna(modulosModerna(), almacen));
+  igual([...otra.querySelectorAll('.tarjeta-seccion')].map((b) => b.getAttribute('aria-expanded')), ['false', 'false', 'false']);
+  verdadero(otra.querySelector('.panel-modos').hasAttribute('inert'));
+});
+
+prueba('inicio moderno: el repintado devuelve el foco al mismo botón', async () => {
+  const almacen = almacenEnMemoria();
+  const div = pintarModerna(modulosModerna(), almacen);
+  document.body.append(div);
+  try {
+    tarjeta(div, 'nosotros').focus();
+    div.remove();
+    const otra = document.createElement('div');
+    document.body.append(otra);
+    pantallaInicio(otra, {}, ctxModerna(modulosModerna(), almacen));
+    await Promise.resolve();
+    igual(document.activeElement, tarjeta(otra, 'nosotros'));
+    otra.remove();
+  } finally { div.remove(); navegar(); }
 });

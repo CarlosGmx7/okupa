@@ -55,7 +55,18 @@ function seccionesInicio(almacen, modulos = []) {
   });
 }
 
-const ICONOS_SECCION = { jugar: '✦', conocernos: '❖', nosotros: '♥' };
+// Lo abierto sobrevive a los repintados del inicio (p. ej. al terminar precalentar), pero no a navegar:
+// cualquier cambio de ruta lo cierra. Este oyente se registra al cargar el módulo, antes que el de la app.
+let seccionAbierta = null;
+let foco = null; // { seccion } o { ruta } del botón o mini tarjeta que tenía el foco
+globalThis.addEventListener?.('hashchange', () => { seccionAbierta = null; foco = null; });
+globalThis.document?.addEventListener?.('focusin', (e) => {
+  const b = e.target?.closest?.('.tarjeta-seccion');
+  const m = e.target?.closest?.('.mini-modo');
+  foco = b ? { seccion: b.dataset.seccion } : m ? { ruta: m.getAttribute('href') } : null;
+});
+
+const ICONOS_SECCION ={ jugar: '✦', conocernos: '❖', nosotros: '♥' };
 
 // Interfaz «Moderna»: tres tarjetas grandes y, debajo, un panel con las mini tarjetas de la abierta.
 // Solo una sección abierta a la vez; tocar la misma la cierra. Se pinta cerrado en cada render.
@@ -66,7 +77,7 @@ function inicioModerno(almacen, modulos = []) {
   const panelInterior = el('div', { clase: 'panel-modos-interior' });
   const panel = el('div', { clase: 'panel-modos', id: idPanel, role: 'region', 'data-abierto': 'false', inert: true },
     el('div', { clase: 'panel-modos-recorte' }, panelInterior));
-  let abierta = null;
+  let abierta = grupos.some(({ s }) => s.id === seccionAbierta) ? seccionAbierta : null;
 
   const botones = grupos.map(({ s, filas }) => {
     const hayAviso = filas.some(({ detalle }) => detalle);
@@ -92,6 +103,7 @@ function inicioModerno(almacen, modulos = []) {
 
   const alternar = (id) => {
     abierta = abierta === id ? null : id;
+    seccionAbierta = abierta;
     botones.forEach((b) => b.setAttribute('aria-expanded', String(b.dataset.seccion === abierta)));
     panel.setAttribute('data-abierto', String(abierta !== null));
     panel.toggleAttribute('inert', abierta === null);
@@ -99,9 +111,27 @@ function inicioModerno(almacen, modulos = []) {
     if (abierta !== null) pintarPanel(grupos.find(({ s }) => s.id === abierta));
   };
 
-  return el('div', { clase: 'inicio-moderno' },
+  // Repintado con una sección abierta: sale ya abierta (sin animar, porque nace en su estado final).
+  if (abierta !== null) {
+    botones.forEach((b) => b.setAttribute('aria-expanded', String(b.dataset.seccion === abierta)));
+    panel.setAttribute('data-abierto', 'true');
+    panel.removeAttribute('inert');
+    pintarPanel(grupos.find(({ s }) => s.id === abierta));
+  }
+  const raiz = el('div', { clase: 'inicio-moderno' },
     el('div', { clase: 'inicio-tarjetas-seccion' }, botones),
     panel);
+  // El repintado quita los nodos y con ellos el foco: se devuelve al mismo botón o mini tarjeta.
+  if (foco) {
+    queueMicrotask(() => {
+      const destino = foco.seccion
+        ? botones.find((b) => b.dataset.seccion === foco.seccion)
+        : [...panelInterior.querySelectorAll('.mini-modo')].find((a) => a.getAttribute('href') === foco.ruta);
+      const activo = globalThis.document?.activeElement;
+      if (destino?.isConnected && (!activo || activo === globalThis.document.body)) destino.focus({ preventScroll: true });
+    });
+  }
+  return raiz;
 }
 export function pantallaInicio(contenedor, _params, ctx) {
   const tarjetas = ctx.modulos.flatMap((m) => {
