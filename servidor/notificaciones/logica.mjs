@@ -2,7 +2,9 @@
 
 const QUINCE_MIN = 15 * 60 * 1000;
 const MAX_FRANJAS = 8; // 2 h hacia atrás si GitHub se retrasa
-const VIGENCIA_MS = { trivia: 30 * 60 * 1000 };
+const VIGENCIA_MS = { trivia: 30 * 60 * 1000, probable: 30 * 60 * 1000 };
+// Avisos que comparten el interruptor de otro tipo.
+const PREFERENCIA = { probable: 'trivia' };
 const VIGENCIA_GENERAL_MS = 24 * 60 * 60 * 1000;
 
 const FORMATO_BOGOTA = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Bogota', year: 'numeric', month: '2-digit', day: '2-digit' });
@@ -41,6 +43,7 @@ export function franjasPendientes(ultima, ahora) {
 const TEXTOS = {
   diario: (n) => ({ titulo: `${n} respondió el Diario`, texto: 'Entra a ver qué respondieron.', ruta: '#/diario' }),
   trivia: (n) => ({ titulo: `${n} te invitó a la Trivia`, texto: 'Te está esperando para jugar.', ruta: '#/trivia' }),
+  probable: (n) => ({ titulo: `${n} te invita a jugar ¿Quién es más probable? 🤔`, texto: 'Te está esperando para jugar.', ruta: '#/probable' }),
   mapa: (n) => ({ titulo: `${n} agregó algo al mapa`, texto: 'Entra a verlo.', ruta: '#/mapa' }),
   recordatorio: () => ({ titulo: '¿Ya respondiste el Diario?', texto: 'Te falta tu parte de hoy.', ruta: '#/diario' }),
 };
@@ -60,7 +63,7 @@ export function destinatarios(dispositivos, parejaDoc, aviso) {
   const invalidos = [];
   for (const { id, datos } of dispositivos) {
     if (!registroVigente(datos, parejaDoc)) { invalidos.push(id); continue; }
-    if (datos.lugar === aviso.de || datos.avisos?.[aviso.tipo] === false) continue;
+    if (datos.lugar === aviso.de || datos.avisos?.[PREFERENCIA[aviso.tipo] ?? aviso.tipo] === false) continue;
     enviar.push({ id, token: datos.token });
   }
   return { enviar, invalidos };

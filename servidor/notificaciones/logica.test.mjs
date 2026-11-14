@@ -27,7 +27,22 @@ test('textoDe arma los textos sin detalles', () => {
   assert.deepEqual(textoDe('diario', null), { titulo: 'Tu pareja respondió el Diario', texto: 'Entra a ver qué respondieron.', ruta: '#/diario' });
   assert.deepEqual(textoDe('mapa', 'Carlos'), { titulo: 'Carlos agregó algo al mapa', texto: 'Entra a verlo.', ruta: '#/mapa' });
   assert.deepEqual(textoDe('recordatorio'), { titulo: '¿Ya respondiste el Diario?', texto: 'Te falta tu parte de hoy.', ruta: '#/diario' });
+  assert.deepEqual(textoDe('probable', 'Yuli'), { titulo: 'Yuli te invita a jugar ¿Quién es más probable? 🤔', texto: 'Te está esperando para jugar.', ruta: '#/probable' });
   assert.equal(textoDe('otro', 'X'), null);
+});
+
+test('vencido: 30 min el aviso de probable', () => {
+  const t = Date.parse('2026-11-13T00:00:00Z');
+  assert.equal(vencido('probable', t, t + 31 * 60e3), true);
+  assert.equal(vencido('probable', t, t + 29 * 60e3), false);
+});
+
+test('destinatarios: probable usa el mismo interruptor que trivia', () => {
+  const pareja = { lugares: { a: 'u1', b: 'u2' } };
+  const con = (avisos) => [{ id: 'db', datos: { uid: 'u2', lugar: 'b', token: 'tb', avisos } }];
+  assert.deepEqual(destinatarios(con({ trivia: false }), pareja, { tipo: 'probable', de: 'a' }).enviar, []);
+  assert.deepEqual(destinatarios(con({ trivia: true }), pareja, { tipo: 'probable', de: 'a' }).enviar, [{ id: 'db', token: 'tb' }]);
+  assert.deepEqual(destinatarios(con({ trivia: false, probable: true }), pareja, { tipo: 'probable', de: 'a' }).enviar, []);
 });
 
 test('vencido: 24 h en general, 30 min la trivia', () => {

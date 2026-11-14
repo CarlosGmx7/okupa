@@ -46,6 +46,16 @@ test('manda la nota de diario a b y la borra', async () => {
   assert.equal(await existe('parejas/K7PQ2M/avisos/diario_2026-11-13_a'), false);
 });
 
+test('manda la invitación de probable solo a b y la borra', async () => {
+  await sembrar({ 'parejas/K7PQ2M': pareja, 'dispositivos/da': disp('u1', 'a'), 'dispositivos/db': disp('u2', 'b'),
+    'parejas/K7PQ2M/avisos/probable_q-abcd': nota('probable', 'a') });
+  const m = mandador();
+  const r = await pasada({ db, mandar: m.mandar, ahora: AHORA });
+  assert.deepEqual(m.enviados, [{ token: 't-b', data: { titulo: 'Carlos te invita a jugar ¿Quién es más probable? 🤔', texto: 'Te está esperando para jugar.', ruta: '#/probable', tipo: 'probable' } }]);
+  assert.equal(r.enviados, 1);
+  assert.equal(await existe('parejas/K7PQ2M/avisos/probable_q-abcd'), false);
+});
+
 test('nota vencida o de pareja borrada se borra sin mandar', async () => {
   await sembrar({ 'parejas/K7PQ2M': pareja, 'dispositivos/db': disp('u2', 'b'),
     'parejas/K7PQ2M/avisos/trivia_p-1': nota('trivia', 'a', 45),
