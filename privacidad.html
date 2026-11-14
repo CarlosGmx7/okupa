@@ -42,28 +42,37 @@
   <p>Nada de esto sale del celular, salvo que tú guardes una copia de seguridad en un archivo.</p>
 
   <h2>Lo que se guarda en la nube, solo para los dos</h2>
-  <p>Cuando enlazan sus celulares, esto se guarda en Firebase (Firestore) y solo lo pueden leer los dos celulares de la pareja. Las reglas de la base de datos impiden que lo vea cualquier otra persona.</p>
+  <p>Cuando enlazan sus celulares, esto se guarda en Firebase (Firestore). Las reglas de la base de datos hacen que solo los dos celulares de la pareja puedan leer el contenido. La excepción es el código de la pareja y sus nombres: los puede ver quien tenga el código, porque así es como el otro celular se une. Por eso, compártelo solo con tu pareja.</p>
   <ul>
     <li>El código de la pareja y los nombres que escriban.</li>
     <li>Las respuestas de la Trivia y del Diario.</li>
     <li>Los votos del Match. Tus «no» no los ve tu pareja; solo se muestran las coincidencias.</li>
     <li>Los lugares del mapa, con sus notas y fotos.</li>
-    <li>Tu última ubicación: se guarda cada vez que abres el mapa y le das permiso de ubicación al navegador. Puedes elegir compartirla aproximada (unos 500 m). Si le quitas el permiso, deja de actualizarse; la última guardada se borra con «Borrar todo».</li>
+    <li>Tu última ubicación: se guarda cada vez que abres el mapa y le das permiso de ubicación al navegador. Puedes elegir compartirla aproximada (unos 500 m). Si le quitas el permiso, deja de actualizarse. La última guardada se borra con «Borrar todo».</li>
   </ul>
 
   <h2>Para los avisos</h2>
   <p>Si activas las notificaciones, se guarda un registro de tu celular con el código que da el navegador para recibir avisos (Firebase Cloud Messaging), los avisos que quieres recibir, la hora del recordatorio y tu zona horaria. Si las apagas, el registro se borra.</p>
 
+  <h2>Servicios de mapas</h2>
+  <p>El mapa usa servicios gratuitos de terceros, que reciben tu dirección IP y lo que les pide la app:</p>
+  <ul>
+    <li><strong>OpenFreeMap</strong> dibuja el mapa y ve la zona que estás mirando.</li>
+    <li><strong>Photon</strong> (de Komoot) recibe lo que escribes al buscar un lugar.</li>
+    <li><strong>OSRM</strong> recibe tu ubicación y la de tu pareja para calcular la ruta y la distancia entre los dos.</li>
+  </ul>
+  <p>Estos servicios no reciben sus nombres ni el código de la pareja.</p>
+
   <h2>Lo que no hacemos</h2>
   <ul>
     <li>No hay publicidad.</li>
     <li>No hay analítica ni seguimiento.</li>
-    <li>No vendemos ni compartimos tus datos con nadie. Google los guarda como proveedor de Firebase, según sus propias condiciones.</li>
+    <li>No vendemos tus datos. Google los guarda como proveedor de Firebase, según sus propias condiciones, y los servicios de mapas de arriba reciben solo lo que se cuenta ahí.</li>
   </ul>
 
   <h2>Cómo borrar tus datos</h2>
   <ul>
-    <li><strong>Todo lo de la pareja en la nube:</strong> en la app, Ajustes → Datos de la pareja → Borrar todo. Se borra para los dos.</li>
+    <li><strong>Lo de la pareja en la nube:</strong> en la app, Ajustes → Datos de la pareja → Borrar todo. Borra para los dos los nombres, las respuestas de la Trivia y el Diario y las ubicaciones. Los lugares del mapa (con sus notas y fotos) y los votos del Match todavía no se borran desde la app: escríbenos con el código de la pareja y los borramos.</li>
     <li><strong>Lo de tu celular:</strong> Ajustes → Borrar datos de este celular.</li>
     <li><strong>Si no puedes hacerlo desde la app:</strong> escríbenos y lo borramos.</li>
   </ul>

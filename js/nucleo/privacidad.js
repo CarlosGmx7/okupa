@@ -6,7 +6,9 @@ export const URL_PRIVACIDAD = 'https://carlosgmx7.github.io/okupa/privacidad.htm
 
 export async function pantallaPrivacidad(contenedor, _params, ctx = {}) {
   const leer = ctx.fetch || ((url) => fetch(url));
-  const volver = el('a', { clase: 'volver', href: '#/ajustes' }, '← Ajustes');
+  // Se llega desde Ajustes, Acerca o la bienvenida: volver regresa a donde estabas.
+  const atras = ctx.atras || (() => { if (history.length > 1) history.back(); else location.hash = '#/ajustes'; });
+  const volver = el('a', { clase: 'volver', href: '#/ajustes', onclick: (e) => { e.preventDefault(); atras(); } }, '← Atrás');
   const cuerpo = el('div', { clase: 'privacidad' }, el('p', { clase: 'subtitulo', role: 'status' }, 'Cargando…'));
   contenedor.append(volver, cuerpo);
   try {

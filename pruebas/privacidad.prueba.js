@@ -15,6 +15,31 @@ prueba('privacidad: la página suelta tiene lo esencial', async () => {
   verdadero(doc.querySelector('meta[name=viewport]'), 'falta viewport');
 });
 
+prueba('privacidad: dice lo que de verdad borra «Borrar todo» y lo que no', async () => {
+  const main = new DOMParser().parseFromString(await pagina(), 'text/html').querySelector('main').textContent.replace(/\s+/g, ' ');
+  verdadero(main.includes('Los lugares del mapa (con sus notas y fotos) y los votos del Match todavía no se borran desde la app'), 'falta aclarar lo que Borrar todo no borra');
+});
+
+prueba('privacidad: nombra los servicios de mapas que reciben datos', async () => {
+  const main = new DOMParser().parseFromString(await pagina(), 'text/html').querySelector('main').textContent;
+  for (const s of ['OpenFreeMap', 'Photon', 'OSRM']) verdadero(main.includes(s), `falta ${s}`);
+});
+
+prueba('privacidad: aclara que el código y los nombres los ve quien tenga el código', async () => {
+  const main = new DOMParser().parseFromString(await pagina(), 'text/html').querySelector('main').textContent.replace(/\s+/g, ' ');
+  verdadero(main.includes('quien tenga el código'), 'falta la aclaración del código');
+});
+
+prueba('privacidad: volver regresa a donde estabas (p. ej. la bienvenida)', async () => {
+  const div = document.createElement('div');
+  let atras = 0;
+  await pantallaPrivacidad(div, {}, { fetch: async () => new Response('<main><h1>P</h1></main>'), atras: () => { atras++; } });
+  const volver = div.querySelector('a.volver');
+  igual(volver.textContent, '← Atrás');
+  volver.click();
+  igual(atras, 1);
+});
+
 prueba('privacidad: la URL pública es la de GitHub Pages', () => {
   igual(URL_PRIVACIDAD, 'https://carlosgmx7.github.io/okupa/privacidad.html');
 });
