@@ -194,6 +194,37 @@ service cloud.firestore {
         allow create, update: if esMiembro(codigo) && fechaValida(request.resource.data);
       }
 
+      // Cápsula del tiempo: cartas selladas. Los metadatos (quién, cuándo abre) los ven los dos; el texto
+      // vive aparte en contenido/texto y el otro solo lo lee cuando ya llegó la hora de abrirla.
+      match /capsulas/{id} {
+        function metaValida(d) {
+          return d.keys().hasOnly(['de', 'abreEl', 'abreMs', 'creadaMs'])
+            && d.de == miLugar(codigo)
+            && d.abreEl is string && d.abreEl.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+            && d.abreMs is number
+            && d.abreMs > request.time.toMillis()
+            && d.abreMs < request.time.toMillis() + 3653 * 86400000
+            && d.creadaMs is number;
+        }
+        allow read: if esMiembro(codigo);
+        allow create: if esMiembro(codigo) && id.matches('^c-[a-z0-9]{4,30}$') && metaValida(request.resource.data);
+        allow update: if false;
+        allow delete: if esMiembro(codigo);
+
+        match /contenido/{doc} {
+          function meta() { return get(/databases/$(db)/documents/parejas/$(codigo)/capsulas/$(id)).data; }
+          function textoValido(d) {
+            return d.keys().hasOnly(['texto']) && d.texto is string && d.texto.size() >= 1 && d.texto.size() <= 2000;
+          }
+          allow get: if esMiembro(codigo) && doc == 'texto'
+            && (meta().de == miLugar(codigo) || request.time.toMillis() >= meta().abreMs);
+          allow list: if false;
+          allow create: if esMiembro(codigo) && doc == 'texto' && meta().de == miLugar(codigo) && textoValido(request.resource.data);
+          allow update: if false;
+          allow delete: if esMiembro(codigo);
+        }
+      }
+
       // Bandeja de avisos para las notificaciones: cada miembro deja notas de lo que hizo, con un id fijo
       // por evento (no se repite). Solo el servidor (GitHub Actions, sin reglas) las lee y las borra.
       match /avisos/{id} {
