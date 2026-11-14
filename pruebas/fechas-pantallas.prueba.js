@@ -1,0 +1,152 @@
+import { prueba, igual, verdadero } from './corredor.js';
+import { crearMundoFalso } from './nube-falsa.js';
+import { almacenEnMemoria } from './pareja.prueba.js';
+import { crearPareja, unirse as unirsePareja } from '../js/nucleo/pareja.js';
+import { crearPantallasFechas, detalleInicio } from '../js/modulos/fechas/pantallas.js';
+import { listarFechas, guardarFecha, guardarCopia, leerCopia } from '../js/modulos/fechas/datos.js';
+import { hasta, boton, salir } from './diario-pantallas.prueba.js';
+
+const HOY = '2026-11-13';
+
+async function parejaFechas() {
+  const mundo = crearMundoFalso();
+  const almA = almacenEnMemoria();
+  const almB = almacenEnMemoria();
+  const { codigo } = await crearPareja(mundo.nube('u1'), almA, { nombre: 'Carlos' });
+  await unirsePareja(mundo.nube('u2'), almB, { codigo, nombre: 'Yuli' });
+  const nube = mundo.nube('u1');
+  const div = document.createElement('div');
+  const rutas = [];
+  const pantallas = crearPantallasFechas({ hoy: () => HOY });
+  const ctx = { almacen: almA, nube: async () => nube, ir: (r) => rutas.push(r), refrescar: () => {} };
+  return { div, ctx, rutas, pantallas, nube, pareja: { codigo, lugar: 'a' }, almacen: almA };
+}
+
+const textoDe = (div) => div.textContent.replace(/\s+/g, ' ');
+
+prueba('fechas: sin inicio pide la fecha', async () => {
+  const { div, ctx, pantallas } = await parejaFechas();
+  await pantallas.lista(div, {}, ctx);
+  await hasta(() => div.querySelector('a[href="#/fechas/editar/inicio"]'));
+  verdadero(textoDe(div).includes('¿Desde cuándo están juntos?'), textoDe(div));
+  verdadero(!textoDe(div).includes('Llevamos'));
+  verdadero(div.querySelector('a[href="#/fechas/nueva"]'), 'falta Agregar fecha');
+  salir();
+});
+
+prueba('fechas: con inicio muestra los días y las próximas en orden', async () => {
+  const { div, ctx, pantallas, nube, pareja } = await parejaFechas();
+  await guardarFecha(nube, pareja, { tipo: 'inicio', fecha: '2025-11-14' }, HOY);
+  await guardarFecha(nube, pareja, { tipo: 'otra', fecha: '2025-11-20', nombre: 'Primer viaje' }, HOY);
+  await guardarFecha(nube, pareja, { tipo: 'cumple', fecha: '1995-12-01', de: 'b' }, HOY);
+  await pantallas.lista(div, {}, ctx);
+  await hasta(() => textoDe(div).includes('Llevamos'));
+  const t = textoDe(div);
+  verdadero(t.includes('Llevamos 365 días juntos'), t);
+  const aniv = t.indexOf('1 año juntos');
+  const viaje = t.indexOf('Primer viaje');
+  const cumple = t.indexOf('Cumpleaños de Yuli');
+  verdadero(aniv > 0 && aniv < viaje && viaje < cumple, `orden: ${aniv} ${viaje} ${cumple}`);
+  verdadero(t.includes('mañana') && t.includes('en 7 días'), t);
+  // «Nuestras fechas»: inicio, cumples (el de Carlos vacío) y la propia.
+  verdadero(t.includes('Nuestras fechas') && t.includes('Sin fecha · Agregar'), t);
+  verdadero(div.querySelector('a[href="#/fechas/editar/inicio"]'));
+  verdadero(div.querySelector('a[href="#/fechas/editar/cumple_a"]'));
+  verdadero(div.querySelector('a[href="#/fechas/editar/cumple_b"]'));
+  salir();
+});
+
+prueba('fechas: guardar una fecha nueva la lista y actualiza la copia', async () => {
+  const { div, ctx, rutas, pantallas, nube, pareja, almacen } = await parejaFechas();
+  await pantallas.nueva(div, {}, ctx);
+  await hasta(() => div.querySelector('input[type="date"]'));
+  div.querySelector('input[type="date"]').value = '2025-12-24';
+  div.querySelector('input[type="text"]').value = 'Primer viaje';
+  boton(div, 'Guardar').click();
+  await hasta(() => rutas.includes('fechas'));
+  const filas = await listarFechas(nube, pareja);
+  igual(filas.length, 1);
+  igual(filas[0].nombre, 'Primer viaje');
+  igual(leerCopia(almacen).fechas.length, 1, 'la copia local se actualizó');
+  const lista = document.createElement('div');
+  await pantallas.lista(lista, {}, ctx);
+  await hasta(() => textoDe(lista).includes('Primer viaje'));
+  const fila = lista.querySelector('a[href^="#/fechas/editar/f-"]');
+  verdadero(fila, 'tocar la fecha abre editar/:id');
+  salir();
+});
+
+prueba('fechas: editar y borrar una fecha propia', async () => {
+  const { div, ctx, rutas, pantallas, nube, pareja, almacen } = await parejaFechas();
+  const r = await guardarFecha(nube, pareja, { tipo: 'otra', fecha: '2025-12-24', nombre: 'Viaje' }, HOY);
+  await pantallas.editar(div, { id: r.id }, ctx);
+  await hasta(() => div.querySelector('input[type="date"]')?.value === '2025-12-24');
+  igual(div.querySelector('input[type="text"]').value, 'Viaje');
+  div.querySelector('input[type="text"]').value = 'Viaje a Cartagena';
+  boton(div, 'Guardar').click();
+  await hasta(() => rutas.includes('fechas'));
+  const filas = await listarFechas(nube, pareja);
+  igual(filas.length, 1);
+  igual(filas[0].nombre, 'Viaje a Cartagena');
+  const div2 = document.createElement('div');
+  await pantallas.editar(div2, { id: r.id }, ctx);
+  await hasta(() => boton(div2, 'Borrar'));
+  boton(div2, 'Borrar').click();
+  await hasta(() => rutas.length === 2);
+  igual((await listarFechas(nube, pareja)).length, 0);
+  igual(leerCopia(almacen).fechas.length, 0);
+  salir();
+});
+
+prueba('fechas: editar inicio con fecha futura muestra el error', async () => {
+  const { div, ctx, rutas, pantallas, nube, pareja } = await parejaFechas();
+  await pantallas.editar(div, { id: 'inicio' }, ctx);
+  await hasta(() => div.querySelector('input[type="date"]'));
+  verdadero(!boton(div, 'Quitar fecha'), 'sin fecha guardada no hay qué quitar');
+  div.querySelector('input[type="date"]').value = '2027-01-01';
+  boton(div, 'Guardar').click();
+  await hasta(() => div.querySelector('.aviso')?.textContent);
+  igual(div.querySelector('.aviso').textContent, 'La fecha de inicio no puede ser futura.');
+  igual(rutas, []);
+  igual((await listarFechas(nube, pareja)).length, 0);
+  salir();
+});
+
+prueba('fechas: quitar el inicio guardado', async () => {
+  const { div, ctx, rutas, pantallas, nube, pareja } = await parejaFechas();
+  await guardarFecha(nube, pareja, { tipo: 'inicio', fecha: '2025-11-14' }, HOY);
+  await pantallas.editar(div, { id: 'inicio' }, ctx);
+  await hasta(() => boton(div, 'Quitar fecha'));
+  boton(div, 'Quitar fecha').click();
+  await hasta(() => rutas.includes('fechas'));
+  igual((await listarFechas(nube, pareja)).length, 0);
+  salir();
+});
+
+prueba('fechas: detalleInicio sin copia', () => {
+  igual(detalleInicio(almacenEnMemoria(), HOY), 'Agreguen sus fechas');
+});
+
+prueba('fechas: detalleInicio con inicio muestra los días y la próxima', () => {
+  const almacen = almacenEnMemoria();
+  guardarCopia(almacen, [
+    { id: 'inicio', tipo: 'inicio', fecha: '2025-11-14' },
+    { id: 'cumple_b', tipo: 'cumple', fecha: '1995-11-20', de: 'b' },
+  ], { a: 'Carlos', b: 'Yuli' });
+  igual(detalleInicio(almacen, HOY), '365 días · 1 año juntos en 1 d');
+});
+
+prueba('fechas: detalleInicio con próxima hoy', () => {
+  const almacen = almacenEnMemoria();
+  guardarCopia(almacen, [{ id: 'cumple_b', tipo: 'cumple', fecha: '1995-11-13', de: 'b' }], { a: 'Carlos', b: 'Yuli' });
+  igual(detalleInicio(almacen, HOY), 'Cumpleaños de Yuli hoy');
+  const con = almacenEnMemoria();
+  guardarCopia(con, [{ id: 'inicio', tipo: 'inicio', fecha: '2025-10-01' }, { id: 'cumple_b', tipo: 'cumple', fecha: '1995-11-13', de: 'b' }], { a: 'Carlos', b: 'Yuli' });
+  igual(detalleInicio(con, HOY), '409 días · Cumpleaños de Yuli hoy');
+});
+
+prueba('fechas: detalleInicio con copia vacía invita a agregar', () => {
+  const almacen = almacenEnMemoria();
+  guardarCopia(almacen, [], { a: null, b: null });
+  igual(detalleInicio(almacen, HOY), 'Agreguen sus fechas');
+});

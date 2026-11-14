@@ -1040,3 +1040,14 @@ ul.chips { padding: 0; margin: 0; list-style: none; }
 .ajustes-estado:empty { display: none; }
 .ajustes-estado a { color: var(--dorado); }
 .hora-ajuste { font: inherit; color: var(--crema); background: var(--superficie-alta); border: 1px solid var(--dorado-suave); border-radius: 10px; padding: 6px 10px; min-height: 40px; color-scheme: dark; }
+
+/* ---------- Fechas ---------- */
+.fechas-dias { font-family: var(--serif); font-size: clamp(1.5rem, calc(7vw * var(--escala-letra)), 2rem); color: var(--dorado); margin: 0 0 20px; overflow-wrap: anywhere; }
+.fechas-inicio-cta { display: block; text-align: center; margin: 0 0 20px; }
+.fechas-agregar { display: block; text-align: center; margin: 20px 0 8px; }
+.fechas-acciones { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+.fila-fecha .fila-titulo { overflow-wrap: anywhere; }
+.fila-vacia { font-style: italic; }
+.aviso:empty { display: none; }
+.fila-fecha .fila-titulo, .fila-fecha .fila-detalle { display: block; }
+.lista + .titulo-parte { margin-top: 28px; }
