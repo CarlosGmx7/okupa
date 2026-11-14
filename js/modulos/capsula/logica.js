@@ -30,12 +30,3 @@ export function unirAvisos(base, extras) {
   const resto = [...extras.slice(1), ...(base ? [base.titulo] : [])];
   return { titulo: extras[0], texto: resto.join(' · ') || 'Entra a leerla.', ruta: '#/capsula' };
 }
-
-export function detalleInicio(cartas, lugar, hoy) {
-  const del_otro = (cartas || []).filter((c) => c.de !== lugar);
-  if (del_otro.some((c) => c.abreEl === hoy)) return 'Tienes una carta para abrir';
-  const cerradas = del_otro.filter((c) => c.abreEl > hoy).sort((x, y) => (x.abreEl < y.abreEl ? -1 : 1));
-  if (!cerradas.length) return 'Escríbanse una carta';
-  const n = diasHasta(cerradas[0].abreEl, hoy);
-  return n === 1 ? 'Próxima carta mañana' : `Próxima carta en ${n} días`;
-}

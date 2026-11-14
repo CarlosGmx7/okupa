@@ -18,6 +18,7 @@ const PRECACHE = [
   "js/nucleo/nube.js",
   "js/nucleo/nube-config.js",
   "js/nucleo/pareja.js",
+  "js/nucleo/esperando.js",
   "js/nucleo/pantallas-pareja.js",
   "js/nucleo/precalentar.js",
   "js/compartido/ingles.js",

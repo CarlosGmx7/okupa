@@ -4,6 +4,7 @@ import { almacenEnMemoria } from './pareja.prueba.js';
 import { crearPareja, unirse as unirsePareja } from '../js/nucleo/pareja.js';
 import { crearMatch } from '../js/modulos/match/logica.js';
 import { crearPantallasMatch } from '../js/modulos/match/pantallas.js';
+import match from '../js/modulos/match/modulo.js';
 import { esperar, hasta, boton, salir } from './diario-pantallas.prueba.js';
 import { conReglasMatch } from './reglas-match-falsas.js';
 
@@ -140,4 +141,8 @@ prueba('match pantallas: votar pasa a la siguiente carta al instante aunque la r
   for (let i = 0; i < 100 && !(await a.logica.misVotos())['mat-001']; i++) await esperar(20);
   igual((await a.logica.misVotos())['mat-001'], 'si');
   salir();
+});
+
+prueba('match: el inicio no pinta texto bajo la fila', () => {
+  igual(match.accesoJuntos.detalle, undefined);
 });

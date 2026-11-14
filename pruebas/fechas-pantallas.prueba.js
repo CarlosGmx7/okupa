@@ -145,42 +145,41 @@ prueba('fechas: quitar el inicio guardado', async () => {
   salir();
 });
 
-prueba('fechas: detalleInicio sin copia', () => {
-  igual(detalleInicio(almacenEnMemoria(), HOY), 'Agreguen sus fechas');
+prueba('fechas: detalleInicio sin copia es null', () => {
+  igual(detalleInicio(almacenEnMemoria(), HOY), null);
 });
 
-prueba('fechas: detalleInicio con inicio muestra los días y la próxima', () => {
-  const almacen = almacenConPareja();
-  guardarCopia(almacen, [
-    { id: 'inicio', tipo: 'inicio', fecha: '2025-11-14' },
-    { id: 'cumple_b', tipo: 'cumple', fecha: '1995-11-20', de: 'b' },
-  ], { a: 'Carlos', b: 'Yuli' }, COD);
-  igual(detalleInicio(almacen, HOY), '365 días · 1 año juntos en 1 d');
+prueba('fechas: detalleInicio solo muestra fechas a 14 días o menos', () => {
+  const casos = [
+    ['1995-11-13', 'Cumpleaños de Yuli hoy'],
+    ['1995-11-14', 'Cumpleaños de Yuli mañana'],
+    ['1995-11-27', 'Cumpleaños de Yuli en 14 días'],
+    ['1995-11-28', null],
+  ];
+  for (const [fecha, esperado] of casos) {
+    const almacen = almacenConPareja();
+    guardarCopia(almacen, [{ id: 'cumple_b', tipo: 'cumple', fecha, de: 'b' }], { a: 'Carlos', b: 'Yuli' }, COD);
+    igual(detalleInicio(almacen, HOY), esperado, fecha);
+  }
 });
 
-prueba('fechas: detalleInicio con próxima hoy', () => {
+prueba('fechas: detalleInicio no cuenta los días juntos ni invita a agregar', () => {
   const almacen = almacenConPareja();
-  guardarCopia(almacen, [{ id: 'cumple_b', tipo: 'cumple', fecha: '1995-11-13', de: 'b' }], { a: 'Carlos', b: 'Yuli' }, COD);
-  igual(detalleInicio(almacen, HOY), 'Cumpleaños de Yuli hoy');
-  const con = almacenConPareja();
-  guardarCopia(con, [{ id: 'inicio', tipo: 'inicio', fecha: '2025-10-01' }, { id: 'cumple_b', tipo: 'cumple', fecha: '1995-11-13', de: 'b' }], { a: 'Carlos', b: 'Yuli' }, COD);
-  igual(detalleInicio(con, HOY), '409 días · Cumpleaños de Yuli hoy');
-});
-
-prueba('fechas: detalleInicio con copia vacía invita a agregar', () => {
-  const almacen = almacenConPareja();
-  guardarCopia(almacen, [], { a: null, b: null }, COD);
-  igual(detalleInicio(almacen, HOY), 'Agreguen sus fechas');
+  guardarCopia(almacen, [{ id: 'inicio', tipo: 'inicio', fecha: '2025-10-01' }], { a: 'Carlos', b: 'Yuli' }, COD);
+  igual(detalleInicio(almacen, HOY), null);
+  const vacia = almacenConPareja();
+  guardarCopia(vacia, [], { a: null, b: null }, COD);
+  igual(detalleInicio(vacia, HOY), null);
 });
 
 prueba('fechas: detalleInicio ignora la copia de otra pareja o sin pareja', () => {
-  const fechas = [{ id: 'inicio', tipo: 'inicio', fecha: '2025-11-14' }];
+  const fechas = [{ id: 'cumple_b', tipo: 'cumple', fecha: '1995-11-13', de: 'b' }];
   const otra = almacenConPareja();
   guardarCopia(otra, fechas, { a: 'C', b: 'Y' }, 'ZZZZZZ');
-  igual(detalleInicio(otra, HOY), 'Agreguen sus fechas');
+  igual(detalleInicio(otra, HOY), null);
   const sin = almacenEnMemoria();
   guardarCopia(sin, fechas, { a: 'C', b: 'Y' }, COD);
-  igual(detalleInicio(sin, HOY), 'Agreguen sus fechas');
+  igual(detalleInicio(sin, HOY), null);
 });
 
 prueba('fechas: detalleInicio titula «Tu cumpleaños» el de este celular', () => {

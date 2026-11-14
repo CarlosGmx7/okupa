@@ -1,6 +1,7 @@
 // Pantallas de «¿Quién es más probable?»: elegir tema, jugar, revelar cada frase y frases propias.
 import { el } from '../../nucleo/ui.js';
 import { exigirPareja } from '../../nucleo/pantallas-pareja.js';
+import { guardarEsperando } from '../../nucleo/esperando.js';
 import { TEMAS, LARGOS, elegirFrases, opcionesVoto, votaronTodos, coincidieron, resumen } from './logica.js';
 import {
   crearSala, salaPendiente, unirse, cancelarSala, votar, leerVotos, intentarAvanzar, cerrarSala, leerVistas,
@@ -82,6 +83,7 @@ export function crearPantallasProbable({ cargar, ahora = () => performance.now()
           el('p', { clase: 'sala-invitacion' }, `${nombreOtro} te está esperando`),
           el('button', { clase: 'boton boton-principal', type: 'button', onclick: accion(aviso, async () => {
             await unirse(nube, pareja, pendiente.id);
+            guardarEsperando(ctx.almacen, pareja.codigo, 'probable', null);
             ir(pendiente.id);
           }) }, 'Unirme')), aviso);
         return;
@@ -129,6 +131,7 @@ export function crearPantallasProbable({ cargar, ahora = () => performance.now()
     const r = await preparar(zona, ctx, false);
     if (!r) return;
     const { nube, pareja } = r;
+    guardarEsperando(ctx.almacen, pareja.codigo, 'probable', null);
     const yo = pareja.lugar;
     const otro = otroLugar(yo);
     const nombre = (l) => pareja.nombres[l] || 'Tu pareja';
@@ -168,6 +171,7 @@ export function crearPantallasProbable({ cargar, ahora = () => performance.now()
     async function cancelarSiAbierta() {
       const fresca = await nube.leer(rutaSala(pareja.codigo, id));
       if (abierta(fresca)) await cancelarSala(nube, pareja, id);
+      guardarEsperando(ctx.almacen, pareja.codigo, 'probable', null);
     }
     salir.addEventListener('click', () => { salir.disabled = true; cancelarSiAbierta().catch((e) => console.warn('Okupa:', e)).finally(() => { salir.disabled = false; }); });
 

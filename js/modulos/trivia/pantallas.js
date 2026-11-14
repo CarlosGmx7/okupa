@@ -3,6 +3,7 @@ import { el, movimientoReducido } from '../../nucleo/ui.js';
 import { icono } from '../../nucleo/iconos.js';
 import { sonar, vibrar } from '../../nucleo/sonidos.js';
 import { exigirPareja } from '../../nucleo/pantallas-pareja.js';
+import { guardarEsperando } from '../../nucleo/esperando.js';
 import { elegirPartida } from './banco.js';
 import { preguntasConoces, insertarConoces } from './conoces.js';
 import { MS_PREGUNTA, MS_GRACIA, MS_REVELADO, ambosRespondieron, resultadoPregunta, puntaje, ganador, preguntaDe } from './partida.js';
@@ -112,12 +113,14 @@ export function crearPantallasTrivia({ cargar, ahora = () => performance.now(), 
         contenido = [el('p', { clase: 'sala-invitacion' }, `${nombreOtro} te invitó a jugar`),
           el('button', { clase: 'boton boton-principal', type: 'button', onclick: accion(aviso, async () => {
             await unirse(nube, pareja, pendiente.id);
+            guardarEsperando(ctx.almacen, pareja.codigo, 'trivia', null);
             ctx.ir(`trivia/jugar/${pendiente.id}`);
           }) }, 'Unirme')];
       } else if (pendiente) {
         contenido = [el('p', { clase: 'sala-invitacion' }, `Esperando a que ${nombreOtro} se una…`),
           el('button', { clase: 'boton', type: 'button', onclick: accion(aviso, async () => {
             await cancelarSala(nube, pareja, pendiente.id);
+            guardarEsperando(ctx.almacen, pareja.codigo, 'trivia', null);
             firma = null;
             await pintar();
           }) }, 'Cancelar')];
@@ -151,6 +154,7 @@ export function crearPantallasTrivia({ cargar, ahora = () => performance.now(), 
     const r = await preparar(zona, ctx);
     if (!r) return;
     const { nube, pareja, datos } = r;
+    guardarEsperando(ctx.almacen, pareja.codigo, 'trivia', null);
     const yo = pareja.lugar;
     const otro = otroLugar(yo);
     const nombre = (l) => pareja.nombres[l] || 'Tu pareja';
@@ -170,7 +174,7 @@ export function crearPantallasTrivia({ cargar, ahora = () => performance.now(), 
     const marcador = el('p', { clase: 'marcador-juego' });
     const textoAviso = el('span');
     const aviso = el('div', { clase: 'banda-aviso', hidden: true, role: 'status' }, textoAviso,
-      el('button', { clase: 'boton-texto', type: 'button', onclick: () => nube.escribir(`${rutaPartidas(pareja.codigo)}/${id}`, { estado: 'terminada' }, { combinar: true }).catch(() => {}) }, 'Terminar partida'));
+      el('button', { clase: 'boton-texto', type: 'button', onclick: () => { guardarEsperando(ctx.almacen, pareja.codigo, 'trivia', null); nube.escribir(`${rutaPartidas(pareja.codigo)}/${id}`, { estado: 'terminada' }, { combinar: true }).catch(() => {}); } }, 'Terminar partida'));
     const escena = el('div', { clase: 'escena' });
     zona.replaceChildren(marcador, aviso, escena);
 

@@ -1,5 +1,5 @@
 import { prueba, igual } from './corredor.js';
-import { MAX_CARTAS, MAX_TEXTO, MAX_DIAS, diasHasta, estaAbierta, avisosCapsulas, unirAvisos, detalleInicio } from '../js/modulos/capsula/logica.js';
+import { MAX_CARTAS, MAX_TEXTO, MAX_DIAS, diasHasta, estaAbierta, avisosCapsulas, unirAvisos } from '../js/modulos/capsula/logica.js';
 
 const c = (id, de, abreEl) => ({ id, de, abreEl, abreMs: 0, creadaMs: 0 });
 const N = { a: 'Carlos', b: 'Yuli' };
@@ -32,12 +32,4 @@ prueba('capsula: unirAvisos', () => {
   );
   igual(unirAvisos(null, ['A', 'B']), { titulo: 'A', texto: 'B', ruta: '#/capsula' });
   igual(unirAvisos(null, ['A']), { titulo: 'A', texto: 'Entra a leerla.', ruta: '#/capsula' });
-});
-prueba('capsula: detalleInicio', () => {
-  const hoy = '2026-12-31';
-  igual(detalleInicio([c('c-aaaa', 'a', hoy)], 'b', hoy), 'Tienes una carta para abrir');
-  igual(detalleInicio([c('c-aaaa', 'a', '2027-01-01')], 'b', hoy), 'Próxima carta mañana');
-  igual(detalleInicio([c('c-aaaa', 'a', '2027-01-10'), c('c-bbbb', 'a', '2027-01-05')], 'b', hoy), 'Próxima carta en 5 días');
-  igual(detalleInicio([c('c-aaaa', 'b', hoy)], 'b', hoy), 'Escríbanse una carta');
-  igual(detalleInicio([], 'b', hoy), 'Escríbanse una carta');
 });

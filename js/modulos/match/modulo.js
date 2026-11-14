@@ -1,6 +1,6 @@
 // Módulo "Match": votar en secreto planes y deseos; solo se revela lo que los dos quieren.
 import { cargarTarjetas } from './logica.js';
-import { crearPantallasMatch, detalleInicio } from './pantallas.js';
+import { crearPantallasMatch } from './pantallas.js';
 
 let tarjetas = null;
 const cargar = () => (tarjetas ??= cargarTarjetas().catch((e) => { tarjetas = null; throw e; }));
@@ -10,7 +10,7 @@ export default {
   id: 'match',
   nombre: 'Match',
   precalentar: () => cargar().catch(() => {}),
-  accesoJuntos: { ruta: 'match', nombre: 'Match', icono: '♥', seccion: 'nosotros', orden: 1, detalle: (ctx) => detalleInicio(ctx.almacen) },
+  accesoJuntos: { ruta: 'match', nombre: 'Match', icono: '♥', seccion: 'nosotros', orden: 1 },
   rutas: {
     '': pantallas.mazo,
     matches: pantallas.matches,

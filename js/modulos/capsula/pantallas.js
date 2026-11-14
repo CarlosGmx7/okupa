@@ -1,10 +1,9 @@
 // Pantallas de la «Cápsula del tiempo»: la lista de cartas, escribir una y leerla cuando abre.
 import { el } from '../../nucleo/ui.js';
-import { miPareja } from '../../nucleo/pareja.js';
 import { exigirPareja } from '../../nucleo/pantallas-pareja.js';
 import { proximas, sumarDias, miles, fechaLegible } from '../fechas/calendario.js';
 import { leerCopia as leerCopiaFechas } from '../fechas/datos.js';
-import { MAX_TEXTO, MAX_DIAS, diasHasta, estaAbierta, detalleInicio as detalleLogica } from './logica.js';
+import { MAX_TEXTO, MAX_DIAS, diasHasta, estaAbierta } from './logica.js';
 import {
   hoyLocal, validarCarta, crearCarta, leerTexto, borrarCarta, leerCopia, refrescarCopia,
 } from './datos.js';
@@ -18,12 +17,6 @@ const esPermiso = (e) => ['permiso', 'permiso-denegado', 'permission-denied'].in
 const cuandoAbre =(n) => (n === 1 ? 'mañana' : `en ${n} días`);
 
 // Línea corta para la tarjeta «Jugar juntos» del inicio (se pinta sin internet).
-export function detalleInicio(almacen, hoy = hoyLocal()) {
-  const pareja = miPareja(almacen);
-  const cartas = (pareja && leerCopia(almacen, pareja.codigo)) || [];
-  return detalleLogica(cartas, pareja?.lugar, hoy);
-}
-
 export function crearPantallasCapsula({ hoy = hoyLocal } = {}) {
   // Trae las cartas de la nube (y renueva la copia); sin conexión usa la copia del celular.
   async function cargarCartas(ctx, r) {

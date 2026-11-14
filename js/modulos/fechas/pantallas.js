@@ -26,20 +26,15 @@ function tituloEvento(e, nombres, miLugar) {
 
 const cuandoFalta = (n) => (n === 0 ? 'hoy' : n === 1 ? 'mañana' : `en ${n} días`);
 
-// Línea corta para la tarjeta «Jugar juntos» del inicio (se pinta sin internet).
+// Texto bajo la fila del inicio: solo cuando la próxima fecha está a 14 días o menos.
 export function detalleInicio(almacen, hoy = hoyLocal()) {
   const pareja = miPareja(almacen);
   const copia = pareja && leerCopia(almacen, pareja.codigo);
-  if (!copia || !copia.fechas.length) return 'Agreguen sus fechas';
-  const inicio = copia.fechas.find((f) => f.tipo === 'inicio');
-  const n = inicio ? diasJuntos(inicio.fecha, hoy) : null;
+  if (!copia || !Array.isArray(copia.fechas)) return null;
   const [prox] = proximas(copia.fechas, hoy, 1);
-  const proxTexto = prox
-    ? `${prox.clase === 'cumple' && prox.de === pareja.lugar ? 'Tu cumpleaños' : tituloEvento(prox, copia.nombres)} ${prox.faltan === 0 ? 'hoy' : `en ${prox.faltan} d`}`
-    : null;
-  if (n === null) return proxTexto || 'Agreguen sus fechas';
-  const dias = `${miles(n)} ${n === 1 ? 'día' : 'días'}`;
-  return proxTexto ? `${dias} · ${proxTexto}` : dias;
+  if (!prox || prox.faltan > 14) return null;
+  const titulo = prox.clase === 'cumple' && prox.de === pareja.lugar ? 'Tu cumpleaños' : tituloEvento(prox, copia.nombres);
+  return `${titulo} ${cuandoFalta(prox.faltan)}`;
 }
 
 export function crearPantallasFechas({ hoy = hoyLocal } = {}) {

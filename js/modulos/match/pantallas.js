@@ -17,10 +17,6 @@ function hoyLocal() {
 }
 
 // Línea corta para la tarjeta "Jugar juntos" del inicio (se pinta sin internet).
-export function detalleInicio(almacen) {
-  const plan = almacen.leer(CLAVE_PLAN, null);
-  return typeof plan === 'string' && plan ? `Plan de la semana: ${plan}` : null;
-}
 
 function festejar(tarjeta) {
   sonar('match');

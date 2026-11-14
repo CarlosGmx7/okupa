@@ -25,15 +25,14 @@ const vacio = (mensaje, ...resto) => el('div', { clase: 'vacio' }, el('p', {}, m
 const reintentar = (ctx) => el('button', { clase: 'boton boton-principal', type: 'button', onclick: () => ctx.refrescar() }, 'Reintentar');
 const titulo = (texto = 'Diario') => el('h1', { clase: 'titulo-pantalla' }, texto);
 
-// Lo que dice el acceso del inicio (se guarda en el celular y se pinta sin internet).
-export function textoEstado(estadoGustos, nombreOtro) {
-  if (estadoGustos === 'revelado') return 'Revelado ✓';
-  if (estadoGustos === 'esperando') return `Esperando a ${nombreOtro}`;
-  return 'Hoy: te toca responder';
-}
+// Lo que dice el acceso del inicio (se guarda en el celular y se pinta sin internet):
+// solo cuando te toca responder, y si el otro ya lo hizo, lo dice.
 export function detalleInicio(almacen, hoy = fechaBogota()) {
   const e = almacen?.leer(CLAVE_ESTADO, null);
-  return e?.fecha === hoy && typeof e.texto === 'string' ? e.texto : 'Hoy: 3 preguntas nuevas';
+  if (!e || e.fecha !== hoy || e.estado === undefined) return 'Te toca responder';
+  if (e.estado !== 'responder') return null;
+  const otro = typeof e.nombreOtro === 'string' && e.nombreOtro ? e.nombreOtro : 'Tu pareja';
+  return e.otroRespondio ? `${otro} ya respondió` : 'Te toca responder';
 }
 
 const textoRespuesta = (p, item) => {
@@ -248,7 +247,7 @@ export function crearPantallasDiario({ cargar, hoy = () => fechaBogota() } = {})
           vistos[parte] = null;
         });
       }
-      if (esHoy) ctx.almacen?.escribir(CLAVE_ESTADO, { fecha, texto: textoEstado(estadoParte(d, 'gustos', yo), nombre(otro)) });
+      if (esHoy) ctx.almacen?.escribir(CLAVE_ESTADO, { fecha, estado: estadoParte(d, 'gustos', yo), otroRespondio: Boolean(d.hechos?.['gustos_' + otro]), nombreOtro: nombre(otro) });
     }
     const recargar = () => leerDia(nube, pareja, fecha).then(render).catch(() => {});
 

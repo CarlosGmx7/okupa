@@ -1,5 +1,5 @@
 // Módulo "Cápsula del tiempo": cartas que solo se pueden abrir desde una fecha escogida.
-import { crearPantallasCapsula, detalleInicio } from './pantallas.js';
+import { crearPantallasCapsula } from './pantallas.js';
 import { miPareja } from '../../nucleo/pareja.js';
 import { refrescarCopia } from './datos.js';
 
@@ -19,7 +19,7 @@ export default {
   id: 'capsula',
   nombre: 'Cápsula',
   precalentar,
-  accesoJuntos: { ruta: 'capsula', nombre: 'Cápsula', icono: '✉', seccion: 'nosotros', orden: 4, detalle: (ctx) => detalleInicio(ctx.almacen) },
+  accesoJuntos: { ruta: 'capsula', nombre: 'Cápsula', icono: '✉', seccion: 'nosotros', orden: 4 },
   rutas: {
     '': pantallas.lista,
     nueva: pantallas.nueva,

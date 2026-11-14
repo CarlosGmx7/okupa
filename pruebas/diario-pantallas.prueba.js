@@ -5,7 +5,7 @@ import { crearPareja, unirse as unirsePareja } from '../js/nucleo/pareja.js';
 import { cargarDiario } from '../js/modulos/diario/contenido.js';
 import { crearPantallasDiario } from '../js/modulos/diario/pantallas.js';
 import { guardarPerfil, leerPerfiles, abrirDia, enviar } from '../js/modulos/diario/dia.js';
-import { CLAVE_ESTADO } from '../js/modulos/diario/pantallas.js';
+import { CLAVE_ESTADO, detalleInicio } from '../js/modulos/diario/pantallas.js';
 import { reflejar } from '../js/modulos/diario/revelar.js';
 import { fechaBogota } from '../js/modulos/diario/contenido.js';
 import { pantallaInicio } from '../js/nucleo/inicio.js';
@@ -112,7 +112,7 @@ prueba('diario pantallas: responder y esperar, sin ver nada del otro', async () 
   verdadero(!enviarBtn.disabled, 'con todo respondido se habilita');
   enviarBtn.click();
   await hasta(() => a.div.textContent.includes('Respondiste ✓') && a.div.textContent.includes('Esperando a Sofi'));
-  igual(a.ctx.almacen.leer(CLAVE_ESTADO, null), { fecha: FECHA, texto: 'Esperando a Sofi' });
+  igual(a.ctx.almacen.leer(CLAVE_ESTADO, null), { fecha: FECHA, estado: 'esperando', otroRespondio: false, nombreOtro: 'Sofi' });
   salir();
 });
 
@@ -128,7 +128,7 @@ prueba('diario pantallas: al responder los dos se revela con coincidencia y adiv
   verdadero(a.div.textContent.includes('secreto-de-sofi'), 'ahora sí');
   verdadero(a.div.textContent.includes('¡Coincidieron!'), a.div.textContent);
   verdadero(a.div.textContent.includes('Carlos creía') && /adivinó [✓✗]/.test(a.div.textContent), a.div.textContent);
-  igual(a.ctx.almacen.leer(CLAVE_ESTADO, null).texto, 'Revelado ✓');
+  igual(a.ctx.almacen.leer(CLAVE_ESTADO, null).estado, 'revelado');
   salir();
 });
 
@@ -173,20 +173,38 @@ prueba('diario pantallas: el texto de comentarios y nombres se pinta literal', a
   salir();
 });
 
-prueba('inicio: el acceso del diario muestra el último estado de hoy', () => {
+prueba('inicio: el acceso del diario dice algo solo cuando te toca', () => {
   const almacen = almacenEnMemoria();
   almacen.escribir('okupa:pareja:actual', { codigo: 'K7PQ2M', lugar: 'a' });
   const div = document.createElement('div');
   const pintar = () => { div.replaceChildren(); pantallaInicio(div, {}, { almacen, modulos: [moduloDiario], ir() {}, refrescar() {} }); };
+  const detalle = () => div.querySelector('.inicio-fila-detalle')?.textContent ?? null;
   pintar();
-  const acceso = () => [...div.querySelectorAll('.inicio-fila')].find((x) => x.textContent.includes('Diario'));
-  verdadero(acceso()?.textContent.includes('Hoy: 3 preguntas nuevas'), acceso()?.textContent);
-  almacen.escribir(CLAVE_ESTADO, { fecha: fechaBogota(), texto: 'Esperando a Sofi' });
+  igual(detalle(), 'Te toca responder');
+  almacen.escribir(CLAVE_ESTADO, { fecha: fechaBogota(), estado: 'responder', otroRespondio: true, nombreOtro: 'Sofi' });
   pintar();
-  verdadero(acceso().textContent.includes('Esperando a Sofi'), acceso().textContent);
-  almacen.escribir(CLAVE_ESTADO, { fecha: '2001-01-01', texto: 'Viejo' });
+  igual(detalle(), 'Sofi ya respondió');
+  almacen.escribir(CLAVE_ESTADO, { fecha: fechaBogota(), estado: 'esperando', otroRespondio: false, nombreOtro: 'Sofi' });
   pintar();
-  verdadero(!acceso().textContent.includes('Viejo'), 'un estado de otro día no se muestra');
+  igual(detalle(), null);
+});
+
+prueba('diario: detalleInicio según el estado guardado', () => {
+  const almacen = almacenEnMemoria();
+  const hoy = fechaBogota();
+  igual(detalleInicio(almacen, hoy), 'Te toca responder');
+  almacen.escribir(CLAVE_ESTADO, { fecha: '2001-01-01', estado: 'revelado', otroRespondio: true, nombreOtro: 'Sofi' });
+  igual(detalleInicio(almacen, hoy), 'Te toca responder');
+  almacen.escribir(CLAVE_ESTADO, { fecha: hoy, estado: 'responder', otroRespondio: false, nombreOtro: 'Sofi' });
+  igual(detalleInicio(almacen, hoy), 'Te toca responder');
+  almacen.escribir(CLAVE_ESTADO, { fecha: hoy, estado: 'responder', otroRespondio: true, nombreOtro: 'Sofi' });
+  igual(detalleInicio(almacen, hoy), 'Sofi ya respondió');
+  almacen.escribir(CLAVE_ESTADO, { fecha: hoy, estado: 'esperando', otroRespondio: false, nombreOtro: 'Sofi' });
+  igual(detalleInicio(almacen, hoy), null);
+  almacen.escribir(CLAVE_ESTADO, { fecha: hoy, estado: 'revelado', otroRespondio: true, nombreOtro: 'Sofi' });
+  igual(detalleInicio(almacen, hoy), null);
+  almacen.escribir(CLAVE_ESTADO, { fecha: hoy, texto: 'Esperando a Sofi' });
+  igual(detalleInicio(almacen, hoy), 'Te toca responder');
 });
 
 // ---------- Pendientes e historial ----------

@@ -2,7 +2,7 @@ import { prueba, igual, verdadero } from './corredor.js';
 import { crearMundoFalso } from './nube-falsa.js';
 import { almacenEnMemoria } from './pareja.prueba.js';
 import { crearPareja, unirse as unirsePareja } from '../js/nucleo/pareja.js';
-import { crearPantallasCapsula, detalleInicio } from '../js/modulos/capsula/pantallas.js';
+import { crearPantallasCapsula } from '../js/modulos/capsula/pantallas.js';
 import { crearCarta, listarCartas, leerCopia, guardarCopia } from '../js/modulos/capsula/datos.js';
 import { guardarCopia as guardarCopiaFechas } from '../js/modulos/fechas/datos.js';
 import capsula from '../js/modulos/capsula/modulo.js';
@@ -235,13 +235,8 @@ prueba('capsula: borrar con confirm aceptado y cancelado', async () => {
   salir();
 });
 
-prueba('capsula: detalle del inicio', () => {
-  const alm = almacenEnMemoria();
-  alm.escribir('okupa:pareja:actual', { codigo: 'K7PQ2M', lugar: 'a' });
-  igual(detalleInicio(alm, HOY), 'Escríbanse una carta');
-  guardarCopia(alm, [{ id: 'c-x1234', de: 'b', abreEl: '2026-11-15', abreMs: 1, creadaMs: 1 }], 'K7PQ2M');
-  igual(detalleInicio(alm, HOY), 'Próxima carta en 2 días');
-  igual(detalleInicio(almacenEnMemoria(), HOY), 'Escríbanse una carta');
+prueba('capsula: el inicio no pinta texto bajo la fila', () => {
+  igual(capsula.accesoJuntos.detalle, undefined);
 });
 
 prueba('capsula: módulo y rutas', async () => {
