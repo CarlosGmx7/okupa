@@ -5,11 +5,13 @@ const EVENTO = 'okupa:ajustes';
 
 export const TEMAS = ['vino', 'grafito'];
 export const LETRAS = ['normal', 'grande', 'muy-grande'];
-export const AJUSTES_DEFECTO = Object.freeze({ tema: 'vino', sonidos: true, vibracion: true, letra: 'normal' });
+export const INTERFACES = ['moderna', 'simple'];
+export const AJUSTES_DEFECTO = Object.freeze({ tema: 'vino', sonidos: true, vibracion: true, letra: 'normal', inicio: 'moderna' });
 
 const VALIDOS = {
   tema: (v) => TEMAS.includes(v),
   letra: (v) => LETRAS.includes(v),
+  inicio: (v) => INTERFACES.includes(v),
   sonidos: (v) => typeof v === 'boolean',
   vibracion: (v) => typeof v === 'boolean',
 };

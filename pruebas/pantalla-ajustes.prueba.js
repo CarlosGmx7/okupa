@@ -25,7 +25,7 @@ prueba('inicio: el engranaje lleva a Ajustes', () => {
 prueba('ajustes: se pinta con los grupos y filas', () => {
   const { div } = pintar();
   igual(div.querySelector('h1')?.textContent, 'Ajustes');
-  igual([...div.querySelectorAll('.grupo-ajustes-titulo')].map((h) => h.textContent), ['Tema', 'Letra', 'Foto', 'Sonidos y vibración', 'Copia de seguridad', 'Datos']);
+  igual([...div.querySelectorAll('.grupo-ajustes-titulo')].map((h) => h.textContent), ['Tema', 'Letra', 'Interfaz del inicio', 'Foto', 'Sonidos y vibración', 'Copia de seguridad', 'Datos']);
   for (const t of ['Guardar copia', 'Recuperar copia']) verdadero(texto(div).includes(t), `falta "${t}"`);
   verdadero(div.querySelector('.ajustes-pie a[href="#/privacidad"]'), 'falta el enlace a la política');
   for (const t of ['Vino y dorado', 'Grafito y rosa', 'Foto de inicio', 'Sonidos', 'Vibración al tocar', 'Datos de la pareja', 'Borrar datos de este celular', 'Acerca de Okupa']) {
@@ -113,7 +113,7 @@ const filaDe = (div, texto) => [...div.querySelectorAll('.fila-ajuste')].find((f
 prueba('ajustes: notificaciones apagadas muestran solo el interruptor general', () => {
   const almacen = almacenEnMemoria();
   const { div } = pintar({ almacen, notificaciones: notifFalsa(almacen) });
-  igual([...div.querySelectorAll('.grupo-ajustes-titulo')].map((h) => h.textContent), ['Tema', 'Letra', 'Foto', 'Sonidos y vibración', 'Notificaciones', 'Copia de seguridad', 'Datos']);
+  igual([...div.querySelectorAll('.grupo-ajustes-titulo')].map((h) => h.textContent), ['Tema', 'Letra', 'Interfaz del inicio', 'Foto', 'Sonidos y vibración', 'Notificaciones', 'Copia de seguridad', 'Datos']);
   verdadero(filaDe(div, 'Notificaciones'));
   verdadero(!filaDe(div, 'Recordatorio del Diario') && !div.querySelector('input[type="time"]'));
 });
@@ -189,4 +189,17 @@ prueba('acerca: ya no trae "Reiniciar todo"', () => {
   const div = document.createElement('div');
   pantallaAcerca(div, {}, { modulos: [], almacen: almacenEnMemoria(), ir() {}, refrescar() {} });
   verdadero(!div.textContent.includes('Reiniciar todo') && !div.textContent.includes('Empezar de cero'), div.textContent);
+});
+
+prueba('ajustes: interfaz del inicio con Moderna y Simple, Moderna marcada y se guarda', () => {
+  const { div, almacen } = pintar();
+  const grupo = div.querySelector('[role="radiogroup"][aria-label="Interfaz del inicio"]');
+  verdadero(grupo, 'falta el selector de interfaz');
+  igual([...grupo.querySelectorAll('[data-inicio]')].map((b) => [b.dataset.inicio, b.textContent.includes(b.dataset.inicio === 'moderna' ? 'Moderna' : 'Simple')]), [['moderna', true], ['simple', true]]);
+  igual(grupo.querySelector('[data-inicio="moderna"]').getAttribute('aria-checked'), 'true');
+  grupo.querySelector('[data-inicio="simple"]').click();
+  igual(leerAjustes(almacen).inicio, 'simple');
+  igual([...grupo.querySelectorAll('[aria-checked="true"]')].map((b) => b.dataset.inicio), ['simple']);
+  grupo.querySelector('[data-inicio="moderna"]').click();
+  igual(leerAjustes(almacen).inicio, 'moderna');
 });

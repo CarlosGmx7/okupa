@@ -33,7 +33,9 @@ prueba('iconos: iconoLinea da el engranaje', () => {
 
 prueba('iconos: el inicio usa íconos', () => {
   const div = document.createElement('div');
-  pantallaInicio(div, {}, { almacen: almacenEnMemoria(), ir() {}, refrescar() {},
+  const almacen = almacenEnMemoria();
+  almacen.escribir('okupa:ajustes', { inicio: 'simple' });
+  pantallaInicio(div, {}, { almacen, ir() {}, refrescar() {},
     modulos: [{ id: 'diario', accesoJuntos: { ruta: 'diario', nombre: 'Diario', icono: '☼' } }] });
   verdadero(div.querySelector('.inicio-fila-icono .ico svg'), div.querySelector('.inicio-seccion')?.outerHTML);
 });

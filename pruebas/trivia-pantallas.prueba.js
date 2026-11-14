@@ -133,6 +133,7 @@ prueba('trivia pantallas: al terminar muestra el ganador y suma la victoria', as
 prueba('inicio: con pareja el inicio ofrece las secciones para jugar juntos', () => {
   const almacen = almacenEnMemoria();
   almacen.escribir('okupa:pareja:actual', { codigo: 'K7PQ2M', lugar: 'a' });
+  almacen.escribir('okupa:ajustes', { inicio: 'simple' });
   const div = document.createElement('div');
   pantallaInicio(div, {}, { almacen, modulos: [{ id: 'trivia', accesoJuntos: { ruta: 'trivia', nombre: 'Trivia', icono: '✦' } }], ir() {}, refrescar() {} });
   const enlace = [...div.querySelectorAll('.inicio-fila')].find((x) => x.textContent.includes('Trivia'));

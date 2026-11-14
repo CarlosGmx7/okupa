@@ -1,9 +1,9 @@
 import { prueba, igual } from './corredor.js';
 import { almacenEnMemoria } from './pareja.prueba.js';
-import { AJUSTES_DEFECTO, leerAjustes, cambiarAjuste, alCambiarAjustes } from '../js/nucleo/ajustes.js';
+import { AJUSTES_DEFECTO, INTERFACES, leerAjustes, cambiarAjuste, alCambiarAjustes } from '../js/nucleo/ajustes.js';
 
 prueba('ajustes: sin nada guardado da los valores por defecto', () => {
-  igual(leerAjustes(almacenEnMemoria()), { tema: 'vino', sonidos: true, vibracion: true, letra: 'normal' });
+  igual(leerAjustes(almacenEnMemoria()), { tema: 'vino', sonidos: true, vibracion: true, letra: 'normal', inicio: 'moderna' });
 });
 
 prueba('ajustes: letra inválida vuelve a normal y una válida se conserva', () => {
@@ -26,7 +26,7 @@ prueba('ajustes: datos dañados vuelven al defecto', () => {
 prueba('ajustes: conserva los campos válidos', () => {
   const a = almacenEnMemoria();
   a.escribir('okupa:ajustes', { tema: 'grafito', sonidos: 7 });
-  igual(leerAjustes(a), { tema: 'grafito', sonidos: true, vibracion: true, letra: 'normal' });
+  igual(leerAjustes(a), { tema: 'grafito', sonidos: true, vibracion: true, letra: 'normal', inicio: 'moderna' });
 });
 
 prueba('ajustes: cambiarAjuste guarda y avisa', () => {
@@ -45,4 +45,15 @@ prueba('ajustes: cambiarAjuste ignora valores inválidos', () => {
   cambiarAjuste(a, 'nada', 1);
   cambiarAjuste(a, 'sonidos', 'no');
   igual(leerAjustes(a), AJUSTES_DEFECTO);
+});
+
+prueba('ajustes: la interfaz del inicio es moderna por defecto y solo acepta moderna o simple', () => {
+  igual(INTERFACES, ['moderna', 'simple']);
+  const a = almacenEnMemoria();
+  igual(leerAjustes(a).inicio, 'moderna');
+  a.escribir('okupa:ajustes', { inicio: 'rara' });
+  igual(leerAjustes(a).inicio, 'moderna');
+  igual(cambiarAjuste(a, 'inicio', 'simple').inicio, 'simple');
+  igual(leerAjustes(a).inicio, 'simple');
+  igual(cambiarAjuste(a, 'inicio', 'otra').inicio, 'simple');
 });

@@ -2,6 +2,7 @@
 import { el } from './ui.js';
 import { icono, iconoLinea } from './iconos.js';
 import { miPareja } from './pareja.js';
+import { leerAjustes } from './ajustes.js';
 import { PORTADA_ORIGINAL, fuentePortada, abrirEditorPortada } from './portada.js';
 
 // Las tres secciones del inicio, en este orden. Cada módulo se coloca con `accesoJuntos.seccion`
@@ -19,11 +20,11 @@ function enlaceEnlazar() {
     el('span', { clase: 'inicio-enlazar-detalle' }, 'Enlacen sus celulares →'));
 }
 
-// Una tarjeta por sección con una fila por acceso (los módulos que declaran `accesoJuntos`).
-// Se pinta con lo guardado en el celular, sin internet. Una sección sin filas no se pinta.
-function seccionesInicio(almacen, modulos = []) {
+// Agrupa los accesos de los módulos por sección, en orden, con su detalle ya calculado.
+// Una sección sin accesos no se incluye. Lo usan las dos interfaces del inicio.
+function gruposInicio(almacen, modulos = []) {
   const enlazados = Boolean(almacen && miPareja(almacen));
-  // `detalle` (opcional) da una línea de estado guardada en el celular, p. ej. el del día del diario.
+  // detalle (opcional) da una línea de estado guardada en el celular, p. ej. el del día del diario.
   // Sin pareja los accesos se ven igual (para que se sepa que existen), pero sin estado.
   const detalleDe = (a) => {
     if (!enlazados) return null;
@@ -34,21 +35,74 @@ function seccionesInicio(almacen, modulos = []) {
   const deSeccion = (id) => accesos
     .filter((a) => (ids.has(a.seccion) ? a.seccion : 'nosotros') === id)
     .sort((x, y) => (x.orden ?? Infinity) - (y.orden ?? Infinity) || x.nombre.localeCompare(y.nombre, 'es'));
-  return SECCIONES.map((s) => ({ s, filas: deSeccion(s.id) })).filter(({ filas }) => filas.length).map(({ s, filas }) => {
+  return SECCIONES.map((s) => ({ s, filas: deSeccion(s.id).map((a) => ({ a, detalle: detalleDe(a) })) }))
+    .filter(({ filas }) => filas.length);
+}
+
+// Interfaz «Simple»: una tarjeta por sección con una fila por acceso.
+// Se pinta con lo guardado en el celular, sin internet.
+function seccionesInicio(almacen, modulos = []) {
+  return gruposInicio(almacen, modulos).map(({ s, filas }) => {
     const idTitulo = `inicio-sec-${s.id}`;
     return el('section', { clase: 'inicio-seccion', 'aria-labelledby': idTitulo },
       el('h2', { clase: 'inicio-seccion-titulo', id: idTitulo }, s.titulo),
-      el('nav', { clase: 'inicio-filas', 'aria-label': s.titulo }, filas.map((a) => {
-        const detalle = detalleDe(a);
-        return el('a', { clase: 'inicio-fila', href: `#/${a.ruta}` },
+      el('nav', { clase: 'inicio-filas', 'aria-label': s.titulo }, filas.map(({ a, detalle }) =>
+        el('a', { clase: 'inicio-fila', href: `#/${a.ruta}` },
           el('span', { clase: 'inicio-fila-icono', 'aria-hidden': 'true' }, icono(a.icono)),
           el('span', { clase: 'inicio-fila-nombre' }, a.nombre),
           detalle ? el('span', { clase: 'inicio-fila-detalle' }, detalle) : null,
-          el('span', { clase: 'inicio-fila-flecha', 'aria-hidden': 'true' }, '›'));
-      })));
+          el('span', { clase: 'inicio-fila-flecha', 'aria-hidden': 'true' }, '›')))));
   });
 }
 
+const ICONOS_SECCION = { jugar: '✦', conocernos: '❖', nosotros: '♥' };
+
+// Interfaz «Moderna»: tres tarjetas grandes y, debajo, un panel con las mini tarjetas de la abierta.
+// Solo una sección abierta a la vez; tocar la misma la cierra. Se pinta cerrado en cada render.
+function inicioModerno(almacen, modulos = []) {
+  const grupos = gruposInicio(almacen, modulos);
+  if (!grupos.length) return el('div', { clase: 'inicio-moderno' });
+  const idPanel = 'inicio-panel-modos';
+  const panelInterior = el('div', { clase: 'panel-modos-interior' });
+  const panel = el('div', { clase: 'panel-modos', id: idPanel, role: 'region', 'data-abierto': 'false', inert: true },
+    el('div', { clase: 'panel-modos-recorte' }, panelInterior));
+  let abierta = null;
+
+  const botones = grupos.map(({ s, filas }) => {
+    const hayAviso = filas.some(({ detalle }) => detalle);
+    return el('button', {
+      clase: 'tarjeta-seccion', type: 'button', 'data-seccion': s.id,
+      'aria-expanded': 'false', 'aria-controls': idPanel,
+      onclick: () => alternar(s.id),
+    },
+    el('span', { clase: 'tarjeta-seccion-icono', 'aria-hidden': 'true' }, ICONOS_SECCION[s.id] || '✦'),
+    el('span', { clase: 'tarjeta-seccion-titulo' }, s.titulo),
+    el('span', { clase: 'tarjeta-seccion-modos' }, filas.map(({ a }) => a.nombre).join(' · ')),
+    hayAviso ? el('span', { clase: 'tarjeta-seccion-punto', role: 'img', 'aria-label': 'Hay avisos' }) : null);
+  });
+
+  const pintarPanel = ({ s, filas }) => {
+    panel.setAttribute('aria-label', s.titulo);
+    panelInterior.replaceChildren(...filas.map(({ a, detalle }) =>
+      el('a', { clase: 'mini-modo', href: `#/${a.ruta}` },
+        el('span', { clase: 'mini-modo-icono', 'aria-hidden': 'true' }, icono(a.icono)),
+        el('span', { clase: 'mini-modo-nombre' }, a.nombre),
+        detalle ? el('span', { clase: 'mini-modo-detalle' }, detalle) : null)));
+  };
+
+  const alternar = (id) => {
+    abierta = abierta === id ? null : id;
+    botones.forEach((b) => b.setAttribute('aria-expanded', String(b.dataset.seccion === abierta)));
+    panel.setAttribute('data-abierto', String(abierta !== null));
+    panel.toggleAttribute('inert', abierta === null);
+    // Al cerrar se deja el contenido para que se vea plegarse; inert lo saca del foco y de los lectores.
+    if (abierta !== null) pintarPanel(grupos.find(({ s }) => s.id === abierta));
+  };
+
+  return el('div', { clase: 'inicio-moderno' },
+    el('div', { clase: 'inicio-tarjetas-seccion' }, botones),
+    panel);
+}
 export function pantallaInicio(contenedor, _params, ctx) {
   const tarjetas = ctx.modulos.flatMap((m) => {
     try { return m.tarjetasInicio?.(ctx) || []; }
@@ -65,7 +119,9 @@ export function pantallaInicio(contenedor, _params, ctx) {
       el('p', { clase: 'lema' }, 'Preguntas para conocerse de verdad')),
     el('div', {}, ctx.almacen && miPareja(ctx.almacen) ? null : enlaceEnlazar()),
     el('div', { clase: 'inicio-tarjetas' }, tarjetas),
-    el('div', { clase: 'inicio-secciones' }, seccionesInicio(ctx.almacen, ctx.modulos)),
+    leerAjustes(ctx.almacen).inicio === 'simple'
+      ? el('div', { clase: 'inicio-secciones' }, seccionesInicio(ctx.almacen, ctx.modulos))
+      : inicioModerno(ctx.almacen, ctx.modulos),
     bloqueInstalar(ctx.instalacion),
     el('footer', { clase: 'inicio-pie' },
       el('a', { href: '#/acerca' }, 'Acerca de Okupa')),

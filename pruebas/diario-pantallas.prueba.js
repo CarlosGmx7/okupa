@@ -176,6 +176,7 @@ prueba('diario pantallas: el texto de comentarios y nombres se pinta literal', a
 prueba('inicio: el acceso del diario dice algo solo cuando te toca', () => {
   const almacen = almacenEnMemoria();
   almacen.escribir('okupa:pareja:actual', { codigo: 'K7PQ2M', lugar: 'a' });
+  almacen.escribir('okupa:ajustes', { inicio: 'simple' }); // el detalle se lee en la fila de la interfaz Simple
   const div = document.createElement('div');
   const pintar = () => { div.replaceChildren(); pantallaInicio(div, {}, { almacen, modulos: [moduloDiario], ir() {}, refrescar() {} }); };
   const detalle = () => div.querySelector('.inicio-fila-detalle')?.textContent ?? null;

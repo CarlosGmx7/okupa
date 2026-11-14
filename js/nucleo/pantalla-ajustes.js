@@ -125,6 +125,23 @@ function selectorLetra(almacen) {
   return el('div', { clase: 'letra-opciones', role: 'radiogroup', 'aria-label': 'Tamaño de letra' }, opciones);
 }
 
+const INTERFACES_VISTA = [
+  { id: 'moderna', nombre: 'Moderna', nota: 'Tarjetas por sección' },
+  { id: 'simple', nombre: 'Simple', nota: 'Lista por secciones' },
+];
+
+function selectorInterfaz(almacen) {
+  const opciones = INTERFACES_VISTA.map((i) => el('button', {
+    clase: 'tema-opcion inicio-opcion', type: 'button', role: 'radio', 'data-inicio': i.id,
+    onclick: () => marcar(cambiarAjuste(almacen, 'inicio', i.id).inicio),
+  },
+  el('span', { clase: 'tema-nombre' }, i.nombre),
+  el('span', { clase: 'tema-nota' }, i.nota)));
+  const marcar = (actual) => opciones.forEach((b) => b.setAttribute('aria-checked', String(b.dataset.inicio === actual)));
+  marcar(leerAjustes(almacen).inicio);
+  return el('div', { clase: 'tema-opciones', role: 'radiogroup', 'aria-label': 'Interfaz del inicio' }, opciones);
+}
+
 function interruptor(almacen, clave, titulo, nota = null) {
   const boton = el('button', {
     clase: 'interruptor', type: 'button', role: 'switch', 'data-ajuste': clave,
@@ -159,6 +176,7 @@ export function pantallaAjustes(contenedor, _params, ctx) {
     el('h1', { clase: 'titulo-pantalla' }, 'Ajustes'),
     grupo('Tema', selectorTema(almacen)),
     grupo('Letra', selectorLetra(almacen)),
+    grupo('Interfaz del inicio', selectorInterfaz(almacen)),
     grupo('Foto',
       el('button', { clase: 'fila-ajuste fila-ajuste-enlace', type: 'button',
         onclick: () => abrirEditorPortada(almacen, () => { foto.src = fuentePortada(almacen); ctx.refrescar?.(); }) },
