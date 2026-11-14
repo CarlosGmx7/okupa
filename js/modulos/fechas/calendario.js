@@ -120,10 +120,10 @@ export function proximas(fechas, hoy, limite = 20) {
     .slice(0, limite);
 }
 
-const miles = (n) => n.toLocaleString('es-CO');
-const plural = (n, uno, varios) => `${n} ${n === 1 ? uno : varios}`;
+export const miles = (n) => n.toLocaleString('es-CO');
+export const plural = (n, uno, varios) => `${n} ${n === 1 ? uno : varios}`;
 
-function duracionMeses(meses) {
+export function duracionMeses(meses) {
   const anios = Math.floor(meses / 12);
   const resto = meses % 12;
   const partesTexto = [];

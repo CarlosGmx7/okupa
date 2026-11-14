@@ -1,27 +1,21 @@
 // Pantallas de «Fechas»: la lista con los días juntos y las próximas, y el formulario para agregar o editar.
 import { el } from '../../nucleo/ui.js';
 import { exigirPareja } from '../../nucleo/pantallas-pareja.js';
-import { diasJuntos, proximas } from './calendario.js';
+import { diasJuntos, proximas, miles, plural, duracionMeses } from './calendario.js';
 import {
   hoyLocal, validarFecha, listarFechas, guardarFecha, borrarFecha, refrescarCopia, leerCopia,
 } from './datos.js';
 
-const miles = (n) => n.toLocaleString('es-CO');
-const plural = (n, uno, varios) => `${n} ${n === 1 ? uno : varios}`;
-
-function duracionMeses(meses) {
-  const anios = Math.floor(meses / 12);
-  const resto = meses % 12;
-  const trozos = [];
-  if (anios) trozos.push(plural(anios, 'año', 'años'));
-  if (resto) trozos.push(plural(resto, 'mes', 'meses'));
-  return trozos.join(' y ');
+// Título corto de un evento próximo: «Cumpleaños de Yuli», «2 años juntos», «1.000 días»…
+function tituloCumple(nombres, de, miLugar) {
+  const nombre = (nombres || {})[de];
+  if (nombre) return `Cumpleaños de ${nombre}`;
+  return miLugar === de ? 'Tu cumpleaños' : 'Cumpleaños de tu pareja';
 }
 
-// Título corto de un evento próximo: «Cumpleaños de Yuli», «2 años juntos», «1.000 días»…
-function tituloEvento(e, nombres) {
+function tituloEvento(e, nombres, miLugar) {
   switch (e.clase) {
-    case 'cumple': return `Cumpleaños de ${(nombres || {})[e.de] || 'tu pareja'}`;
+    case 'cumple': return tituloCumple(nombres, e.de, miLugar);
     case 'aniversario': return `${plural(e.anios, 'año', 'años')} juntos`;
     case 'mensual': return duracionMeses(e.meses);
     case 'hito': return `${miles(e.dias)} días`;
@@ -46,7 +40,6 @@ export function detalleInicio(almacen, hoy = hoyLocal()) {
   return proxTexto ? `${dias} · ${proxTexto}` : dias;
 }
 
-const nombreDe = (nombres, lugar) => nombres?.[lugar] || (lugar === 'a' ? 'Tú' : 'Tu pareja');
 
 function fechaLegible(dia) {
   const [a, m, d] = dia.split('-').map(Number);
@@ -80,7 +73,7 @@ export function crearPantallasFechas({ hoy = hoyLocal } = {}) {
     const proxs = proximas(fechas, dia);
     const filaProxima = (e) => el('li', {},
       el('span', { clase: 'fila fila-fecha' },
-        el('span', { clase: 'fila-cuerpo' }, el('span', { clase: 'fila-titulo' }, tituloEvento(e, nombres))),
+        el('span', { clase: 'fila-cuerpo' }, el('span', { clase: 'fila-titulo' }, tituloEvento(e, nombres, r.pareja.lugar))),
         el('span', { clase: 'fila-marca' }, cuandoFalta(e.faltan))));
 
     const filaFecha = (href, titulo, detalle, vacia) => el('li', {},
@@ -92,12 +85,13 @@ export function crearPantallasFechas({ hoy = hoyLocal } = {}) {
     const sinFecha = 'Sin fecha · Agregar';
     const cumple = (lugar) => {
       const f = fechas.find((x) => x.id === `cumple_${lugar}`);
-      return filaFecha(`#/fechas/editar/cumple_${lugar}`, `Cumpleaños de ${nombreDe(nombres, lugar)}`,
+      return filaFecha(`#/fechas/editar/cumple_${lugar}`, tituloCumple(nombres, lugar, r.pareja.lugar),
         f ? fechaLegible(f.fecha) : sinFecha, !f);
     };
     const otras = fechas.filter((f) => f.tipo === 'otra').sort((x, y) => x.nombre.localeCompare(y.nombre, 'es'));
 
-    zona.replaceChildren(
+    // Dentro de un el(): los null se omiten (replaceChildren nativo los escribiría como «null»).
+    zona.replaceChildren(el('div', {},
       el('h1', { clase: 'titulo-pantalla' }, 'Fechas'),
       cabeza,
       proxs.length ? el('h2', { clase: 'titulo-parte' }, 'Próximas') : null,
@@ -108,7 +102,7 @@ export function crearPantallasFechas({ hoy = hoyLocal } = {}) {
         cumple('a'),
         cumple('b'),
         otras.map((f) => filaFecha(`#/fechas/editar/${f.id}`, f.nombre, fechaLegible(f.fecha), false))),
-      el('a', { clase: 'boton boton-principal fechas-agregar', href: '#/fechas/nueva' }, 'Agregar fecha'));
+      el('a', { clase: 'boton boton-principal fechas-agregar', href: '#/fechas/nueva' }, 'Agregar fecha')));
   }
 
   // Formulario común de «nueva» y «editar/:id».
@@ -132,7 +126,7 @@ export function crearPantallasFechas({ hoy = hoyLocal } = {}) {
       }
     }
     const titulo = tipo === 'inicio' ? 'Desde cuándo están juntos'
-      : tipo === 'cumple' ? `Cumpleaños de ${nombreDe(nombres, de)}`
+      : tipo === 'cumple' ? tituloCumple(nombres, de, r.pareja.lugar)
         : id ? 'Editar fecha' : 'Nueva fecha';
     const idFecha = `c-${Math.random().toString(36).slice(2, 8)}`;
     const entradaFecha = el('input', { type: 'date', id: idFecha, max: tipo === 'inicio' ? hoy() : null });
@@ -170,14 +164,18 @@ export function crearPantallasFechas({ hoy = hoyLocal } = {}) {
       const res = await guardarFecha(r.nube, r.pareja, datos, hoy());
       return res.ok ? null : res.error;
     }));
-    borrar?.addEventListener('click', () => ejecutar(async () => { await borrarFecha(r.nube, r.pareja, id); return null; }));
+    borrar?.addEventListener('click', () => {
+      const pregunta = tipo === 'otra' ? '¿Borrar esta fecha para los dos?' : '¿Quitar esta fecha para los dos?';
+      if (!window.confirm(pregunta)) return;
+      ejecutar(async () => { await borrarFecha(r.nube, r.pareja, id); return null; });
+    });
 
-    zona.replaceChildren(
+    zona.replaceChildren(el('div', {},
       el('h1', { clase: 'titulo-pantalla' }, titulo),
       el('div', { clase: 'campo' }, el('label', { for: idFecha }, 'Fecha'), entradaFecha),
       tipo === 'otra' ? el('div', { clase: 'campo' }, el('label', { for: idNombre }, 'Nombre'), entradaNombre) : null,
       aviso,
-      el('div', { clase: 'fechas-acciones' }, guardar, borrar));
+      el('div', { clase: 'fechas-acciones' }, guardar, borrar)));
   }
 
   const editar = (contenedor, params, ctx) => formulario(contenedor, ctx, params?.id || null);

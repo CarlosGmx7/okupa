@@ -4,7 +4,7 @@ import { almacenEnMemoria } from './pareja.prueba.js';
 import { crearPareja, unirse as unirsePareja } from '../js/nucleo/pareja.js';
 import { crearPantallasFechas, detalleInicio } from '../js/modulos/fechas/pantallas.js';
 import { listarFechas, guardarFecha, guardarCopia, leerCopia } from '../js/modulos/fechas/datos.js';
-import { hasta, boton, salir } from './diario-pantallas.prueba.js';
+import { esperar, hasta, boton, salir } from './diario-pantallas.prueba.js';
 
 const HOY = '2026-11-13';
 
@@ -20,6 +20,15 @@ async function parejaFechas() {
   const pantallas = crearPantallasFechas({ hoy: () => HOY });
   const ctx = { almacen: almA, nube: async () => nube, ir: (r) => rutas.push(r), refrescar: () => {} };
   return { div, ctx, rutas, pantallas, nube, pareja: { codigo, lugar: 'a' }, almacen: almA };
+}
+
+// Sustituye window.confirm durante n; devuelve las preguntas que se hicieron.
+async function conConfirm(respuesta, fn) {
+  const original = window.confirm;
+  const preguntas = [];
+  window.confirm = (q) => { preguntas.push(q); return respuesta; };
+  try { await fn(); } finally { window.confirm = original; }
+  return preguntas;
 }
 
 const textoDe = (div) => div.textContent.replace(/\s+/g, ' ');
@@ -91,8 +100,11 @@ prueba('fechas: editar y borrar una fecha propia', async () => {
   const div2 = document.createElement('div');
   await pantallas.editar(div2, { id: r.id }, ctx);
   await hasta(() => boton(div2, 'Borrar'));
-  boton(div2, 'Borrar').click();
-  await hasta(() => rutas.length === 2);
+  const preguntas = await conConfirm(true, async () => {
+    boton(div2, 'Borrar').click();
+    await hasta(() => rutas.length === 2);
+  });
+  igual(preguntas, ['¿Borrar esta fecha para los dos?']);
   igual((await listarFechas(nube, pareja)).length, 0);
   igual(leerCopia(almacen).fechas.length, 0);
   salir();
@@ -117,8 +129,11 @@ prueba('fechas: quitar el inicio guardado', async () => {
   await guardarFecha(nube, pareja, { tipo: 'inicio', fecha: '2025-11-14' }, HOY);
   await pantallas.editar(div, { id: 'inicio' }, ctx);
   await hasta(() => boton(div, 'Quitar fecha'));
-  boton(div, 'Quitar fecha').click();
-  await hasta(() => rutas.includes('fechas'));
+  const preguntas = await conConfirm(true, async () => {
+    boton(div, 'Quitar fecha').click();
+    await hasta(() => rutas.includes('fechas'));
+  });
+  igual(preguntas, ['¿Quitar esta fecha para los dos?']);
   igual((await listarFechas(nube, pareja)).length, 0);
   salir();
 });
@@ -149,4 +164,44 @@ prueba('fechas: detalleInicio con copia vacía invita a agregar', () => {
   const almacen = almacenEnMemoria();
   guardarCopia(almacen, [], { a: null, b: null });
   igual(detalleInicio(almacen, HOY), 'Agreguen sus fechas');
+});
+
+prueba('fechas: cancelar la confirmación no borra nada', async () => {
+  const { div, ctx, rutas, pantallas, nube, pareja } = await parejaFechas();
+  const r = await guardarFecha(nube, pareja, { tipo: 'otra', fecha: '2025-12-24', nombre: 'Viaje' }, HOY);
+  await pantallas.editar(div, { id: r.id }, ctx);
+  await hasta(() => boton(div, 'Borrar'));
+  const preguntas = await conConfirm(false, async () => { boton(div, 'Borrar').click(); await esperar(100); });
+  igual(preguntas.length, 1);
+  igual(rutas, []);
+  igual((await listarFechas(nube, pareja)).length, 1);
+  salir();
+});
+
+prueba('fechas: la lista sin fechas y el formulario del inicio no escriben «null»', async () => {
+  const { div, ctx, pantallas } = await parejaFechas();
+  await pantallas.lista(div, {}, ctx);
+  await hasta(() => div.querySelector('a[href="#/fechas/nueva"]'));
+  verdadero(!textoDe(div).includes('null'), textoDe(div));
+  const form = document.createElement('div');
+  await pantallas.editar(form, { id: 'inicio' }, ctx);
+  await hasta(() => form.querySelector('input[type="date"]'));
+  verdadero(!textoDe(form).includes('null'), textoDe(form));
+  salir();
+});
+
+prueba('fechas: sin nombre, el cumpleaños propio dice «Tu cumpleaños» y el otro «de tu pareja»', async () => {
+  const { div, ctx, pantallas, nube, pareja } = await parejaFechas();
+  await nube.escribir(`parejas/${pareja.codigo}`, { nombres: { a: null, b: null } }, { combinar: true });
+  await pantallas.lista(div, {}, ctx);
+  await hasta(() => div.querySelector('a[href="#/fechas/nueva"]'));
+  const t = textoDe(div);
+  verdadero(t.includes('Tu cumpleaños') && t.includes('Cumpleaños de tu pareja'), t);
+  verdadero(!t.includes('Tú'), t);
+  salir();
+});
+prueba('fechas: detalleInicio sin nombre dice «Cumpleaños de tu pareja»', () => {
+  const almacen = almacenEnMemoria();
+  guardarCopia(almacen, [{ id: 'cumple_b', tipo: 'cumple', fecha: '1995-11-13', de: 'b' }], { a: null, b: null });
+  igual(detalleInicio(almacen, HOY), 'Cumpleaños de tu pareja hoy');
 });
