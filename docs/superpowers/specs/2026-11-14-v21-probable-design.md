@@ -20,12 +20,48 @@ Un juego en vivo para reírse y conversar: sale una frase («¿Quién es más pr
 4. **Cualquiera toca «Siguiente»** después de la revelación y los dos avanzan (como Trivia, con guarda de ronda para no saltar dos).
 5. **Coincidieron** = todos votaron exactamente lo mismo. «Los dos» cuenta como una elección para cada uno en el «más elegido».
 6. Si un tema tiene menos frases que el largo pedido (p. ej. 3 propias y piden 10), la ronda usa las que hay; si hay 0, ese tema sale deshabilitado.
-7. Sección nueva **«¿Quién es más probable?»** en el inicio (módulo `probable`, ruta `#/probable`), con detalle «Te están esperando» si hay sala abierta del otro.
+7. Módulo `probable`, ruta `#/probable`, fila en la sección «Jugar juntos» del nuevo inicio (Parte 2).
 8. **Aviso** al abrir la sala: «Carlos te invita a jugar ¿Quién es más probable? 🤔», con el mismo interruptor que Trivia (juegos). Sin aviso al terminar.
 9. **No se puede «cambiar» el voto borrándolo y recreándolo**: un voto solo se borra si su sala ya está `terminada` o `cancelada` (o ya no existe). «Borrar todo» marca cada sala `cancelada` antes de borrar sus votos.
 10. **Frases vistas = las que llegaron a revelarse**, aunque la sala se cancele o alguien se salga a mitad. La sala guarda `reveladas` (cuántas se revelaron); el cierre (transacción con lista de salas contadas) lo hace el primer celular que termina, cancela o sale, y marca solo esas.
 11. **«Otra ronda» vuelve a `#/probable`** para escoger tema y largo (abre una sala nueva, con su aviso). En el diseño, «ronda» de la sala es solo el contador de guarda para avanzar.
 12. **Las salas y votos viejos no se limpian solos**; solo con «Borrar todo». Pesan poco (un voto es un campo).
+
+## Parte 2 — Nuevo inicio (lo pidió Carlos al revisar este diseño)
+
+### Para qué
+Hoy el inicio tiene todo seguido y con el mismo peso: el bloque «Nuestra pareja» con 6 botones dorados (serían 7 con este juego), la «Pregunta de hoy», 4 tarjetas grandes de Preguntas y el aviso de instalar. Cansa la vista. Carlos quiere que se ordene por categorías, que se sienta fluido y que no cueste encontrar nada.
+
+### Lo que decidió Carlos
+1. **Un solo inicio desplazable con secciones por categoría**. Cada parte es una fila limpia con ícono, nombre y `›`, y solo lleva un texto corto cuando importa:
+   ```
+   (foto)   Okupa                 ⚙
+   Pregunta de hoy · ¿Qué significa para ti…?
+   JUGAR JUNTOS
+     ✦ Trivia en vivo                 ›
+     ? ¿Quién es más probable?        ›
+   CONOCERNOS
+     ❖ Preguntas                      ›
+     ☼ Diario         Te toca responder ›
+   NOSOTROS
+     ♥ Match                          ›
+     ⌖ Mapa                           ›
+     ✦ Fechas         Aniversario en 5 días ›
+     ✉ Cápsula                        ›
+   ```
+2. **Preguntas tiene su propia pantalla** (`#/preguntas`) con Sesiones guiadas, Categorías, Al azar y Mis preguntas. La «Pregunta de hoy» se queda arriba en el inicio.
+3. **Textos debajo, solo estos:**
+   - **Fechas**: solo cuando falten 14 días o menos para una fecha («Aniversario en 5 días», «Tu cumpleaños hoy»). Fuera de esos 14 días no se muestra nada; tampoco «N días juntos» ni «Agreguen sus fechas».
+   - **Diario**: solo si te toca («Te toca responder», «<nombre> ya respondió»); nada si ya está todo hecho.
+   - **Trivia y ¿Quién es más probable?**: «<nombre> te está esperando» cuando el otro abrió una sala.
+   - **Match y Cápsula: nunca** (se quita «Plan de la semana: …» y «Próxima carta en N días»; el plan de la semana sigue dentro de Match).
+4. **«Nuestra pareja» pasa a Ajustes**. Si este celular no está enlazado, el inicio muestra arriba una tarjeta «Jueguen juntos · Enlacen sus celulares →»; las filas se siguen viendo (cada sección pide enlazar, como hoy).
+
+### Cómo se construye (mi propuesta)
+- Cada módulo declara en su `accesoJuntos` (o un campo nuevo `accesoInicio`) su `seccion` (`jugar` | `conocernos` | `nosotros`) y su `orden`; `inicio.js` agrupa y pinta. Así un módulo nuevo se ubica solo, sin tocar `inicio.js`. *Alternativa descartada:* una lista fija en `inicio.js` (rompe la idea de módulos que se activan en `modulos.json`).
+- Preguntas deja de aportar `tarjetasInicio` con sus 4 accesos; aporta la «Pregunta de hoy» y su fila. Las 4 tarjetas pasan a `#/preguntas`.
+- El texto de «te está esperando» se pinta sin internet, desde una copia local que `precalentar` refresca leyendo el puntero de sala abierta (`estado/uso`: `salaAbierta` y `probableAbierta`), con una lectura por apertura; solo se muestra si la sala sigue abierta y la abrió el otro.
+- Estilo: filas dentro de una tarjeta por sección, con los colores actuales (vino y dorado). Los títulos de sección van en versalitas pequeñas. Se quitan los botones dorados grandes. El aviso de instalar y «Acerca de» quedan al final.
 
 ## No metas
 Modo a ratos, puntos o ganador, historial de rondas, grupos de verdad (solo queda el modelo listo: lugares, «todos menos quien abre»), editar frases propias, elegir tema para las propias, cambiar el voto.
