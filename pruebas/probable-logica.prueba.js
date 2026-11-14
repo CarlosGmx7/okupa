@@ -75,6 +75,8 @@ prueba('probable: coincidieron', () => {
 prueba('probable: resumen', () => {
   igual(
     resumen([{ a: 'a', b: 'a' }, { a: 'todos', b: 'b' }], ['a', 'b']),
-    { total: 2, coincidencias: 1, elegido: { a: 2, b: 2 } },
+    { total: 2, coincidencias: 1, elegido: { a: 2, b: 1 } },
   );
+  igual(resumen([{ a: 'a', b: 'todos' }], ['a', 'b']), { total: 1, coincidencias: 0, elegido: { a: 1, b: 1 } });
+  igual(resumen([{ a: 'b', b: 'b' }], ['a', 'b']), { total: 1, coincidencias: 1, elegido: { a: 0, b: 1 } });
 });

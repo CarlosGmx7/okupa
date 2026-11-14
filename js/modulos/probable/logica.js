@@ -84,11 +84,10 @@ export function resumen(votosPorFrase, lugares) {
   let coincidencias = 0;
   for (const votos of votosPorFrase) {
     if (coincidieron(votos)) coincidencias++;
-    // Votos iguales en una frase cuentan una sola vez (si coinciden, es una elección).
-    for (const voto of new Set(Object.values(votos || {}))) {
-      if (voto === 'todos') for (const l of lugares) elegido[l]++;
-      else if (voto in elegido) elegido[voto]++;
-    }
+    // Cada lugar cuenta a lo sumo una vez por frase: si lo eligió algún voto
+    // (el suyo o 'todos').
+    const vs = Object.values(votos || {});
+    for (const l of lugares) if (vs.some((v) => v === l || v === 'todos')) elegido[l]++;
   }
   return { total: votosPorFrase.length, coincidencias, elegido };
 }
