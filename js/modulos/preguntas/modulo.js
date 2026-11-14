@@ -2,7 +2,7 @@
 import { el } from '../../nucleo/ui.js';
 import { cargarIncluido, unir } from './datos.js';
 import { crearProgreso } from './progreso.js';
-import { crearPropio } from './propio.js';
+import { crearPropio, VALIDADORES_RESPALDO } from './propio.js';
 import { crearPantallas } from './pantallas.js';
 import { crearEditor } from './editor.js';
 
@@ -75,6 +75,8 @@ export default {
   id: 'preguntas',
   nombre: 'Preguntas',
   iniciar,
+  // La copia de seguridad (Ajustes) revisa con esto lo que trae un archivo para esta sección.
+  validadoresRespaldo: VALIDADORES_RESPALDO,
   rutas: {
     categorias: p('categorias'),
     'categoria/:id': p('categoria'),

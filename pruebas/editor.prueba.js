@@ -131,18 +131,13 @@ prueba('editor: ocultas lista y restaura', () => {
   igual(estado.propio.obtener().ocultas, []);
 });
 
-prueba('editor: un archivo que no es copia de Okupa se rechaza de una', async () => {
+prueba('editor: la copia de seguridad ahora está en Ajustes', () => {
   const { ctx, editor } = montar();
   const div = document.createElement('div');
   editor.respaldo(div, {}, ctx);
-  const input = div.querySelector('input[type=file]');
-  const dt = new DataTransfer();
-  dt.items.add(new File(['{"hola": 1}'], 'x.json', { type: 'application/json' }));
-  input.files = dt.files;
-  input.dispatchEvent(new Event('change'));
-  await new Promise((r) => setTimeout(r, 100));
-  verdadero(div.querySelector('[role=status]').textContent.includes('no es una copia de Okupa'), div.querySelector('[role=status]').textContent);
-  igual(boton(div, 'Reemplazar todo'), undefined);
+  igual(div.querySelector('input[type=file]'), null);
+  const enlace = div.querySelector('a[href="#/ajustes"]');
+  verdadero(enlace && enlace.textContent.includes('La copia de seguridad está en Ajustes'), div.textContent);
 });
 
 prueba('editor: Mis preguntas no pinta "null" cuando sí se puede guardar', () => {

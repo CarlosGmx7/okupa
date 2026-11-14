@@ -1,9 +1,6 @@
 // "Mis preguntas": la pareja crea, oculta y organiza su propio contenido.
 import { el } from '../../nucleo/ui.js';
 import { icono } from '../../nucleo/iconos.js';
-import { exportarRespaldo, importarRespaldo, validarRespaldo } from '../../nucleo/almacen.js';
-import { fechaLocalISO } from './datos.js';
-import { VALIDADORES_RESPALDO } from './propio.js';
 
 const FORMATOS = [['abierta', 'Pregunta abierta'], ['corta', 'Respuesta rápida'], ['dilema', '¿Qué harías si…?'], ['postura', 'Tu postura']];
 const SUBTIPOS = [['si_no', 'Sí o no'], ['escala', 'Escala del 1 al 10'], ['esto_o_aquello', 'Esto o aquello']];
@@ -86,9 +83,9 @@ export function crearEditor(estado, { alCambiar = () => {}, alImportar = () => {
         el('li', {}, el('a', { clase: 'fila', href: '#/preguntas/mis/ocultas' },
           el('div', { clase: 'fila-cuerpo' }, el('div', { clase: 'fila-titulo' }, 'Preguntas ocultas'),
             el('div', { clase: 'fila-detalle' }, `${nOcultas} ${nOcultas === 1 ? 'oculta' : 'ocultas'}`)), el('span', { clase: 'fila-marca' }, '→'))),
-        el('li', {}, el('a', { clase: 'fila', href: '#/preguntas/mis/respaldo' },
+        el('li', {}, el('a', { clase: 'fila', href: '#/ajustes' },
           el('div', { clase: 'fila-cuerpo' }, el('div', { clase: 'fila-titulo' }, 'Copia de seguridad'),
-            el('div', { clase: 'fila-detalle' }, 'Descargar o cargar todo lo suyo')), el('span', { clase: 'fila-marca' }, '→')))),
+            el('div', { clase: 'fila-detalle' }, 'Ahora está en Ajustes')), el('span', { clase: 'fila-marca' }, '→')))),
     );
   }
 
@@ -313,59 +310,12 @@ export function crearEditor(estado, { alCambiar = () => {}, alImportar = () => {
     );
   }
 
-  function respaldo(contenedor, _params, ctx) {
-    const mensaje = el('p', { role: 'status' });
-    const opciones = el('div', { hidden: true, style: 'margin-top:12px' });
-    const archivo = el('input', { type: 'file', accept: '.json,application/json' });
-    archivo.addEventListener('change', async () => {
-      const f = archivo.files?.[0];
-      if (!f) return;
-      let copia;
-      try { copia = JSON.parse(await f.text()); }
-      catch { mensaje.textContent = 'Ese archivo no se pudo leer. ¿Es una copia de Okupa?'; return; }
-      const problema = validarRespaldo(copia, VALIDADORES_RESPALDO);
-      if (problema) { opciones.hidden = true; mensaje.textContent = problema; return; }
-      mensaje.textContent = '';
-      opciones.hidden = false;
-      const aplicar = (modo) => {
-        const r = importarRespaldo(ctx.almacen, copia, modo, VALIDADORES_RESPALDO);
-        opciones.hidden = true;
-        if (!r.ok) { mensaje.textContent = r.error; return; }
-        alImportar();
-        mensaje.textContent = modo === 'reemplazar' ? 'Listo: se cargó la copia.' : 'Listo: se combinó la copia con lo que tenían.';
-      };
-      opciones.replaceChildren(
-        el('p', {}, '¿Qué hacemos con lo que ya tienen en este celular?'),
-        el('button', { clase: 'boton boton-principal', type: 'button', onclick: () => aplicar('reemplazar') }, 'Reemplazar todo'),
-        ' ',
-        el('button', { clase: 'boton', type: 'button', onclick: () => aplicar('combinar') }, 'Combinar'));
-    });
-
+  // Desde la v18 la copia vive en Ajustes; la ruta queda para quien la tenga guardada.
+  function respaldo(contenedor) {
     contenedor.append(
       volver('preguntas/mis', 'Mis preguntas'),
       el('h1', { clase: 'titulo-pantalla' }, 'Copia de seguridad'),
-      el('section', { clase: 'bloque-texto' },
-        el('h2', {}, 'Descargar'),
-        el('p', {}, 'Guarda en un archivo sus preguntas, categorías, sesiones, ocultas y el progreso. Sirve para no perder nada o para pasarlo a otro celular.'),
-        el('button', {
-          clase: 'boton boton-principal', type: 'button',
-          onclick: () => {
-            const blob = new Blob([JSON.stringify(exportarRespaldo(ctx.almacen), null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = el('a', { href: url, download: `okupa-respaldo-${fechaLocalISO()}.json` });
-            document.body.append(a);
-            a.click();
-            a.remove();
-            setTimeout(() => URL.revokeObjectURL(url), 1000);
-          },
-        }, 'Descargar copia')),
-      el('section', { clase: 'bloque-texto' },
-        el('h2', {}, 'Cargar'),
-        el('p', {}, 'Escojan un archivo de copia de Okupa.'),
-        campo('Archivo de copia', archivo),
-        opciones,
-        mensaje),
-    );
+      el('p', { clase: 'subtitulo' }, el('a', { href: '#/ajustes' }, 'La copia de seguridad está en Ajustes ›')));
   }
 
   return { mis, preguntaNueva, preguntaEditar, categoriaNueva, sesionNueva, sesionEditar, ocultas, respaldo };

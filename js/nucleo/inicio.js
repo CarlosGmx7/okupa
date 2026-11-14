@@ -77,5 +77,6 @@ export function pantallaAcerca(contenedor, _params, ctx) {
     el('h1', { clase: 'titulo-pantalla' }, 'Acerca de Okupa'),
     ...secciones.filter(Boolean),
     el('p', { clase: 'bloque-texto' }, 'Para borrar lo guardado en este celular, ve a ', el('a', { href: '#/ajustes' }, 'Ajustes'), '.'),
+    el('p', { clase: 'bloque-texto' }, el('a', { href: '#/privacidad' }, 'Política de privacidad ›')),
   );
 }

@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="es-CO">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Privacidad · Okupa</title>
+  <meta name="description" content="Qué datos guarda Okupa, dónde y cómo borrarlos.">
+  <link rel="icon" href="iconos/icono-192.png">
+  <style>
+    :root { --fondo: #140a0e; --texto: #f3e9dc; --tenue: #c9b8a8; --acento: #c9a45c; --borde: #3a2430; color-scheme: dark; }
+    @media (prefers-color-scheme: light) {
+      :root { --fondo: #fbf7f2; --texto: #24161c; --tenue: #6b5560; --acento: #8a6a2c; --borde: #e4d8cc; color-scheme: light; }
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--fondo); color: var(--texto); font: 1rem/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    main { max-width: 680px; margin: 0 auto; padding: 32px 16px 64px; }
+    h1 { font-family: Georgia, serif; font-size: 2rem; line-height: 1.2; margin: 0 0 8px; }
+    h2 { font-size: 1.125rem; margin: 32px 0 8px; color: var(--acento); }
+    a { color: var(--acento); }
+    ul { padding-left: 1.25rem; }
+    li { margin: 4px 0; }
+    .fecha, .nota { color: var(--tenue); font-size: 0.875rem; }
+    footer { border-top: 1px solid var(--borde); margin-top: 40px; padding-top: 16px; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Política de privacidad</h1>
+  <p class="fecha">Última actualización: 2026-11-13</p>
+
+  <p>Okupa es una app para parejas: preguntas para conocerse, juegos entre los dos (Trivia, Diario, Match) y un mapa de lugares. La hace una sola persona en Colombia, sin fines comerciales. Aquí te contamos, sin letra pequeña, qué se guarda, dónde y cómo borrarlo.</p>
+
+  <h2>Sin cuentas ni contraseñas</h2>
+  <p>Okupa no te pide correo, teléfono ni contraseña. Para que los dos celulares se hablen usamos el acceso anónimo de Firebase (un servicio de Google), que le da a tu celular un identificador al azar que no dice quién eres.</p>
+
+  <h2>Lo que se queda solo en tu celular</h2>
+  <ul>
+    <li>Tus ajustes: tema, tamaño de letra, sonidos y vibración.</li>
+    <li>La foto de inicio que elijas.</li>
+    <li>Las preguntas, categorías y sesiones que creen, las que ocultan y el progreso.</li>
+  </ul>
+  <p>Nada de esto sale del celular, salvo que tú guardes una copia de seguridad en un archivo.</p>
+
+  <h2>Lo que se guarda en la nube, solo para los dos</h2>
+  <p>Cuando enlazan sus celulares, esto se guarda en Firebase (Firestore) y solo lo pueden leer los dos celulares de la pareja. Las reglas de la base de datos impiden que lo vea cualquier otra persona.</p>
+  <ul>
+    <li>El código de la pareja y los nombres que escriban.</li>
+    <li>Las respuestas de la Trivia y del Diario.</li>
+    <li>Los votos del Match. Tus «no» no los ve tu pareja; solo se muestran las coincidencias.</li>
+    <li>Los lugares del mapa, con sus notas y fotos.</li>
+    <li>Tu última ubicación: se guarda cada vez que abres el mapa y le das permiso de ubicación al navegador. Puedes elegir compartirla aproximada (unos 500 m). Si le quitas el permiso, deja de actualizarse; la última guardada se borra con «Borrar todo».</li>
+  </ul>
+
+  <h2>Para los avisos</h2>
+  <p>Si activas las notificaciones, se guarda un registro de tu celular con el código que da el navegador para recibir avisos (Firebase Cloud Messaging), los avisos que quieres recibir, la hora del recordatorio y tu zona horaria. Si las apagas, el registro se borra.</p>
+
+  <h2>Lo que no hacemos</h2>
+  <ul>
+    <li>No hay publicidad.</li>
+    <li>No hay analítica ni seguimiento.</li>
+    <li>No vendemos ni compartimos tus datos con nadie. Google los guarda como proveedor de Firebase, según sus propias condiciones.</li>
+  </ul>
+
+  <h2>Cómo borrar tus datos</h2>
+  <ul>
+    <li><strong>Todo lo de la pareja en la nube:</strong> en la app, Ajustes → Datos de la pareja → Borrar todo. Se borra para los dos.</li>
+    <li><strong>Lo de tu celular:</strong> Ajustes → Borrar datos de este celular.</li>
+    <li><strong>Si no puedes hacerlo desde la app:</strong> escríbenos y lo borramos.</li>
+  </ul>
+
+  <h2>Tus derechos</h2>
+  <p>Según la Ley 1581 de 2012 de Colombia (habeas data) puedes conocer, corregir y pedir que se borren tus datos personales. Okupa está pensada para personas mayores de edad.</p>
+
+  <h2>Contacto</h2>
+  <p>Para preguntas o para pedir que borremos tus datos: <a href="mailto:carlos57garavito00@gmail.com">carlos57garavito00@gmail.com</a>.</p>
+
+  <footer>
+    <p class="nota">Si cambiamos esta política, actualizaremos la fecha de arriba y lo contaremos dentro de la app.</p>
+  </footer>
+</main>
+</body>
+</html>

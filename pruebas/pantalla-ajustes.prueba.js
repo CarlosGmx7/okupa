@@ -25,7 +25,9 @@ prueba('inicio: el engranaje lleva a Ajustes', () => {
 prueba('ajustes: se pinta con los grupos y filas', () => {
   const { div } = pintar();
   igual(div.querySelector('h1')?.textContent, 'Ajustes');
-  igual([...div.querySelectorAll('.grupo-ajustes-titulo')].map((h) => h.textContent), ['Tema', 'Letra', 'Foto', 'Sonidos y vibración', 'Datos']);
+  igual([...div.querySelectorAll('.grupo-ajustes-titulo')].map((h) => h.textContent), ['Tema', 'Letra', 'Foto', 'Sonidos y vibración', 'Copia de seguridad', 'Datos']);
+  for (const t of ['Guardar copia', 'Recuperar copia']) verdadero(texto(div).includes(t), `falta "${t}"`);
+  verdadero(div.querySelector('.ajustes-pie a[href="#/privacidad"]'), 'falta el enlace a la política');
   for (const t of ['Vino y dorado', 'Grafito y rosa', 'Foto de inicio', 'Sonidos', 'Vibración al tocar', 'Datos de la pareja', 'Borrar datos de este celular', 'Acerca de Okupa']) {
     verdadero(texto(div).includes(t), `falta "${t}"`);
   }
@@ -111,7 +113,7 @@ const filaDe = (div, texto) => [...div.querySelectorAll('.fila-ajuste')].find((f
 prueba('ajustes: notificaciones apagadas muestran solo el interruptor general', () => {
   const almacen = almacenEnMemoria();
   const { div } = pintar({ almacen, notificaciones: notifFalsa(almacen) });
-  igual([...div.querySelectorAll('.grupo-ajustes-titulo')].map((h) => h.textContent), ['Tema', 'Letra', 'Foto', 'Sonidos y vibración', 'Notificaciones', 'Datos']);
+  igual([...div.querySelectorAll('.grupo-ajustes-titulo')].map((h) => h.textContent), ['Tema', 'Letra', 'Foto', 'Sonidos y vibración', 'Notificaciones', 'Copia de seguridad', 'Datos']);
   verdadero(filaDe(div, 'Notificaciones'));
   verdadero(!filaDe(div, 'Recordatorio del Diario') && !div.querySelector('input[type="time"]'));
 });

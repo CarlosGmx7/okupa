@@ -1011,6 +1011,17 @@ ul.chips { padding: 0; margin: 0; list-style: none; }
 .letra-opcion[data-letra="grande"] .letra-muestra { font-size: 1.4375rem; }
 .letra-opcion[data-letra="muy-grande"] .letra-muestra { font-size: 1.75rem; }
 .letra-nombre { font-size: 0.8125rem; font-weight: 600; text-align: center; }
+.grupo-ajustes-nota { display: block; margin: 0; padding: 12px 14px 4px; }
+
+/* Política de privacidad dentro de la app (viene de privacidad.html). */
+.privacidad { padding-bottom: 32px; }
+.privacidad h1 { font-family: var(--serif); font-size: 2rem; line-height: 1.2; margin: 8px 0; }
+.privacidad h2 { font-size: 1.0625rem; color: var(--dorado); margin: 28px 0 6px; }
+.privacidad p, .privacidad li { color: var(--crema); line-height: 1.6; }
+.privacidad ul { padding-left: 1.25rem; }
+.privacidad a { color: var(--dorado); }
+.privacidad :is(.fecha, .nota) { color: var(--tenue); font-size: 0.875rem; }
+.privacidad footer { border-top: 1px solid var(--dorado-suave); margin-top: 32px; padding-top: 12px; }
 .ajustes-estado { margin: 8px 6px 0; font-size: 0.875rem; color: var(--tenue); }
 .ajustes-estado:empty { display: none; }
 .ajustes-estado a { color: var(--dorado); }

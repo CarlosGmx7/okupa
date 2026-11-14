@@ -5,6 +5,7 @@ import { aplicarTema } from './tema.js';
 import { puedeVibrar as vibracionDisponible } from './sonidos.js';
 import { PORTADA_ORIGINAL, fuentePortada, abrirEditorPortada } from './portada.js';
 import { leerPreferencias } from './notificaciones.js';
+import { descargarCopia, abrirHojaRecuperar, validadoresDe } from './respaldo.js';
 
 const MOTIVOS = {
   'sin-pareja': () => ['Enlaza tu pareja para recibir avisos', ' · ', el('a', { href: '#/pareja' }, 'Enlazar')],
@@ -165,6 +166,13 @@ export function pantallaAjustes(contenedor, _params, ctx) {
       interruptor(almacen, 'sonidos', 'Sonidos', 'En un match, al acertar y al guardar'),
       interruptor(almacen, 'vibracion', 'Vibración al tocar', hayVibracion ? null : 'En iPhone no está disponible')),
     ctx.notificaciones ? grupoNotificaciones(almacen, ctx.notificaciones) : null,
+    grupo('Copia de seguridad',
+      el('p', { clase: 'fila-ajuste-nota grupo-ajustes-nota' }, 'Guarda en un archivo tus preguntas, progreso, ajustes y foto, para no perderlos o pasarlos a otro celular. La pareja se vuelve a enlazar con el código.'),
+      el('button', { clase: 'fila-ajuste fila-ajuste-enlace', type: 'button', onclick: () => descargarCopia(almacen) },
+        el('span', { clase: 'fila-ajuste-titulo' }, 'Guardar copia'), el('span', { clase: 'fila-ajuste-flecha', 'aria-hidden': 'true' }, '↓')),
+      el('button', { clase: 'fila-ajuste fila-ajuste-enlace', type: 'button',
+        onclick: () => abrirHojaRecuperar(almacen, validadoresDe(ctx.modulos), recargar) },
+      el('span', { clase: 'fila-ajuste-titulo' }, 'Recuperar copia'), el('span', { clase: 'fila-ajuste-flecha', 'aria-hidden': 'true' }, '›'))),
     grupo('Datos',
       el('a', { clase: 'fila-ajuste fila-ajuste-enlace', href: '#/pareja' },
         el('span', { clase: 'fila-ajuste-titulo' }, 'Datos de la pareja'), el('span', { clase: 'fila-ajuste-flecha', 'aria-hidden': 'true' }, '›')),
@@ -175,6 +183,8 @@ export function pantallaAjustes(contenedor, _params, ctx) {
           recargar();
         } },
       el('span', { clase: 'fila-ajuste-titulo' }, 'Borrar datos de este celular'))),
-    el('p', { clase: 'ajustes-pie' }, el('a', { href: '#/acerca' }, 'Acerca de Okupa ›')),
+    el('p', { clase: 'ajustes-pie' },
+      el('a', { href: '#/acerca' }, 'Acerca de Okupa ›'), ' · ',
+      el('a', { href: '#/privacidad' }, 'Privacidad ›')),
   );
 }
