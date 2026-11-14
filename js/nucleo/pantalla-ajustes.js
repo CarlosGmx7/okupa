@@ -19,6 +19,7 @@ const TIPOS_AVISO = [
   ['diario', 'Tu pareja respondió el Diario'],
   ['trivia', 'Invitación a la Trivia'],
   ['mapa', 'Novedades del mapa'],
+  ['fechas', 'Fechas especiales'],
   ['recordatorio', 'Recordatorio del Diario'],
 ];
 

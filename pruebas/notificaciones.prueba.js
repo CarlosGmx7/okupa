@@ -3,7 +3,7 @@ import { almacenEnMemoria } from './pareja.prueba.js';
 import { crearMundoFalso } from './nube-falsa.js';
 import { salir } from '../js/nucleo/pareja.js';
 import {
-  PREF_DEFECTO, leerPreferencias, guardarPreferencias, franjaUTC, soporteNotificaciones,
+  PREF_DEFECTO, HORA_FECHAS, leerPreferencias, guardarPreferencias, franjaUTC, soporteNotificaciones,
   crearNotificaciones, datosDeNotificacion, conectarConPareja, notificacionDePush, escucharRutasDelServiceWorker,
 } from '../js/nucleo/notificaciones.js';
 
@@ -36,7 +36,7 @@ prueba('notificaciones: preferencias por defecto y dañadas', () => {
   igual(PREF_DEFECTO.hora, '20:00');
   a.escribir('okupa:notificaciones', { activas: 'si', avisos: { diario: false, mapa: 3 }, hora: '25:00' });
   igual(leerPreferencias(a), { ...PREF_DEFECTO, avisos: { ...PREF_DEFECTO.avisos, diario: false } });
-  igual(guardarPreferencias(a, { hora: '21:30', avisos: { trivia: false } }).avisos, { diario: false, trivia: false, mapa: true, recordatorio: true });
+  igual(guardarPreferencias(a, { hora: '21:30', avisos: { trivia: false } }).avisos, { diario: false, trivia: false, mapa: true, recordatorio: true, fechas: true });
 });
 
 prueba('notificaciones: franjaUTC', () => {
@@ -71,7 +71,7 @@ prueba('notificaciones: activar registra el celular completo', async () => {
   const r = p.registro();
   igual({ ...r, actualizado: typeof r.actualizado }, {
     uid: 'u1', pareja: 'K7PQ2M', lugar: 'a', token: 'tok-1', avisos: PREF_DEFECTO.avisos,
-    hora: '20:00', zona: 'America/Bogota', franja: '01:00', actualizado: 'number',
+    hora: '20:00', zona: 'America/Bogota', franja: '01:00', franjaFechas: '13:00', actualizado: 'number',
   });
   igual(leerPreferencias(p.almacen).activas, true);
 });
@@ -94,6 +94,30 @@ prueba('notificaciones: refrescar solo escribe si cambió el token', async () =>
   p.estado.token = 'tok-2';
   igual(await p.n.refrescar(), true);
   igual(p.registro().token, 'tok-2');
+});
+
+prueba('notificaciones: el registro lleva franjaFechas de las 8:00 y avisos.fechas', async () => {
+  const p = preparar();
+  await p.n.activar();
+  igual(HORA_FECHAS, '08:00');
+  igual([p.registro().franjaFechas, p.registro().avisos.fechas], ['13:00', true]);
+});
+
+prueba('notificaciones: refrescar re-registra si cambió la franjaFechas', async () => {
+  const p = preparar();
+  await p.n.activar();
+  const g = p.almacen.leer('okupa:notificaciones', null);
+  const { franjaFechas, ...viejo } = g.registro;
+  p.almacen.escribir('okupa:notificaciones', { ...g, registro: viejo });
+  igual(await p.n.refrescar(), true);
+  igual(p.almacen.leer('okupa:notificaciones', null).registro.franjaFechas, '13:00');
+  igual(await p.n.refrescar(), false);
+});
+
+prueba('notificaciones: preferencias viejas sin fechas leen fechas true', () => {
+  const a = almacenEnMemoria();
+  a.escribir('okupa:notificaciones', { activas: true, avisos: { diario: false, trivia: true, mapa: true, recordatorio: true }, hora: '20:00' });
+  igual(leerPreferencias(a).avisos, { diario: false, trivia: true, mapa: true, recordatorio: true, fechas: true });
 });
 
 prueba('notificaciones: desactivar borra el registro y el token', async () => {

@@ -174,6 +174,17 @@ prueba('ajustes: apagar un tipo o cambiar la hora guarda el cambio', async () =>
   verdadero(!filaDe(div, 'Novedades del mapa'));
 });
 
+prueba('ajustes: hay interruptor Fechas especiales que cambia avisos.fechas', async () => {
+  const almacen = almacenEnMemoria();
+  guardarPreferencias(almacen, { activas: true });
+  const notif = notifFalsa(almacen);
+  const { div } = pintar({ almacen, notificaciones: notif });
+  verdadero(filaDe(div, 'Fechas especiales'));
+  div.querySelector('.interruptor[data-ajuste="aviso-fechas"]').click();
+  await esperar();
+  igual(notif.llamadas, [['cambiar', { avisos: { fechas: false } }]]);
+});
+
 prueba('acerca: ya no trae "Reiniciar todo"', () => {
   const div = document.createElement('div');
   pantallaAcerca(div, {}, { modulos: [], almacen: almacenEnMemoria(), ir() {}, refrescar() {} });

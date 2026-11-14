@@ -7,12 +7,13 @@ import { obtenerNube, VERSION_FIREBASE } from './nube.js';
 const CLAVE = 'okupa:notificaciones';
 const CLAVE_ID = 'okupa:dispositivo';
 const CLAVE_PENDIENTE = 'okupa:dispositivo:borrar';
-const TIPOS = ['diario', 'trivia', 'mapa', 'recordatorio'];
+const TIPOS = ['diario', 'trivia', 'mapa', 'recordatorio', 'fechas'];
+export const HORA_FECHAS = '08:00';
 const REGEX_HORA = /^([01]\d|2[0-3]):[0-5]\d$/;
 
 export const PREF_DEFECTO = Object.freeze({
   activas: false,
-  avisos: Object.freeze({ diario: true, trivia: true, mapa: true, recordatorio: true }),
+  avisos: Object.freeze({ diario: true, trivia: true, mapa: true, recordatorio: true, fechas: true }),
   hora: '20:00',
 });
 
@@ -125,10 +126,11 @@ export function crearNotificaciones({
     const datos = {
       uid, pareja: pareja.codigo, lugar: pareja.lugar, token, avisos: prefs.avisos,
       hora: prefs.hora, zona: z, franja: franjaUTC(prefs.hora, z),
+      franjaFechas: franjaUTC(HORA_FECHAS, z),
     };
     await n.escribir(ruta(), { ...datos, actualizado: n.horaServidor() }, { combinar: true });
     guardarPreferencias(almacen, {}, {
-      token, pareja: datos.pareja, lugar: datos.lugar, franja: datos.franja, zona: z, hora: datos.hora, avisos: datos.avisos,
+      token, pareja: datos.pareja, lugar: datos.lugar, franja: datos.franja, franjaFechas: datos.franjaFechas, zona: z, hora: datos.hora, avisos: datos.avisos,
     });
     return true;
   }
@@ -209,7 +211,8 @@ export function crearNotificaciones({
       const local = leerRegistroLocal(almacen);
       const z = zona();
       const igual = local && local.token === token && local.pareja === pareja.codigo && local.lugar === pareja.lugar
-        && local.zona === z && local.franja === franjaUTC(prefs.hora, z) && local.hora === prefs.hora
+        && local.zona === z && local.franja === franjaUTC(prefs.hora, z)
+        && local.franjaFechas === franjaUTC(HORA_FECHAS, z) && local.hora === prefs.hora
         && TIPOS.every((t) => local.avisos?.[t] === prefs.avisos[t]);
       if (igual) return false;
       return await registrar(token);
