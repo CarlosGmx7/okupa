@@ -103,19 +103,19 @@ prueba('capsula: carta abierta se lee y el autor relee la suya', async () => {
   salir();
 });
 
-prueba('capsula: error de permiso al leer se muestra como cerrada', async () => {
-  const { a, b, pantallas } = await dosCelulares();
-  const r = await crearCarta(a.nube, a.pareja, { abreEl: '2026-11-10', texto: 'x' }, '2026-11-01');
-  const sinPermiso = new Proxy(b.nube, {
+prueba('capsula: error de permiso al leer una carta que aún no abre se muestra como cerrada', async () => {
+  const { a, pantallas } = await dosCelulares();
+  const r = await crearCarta(a.nube, a.pareja, { abreEl: '2026-12-25', texto: 'x' }, HOY);
+  const sinPermiso = new Proxy(a.nube, {
     get: (t, k) => (k === 'leer' ? async (ruta) => {
       if (ruta.includes('contenido')) throw new Error('permission-denied');
       return t.leer(ruta);
     } : t[k]),
   });
-  const ctx = { ...b.ctx, nube: async () => sinPermiso };
+  const ctx = { ...a.ctx, nube: async () => sinPermiso };
   const ver = document.createElement('div');
   await pantallas.ver(ver, { id: r.id }, ctx);
-  await hasta(() => textoDe(ver).includes('Esta carta se abre el 10 de noviembre de 2026.'));
+  await hasta(() => textoDe(ver).includes('Esta carta se abre el 25 de diciembre de 2026.'));
   verdadero(!textoDe(ver).includes('null'));
   salir();
 });
@@ -127,6 +127,25 @@ prueba('capsula: carta sin texto llegó vacía', async () => {
   await pantallas.ver(ver, { id: 'c-vacia1' }, b.ctx);
   await hasta(() => textoDe(ver).includes('Esta carta llegó vacía.'));
   verdadero(!textoDe(ver).includes('null'));
+  verdadero(boton(ver, 'Borrar carta'), 'la carta vacía se puede borrar');
+  await conConfirm(true, async () => { boton(ver, 'Borrar carta').click(); await hasta(() => b.rutas.includes('capsula')); });
+  igual((await listarCartas(a.nube, a.pareja)).length, 0);
+  salir();
+});
+
+prueba('capsula: carta abierta con error de red no dice que está cerrada', async () => {
+  const { a, b, pantallas } = await dosCelulares();
+  const r = await crearCarta(a.nube, a.pareja, { abreEl: '2026-11-10', texto: 'x' }, '2026-11-01');
+  const caida = new Proxy(b.nube, {
+    get: (t, k) => (k === 'leer' ? async (ruta) => {
+      if (ruta.includes('contenido')) throw new Error('red');
+      return t.leer(ruta);
+    } : t[k]),
+  });
+  const ver = document.createElement('div');
+  await pantallas.ver(ver, { id: r.id }, { ...b.ctx, nube: async () => caida });
+  await hasta(() => textoDe(ver).includes('No se pudo cargar la carta. Revisa la conexión.'));
+  verdadero(!textoDe(ver).includes('se abre el'));
   salir();
 });
 

@@ -2,7 +2,7 @@
 import { el } from '../../nucleo/ui.js';
 import { miPareja } from '../../nucleo/pareja.js';
 import { exigirPareja } from '../../nucleo/pantallas-pareja.js';
-import { proximas } from '../fechas/calendario.js';
+import { proximas, sumarDias, miles, fechaLegible } from '../fechas/calendario.js';
 import { leerCopia as leerCopiaFechas } from '../fechas/datos.js';
 import { MAX_TEXTO, MAX_DIAS, diasHasta, estaAbierta, detalleInicio as detalleLogica } from './logica.js';
 import {
@@ -11,16 +11,6 @@ import {
 
 const otroLugar = (lugar) => (lugar === 'a' ? 'b' : 'a');
 const nombreDe = (nombres, lugar) => (nombres || {})[lugar] || 'tu pareja';
-
-function fechaLegible(dia) {
-  const [a, m, d] = dia.split('-').map(Number);
-  return new Date(a, m - 1, d).toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' });
-}
-
-function sumarDias(dia, n) {
-  const [a, m, d] = dia.split('-').map(Number);
-  return hoyLocal(new Date(a, m - 1, d + n));
-}
 
 const cuandoAbre = (n) => (n === 1 ? 'mañana' : `en ${n} días`);
 
@@ -93,9 +83,9 @@ export function crearPantallasCapsula({ hoy = hoyLocal } = {}) {
     const idTexto = `c-${Math.random().toString(36).slice(2, 8)}`;
     const entradaFecha = el('input', { type: 'date', id: idFecha, min: sumarDias(dia, 1), max: sumarDias(dia, MAX_DIAS) });
     const area = el('textarea', { id: idTexto, maxlength: String(MAX_TEXTO), rows: '8' });
-    const contador = el('span', { clase: 'campo-ayuda capsula-contador' }, `0 / ${MAX_TEXTO.toLocaleString('es-CO')}`);
+    const contador = el('span', { clase: 'campo-ayuda capsula-contador' }, `0 / ${miles(MAX_TEXTO)}`);
     area.addEventListener('input', () => {
-      contador.textContent = `${area.value.length.toLocaleString('es-CO')} / ${MAX_TEXTO.toLocaleString('es-CO')}`;
+      contador.textContent = `${miles(area.value.length)} / ${miles(MAX_TEXTO)}`;
     });
     const aviso = el('p', { clase: 'aviso', role: 'alert' });
     const enviar = el('button', { clase: 'boton boton-principal', type: 'button' }, 'Sellar y enviar');
@@ -128,6 +118,8 @@ export function crearPantallasCapsula({ hoy = hoyLocal } = {}) {
         await refrescarCopia(r.nube, r.pareja, ctx.almacen).catch(() => {});
         ctx.ir('capsula');
       } catch {
+        // Si ya se escribieron los metadatos, que la carta a medias aparezca (y se pueda borrar).
+        await refrescarCopia(r.nube, r.pareja, ctx.almacen).catch(() => {});
         aviso.textContent = 'No se pudo guardar. Revisa la conexión.';
       } finally {
         enviar.disabled = false;
@@ -152,43 +144,49 @@ export function crearPantallasCapsula({ hoy = hoyLocal } = {}) {
     const id = params?.id;
     const cartas = await cargarCartas(ctx, r);
     const carta = cartas.find((c) => c.id === id);
-    const mensaje = (texto) => zona.replaceChildren(el('div', { clase: 'vacio' }, el('p', {}, texto),
+    const botonBorrar = () => {
+      const borrar = el('button', { clase: 'boton boton-peligro', type: 'button' }, 'Borrar carta');
+      const aviso = el('p', { clase: 'aviso', role: 'alert' });
+      borrar.addEventListener('click', async () => {
+        if (!window.confirm('¿Borrar esta carta para los dos?')) return;
+        borrar.disabled = true;
+        aviso.textContent = '';
+        try {
+          await borrarCarta(r.nube, r.pareja, id);
+          await refrescarCopia(r.nube, r.pareja, ctx.almacen).catch(() => {});
+          ctx.ir('capsula');
+        } catch {
+          aviso.textContent = 'No se pudo borrar. Revisa la conexión.';
+        } finally {
+          borrar.disabled = false;
+        }
+      });
+      return el('div', {}, aviso, el('div', { clase: 'fechas-acciones' }, borrar));
+    };
+    const mensaje = (texto, conBorrar = false) => zona.replaceChildren(el('div', { clase: 'vacio' }, el('p', {}, texto),
+      conBorrar ? botonBorrar() : null,
       el('a', { clase: 'boton', href: '#/capsula' }, 'Volver a la cápsula')));
     if (!carta) { mensaje('No encontramos esa carta.'); return; }
     const propia = carta.de === r.pareja.lugar;
     const cerrada = () => mensaje(`Esta carta se abre el ${fechaLegible(carta.abreEl)}.`);
+    const abierta = estaAbierta(carta, hoy());
     // La del otro, mientras no abra, ni se pide el texto a la nube.
-    if (!propia && !estaAbierta(carta, hoy())) { cerrada(); return; }
+    if (!propia && !abierta) { cerrada(); return; }
     let texto;
     try {
       texto = await leerTexto(r.nube, r.pareja, id);
     } catch {
-      cerrada();
+      if (abierta) mensaje('No se pudo cargar la carta. Revisa la conexión.');
+      else cerrada();
       return;
     }
-    if (texto === null) { mensaje('Esta carta llegó vacía.'); return; }
+    // Sin texto (falló la segunda escritura): se puede borrar para no dejarla huérfana.
+    if (texto === null) { mensaje('Esta carta llegó vacía.', true); return; }
 
-    const borrar = el('button', { clase: 'boton boton-peligro', type: 'button' }, 'Borrar carta');
-    const aviso = el('p', { clase: 'aviso', role: 'alert' });
-    borrar.addEventListener('click', async () => {
-      if (!window.confirm('¿Borrar esta carta para los dos?')) return;
-      borrar.disabled = true;
-      aviso.textContent = '';
-      try {
-        await borrarCarta(r.nube, r.pareja, id);
-        await refrescarCopia(r.nube, r.pareja, ctx.almacen).catch(() => {});
-        ctx.ir('capsula');
-      } catch {
-        aviso.textContent = 'No se pudo borrar. Revisa la conexión.';
-      } finally {
-        borrar.disabled = false;
-      }
-    });
     zona.replaceChildren(el('div', {},
       el('h1', { clase: 'titulo-pantalla' }, `De ${nombreDe(r.pareja.nombres, carta.de)} · ${fechaLegible(carta.abreEl)}`),
-      el('div', { clase: 'capsula-carta' }, texto.split(/\n{2,}/).map((p) => el('p', { clase: 'capsula-parrafo' }, p))),
-      aviso,
-      el('div', { clase: 'fechas-acciones' }, borrar)));
+      el('div', { clase: 'capsula-carta' }, texto.split(/\n{2,}/).map((x) => el('p', { clase: 'capsula-parrafo' }, x))),
+      botonBorrar()));
   }
 
   return { lista, nueva, ver };

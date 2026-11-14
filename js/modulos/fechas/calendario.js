@@ -124,6 +124,12 @@ export function proximas(fechas, hoy, limite = 20) {
 }
 
 export const miles = (n) => n.toLocaleString('es-CO');
+
+// «14 de noviembre de 2026» a partir de 'YYYY-MM-DD'.
+export function fechaLegible(dia) {
+  const [a, m, d] = dia.split('-').map(Number);
+  return new Date(a, m - 1, d).toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' });
+}
 export const plural = (n, uno, varios) => `${n} ${n === 1 ? uno : varios}`;
 
 export function duracionMeses(meses) {

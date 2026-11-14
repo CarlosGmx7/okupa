@@ -2,7 +2,7 @@
 import { el } from '../../nucleo/ui.js';
 import { miPareja } from '../../nucleo/pareja.js';
 import { exigirPareja } from '../../nucleo/pantallas-pareja.js';
-import { diasJuntos, proximas, miles, plural, duracionMeses } from './calendario.js';
+import { diasJuntos, proximas, miles, plural, duracionMeses, fechaLegible } from './calendario.js';
 import {
   hoyLocal, validarFecha, listarFechas, guardarFecha, borrarFecha, refrescarCopia, leerCopia,
 } from './datos.js';
@@ -40,11 +40,6 @@ export function detalleInicio(almacen, hoy = hoyLocal()) {
   if (n === null) return proxTexto || 'Agreguen sus fechas';
   const dias = `${miles(n)} ${n === 1 ? 'día' : 'días'}`;
   return proxTexto ? `${dias} · ${proxTexto}` : dias;
-}
-
-function fechaLegible(dia) {
-  const [a, m, d] = dia.split('-').map(Number);
-  return new Date(a, m - 1, d).toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
 export function crearPantallasFechas({ hoy = hoyLocal } = {}) {
