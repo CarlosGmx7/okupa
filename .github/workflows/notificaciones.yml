@@ -1,4 +1,4 @@
-# Notificaciones de Okupa: cada 15 minutos vacía la bandeja de avisos y manda los recordatorios del Diario.
+# Notificaciones de Okupa: cada 15 minutos vacía la bandeja de avisos y manda los recordatorios del Diario y los avisos de fechas.
 # Necesita el secreto FIREBASE_CUENTA_SERVICIO (ver LEEME.md → Notificaciones). Sin él, termina sin hacer nada.
 name: Notificaciones
 

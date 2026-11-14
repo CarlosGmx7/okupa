@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { fechaBogota, franjaDe, franjasPendientes, textoDe, vencido, destinatarios, quiereRecordatorio } from './logica.mjs';
+import { fechaBogota, franjaDe, franjasPendientes, textoDe, vencido, destinatarios, quiereRecordatorio, fechaEnZona, momentoDeFranja } from './logica.mjs';
 
 test('franjaDe redondea hacia abajo a 15 min en UTC', () => {
   assert.equal(franjaDe(new Date('2026-11-13T01:07:00Z')), '01:00');
@@ -57,4 +57,14 @@ test('quiereRecordatorio: solo si está encendido, no se mandó hoy y no ha resp
   assert.equal(quiereRecordatorio({ ...d, ultimoRecordatorio: '2026-11-13' }, '2026-11-13', false), false);
   assert.equal(quiereRecordatorio(d, '2026-11-13', true), false);
   assert.equal(quiereRecordatorio({ ...d, avisos: { recordatorio: false } }, '2026-11-13', false), false);
+});
+
+test('fechaEnZona da la fecha local de la zona', () => {
+  assert.equal(fechaEnZona(new Date('2026-03-10T03:00:00Z'), 'America/Bogota'), '2026-03-09');
+  assert.equal(fechaEnZona(new Date('2026-03-10T13:00:00Z'), 'America/Bogota'), '2026-03-10');
+});
+
+test('momentoDeFranja: la franja más reciente con esa hora UTC', () => {
+  assert.equal(momentoDeFranja('13:00', new Date('2026-03-10T13:05:00Z')).toISOString(), '2026-03-10T13:00:00.000Z');
+  assert.equal(momentoDeFranja('23:45', new Date('2026-03-11T00:10:00Z')).toISOString(), '2026-03-10T23:45:00.000Z');
 });

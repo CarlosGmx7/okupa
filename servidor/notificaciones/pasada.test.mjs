@@ -109,3 +109,61 @@ test('recordatorio de una franja saltada sale en la pasada siguiente', async () 
   assert.equal(m.enviados.length, 1);
   assert.equal((await db.doc('sistema/notificaciones').get()).data().ultimaFranja, '2026-11-14T01:00:00.000Z');
 });
+
+// --- Avisos de fechas ---
+const AHORA_F = new Date('2026-03-10T13:05:00Z'); // 8:05 en Bogotá; franja 13:00
+const dispF = (uid, lugar, extra = {}) => disp(uid, lugar, { franjaFechas: '13:00', franja: '09:00', ...extra });
+const otra = { tipo: 'otra', fecha: '2020-03-10', nombre: 'Mudanza' };
+const base = { 'sistema/notificaciones': { ultimaFranja: '2026-03-10T12:45:00.000Z' } };
+
+test('fechas: manda las fechas del día a los dos y marca ultimoFechas', async () => {
+  await sembrar({ ...base, 'parejas/K7PQ2M': pareja, 'dispositivos/da': dispF('u1', 'a'), 'dispositivos/db': dispF('u2', 'b'),
+    'parejas/K7PQ2M/fechas/otra_1': otra });
+  const m = mandador();
+  const r = await pasada({ db, mandar: m.mandar, ahora: AHORA_F });
+  assert.equal(m.enviados.length, 2);
+  for (const e of m.enviados) {
+    assert.equal(e.data.tipo, 'fechas');
+    assert.equal(e.data.ruta, '#/fechas');
+    assert.equal(e.data.titulo, 'Hoy: Mudanza');
+  }
+  assert.equal(r.fechas, 2);
+  for (const id of ['da', 'db']) assert.equal((await db.doc(`dispositivos/${id}`).get()).data().ultimoFechas, '2026-03-10');
+});
+
+test('fechas: no repite si ultimoFechas ya es hoy', async () => {
+  await sembrar({ ...base, 'parejas/K7PQ2M': pareja, 'dispositivos/da': dispF('u1', 'a', { ultimoFechas: '2026-03-10' }),
+    'parejas/K7PQ2M/fechas/otra_1': otra });
+  const m = mandador();
+  await pasada({ db, mandar: m.mandar, ahora: AHORA_F });
+  assert.deepEqual(m.enviados, []);
+});
+
+test('fechas: respeta avisos.fechas false y registros sin franjaFechas', async () => {
+  await sembrar({ ...base, 'parejas/K7PQ2M': pareja,
+    'dispositivos/da': dispF('u1', 'a', { avisos: { ...avisosOn, fechas: false } }),
+    'dispositivos/db': disp('u2', 'b'),
+    'parejas/K7PQ2M/fechas/otra_1': otra });
+  const m = mandador();
+  await pasada({ db, mandar: m.mandar, ahora: AHORA_F });
+  assert.deepEqual(m.enviados, []);
+});
+
+test('fechas: sin nada que avisar no escribe ultimoFechas', async () => {
+  await sembrar({ ...base, 'parejas/K7PQ2M': pareja, 'dispositivos/da': dispF('u1', 'a') });
+  const m = mandador();
+  await pasada({ db, mandar: m.mandar, ahora: AHORA_F });
+  assert.deepEqual(m.enviados, []);
+  assert.equal((await db.doc('dispositivos/da').get()).data().ultimoFechas, undefined);
+});
+
+test('fechas: semana antes del cumple solo al otro', async () => {
+  await sembrar({ 'sistema/notificaciones': { ultimaFranja: '2026-03-03T12:45:00.000Z' }, 'parejas/K7PQ2M': pareja,
+    'dispositivos/da': dispF('u1', 'a'), 'dispositivos/db': dispF('u2', 'b'),
+    'parejas/K7PQ2M/fechas/cumple_a': { tipo: 'cumple', de: 'a', fecha: '1995-03-10' } });
+  const m = mandador();
+  await pasada({ db, mandar: m.mandar, ahora: new Date('2026-03-03T13:05:00Z') });
+  assert.equal(m.enviados.length, 1);
+  assert.equal(m.enviados[0].token, 't-b');
+  assert.equal(m.enviados[0].data.titulo, 'En una semana: cumpleaños de Carlos');
+});

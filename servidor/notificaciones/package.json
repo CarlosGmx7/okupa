@@ -2,7 +2,7 @@
   "name": "okupa-notificaciones",
   "private": true,
   "type": "module",
-  "description": "Envía las notificaciones de Okupa desde GitHub Actions (bandeja de avisos y recordatorios del Diario).",
+  "description": "Envía las notificaciones de Okupa desde GitHub Actions (bandeja de avisos y recordatorios del Diario y avisos de fechas).",
   "scripts": {
     "test": "node --test logica.test.mjs",
     "test:pasada": "node ../../firebase/emuladores.mjs exec \"node --test ../servidor/notificaciones/pasada.test.mjs\"",
