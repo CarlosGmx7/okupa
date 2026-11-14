@@ -1058,3 +1058,36 @@ ul.chips { padding: 0; margin: 0; list-style: none; }
 .capsula-contador { align-self: flex-end; }
 .capsula-carta { font-family: var(--serif); font-size: 1.125rem; line-height: 1.6; margin: 0 0 20px; overflow-wrap: anywhere; }
 .capsula-parrafo { white-space: pre-wrap; margin: 0 0 1em; }
+
+/* ---------- ¿Quién es más probable? ---------- */
+.probable { min-width: 0; }
+.temas-probable { border: 0; padding: 0; margin: 0 0 16px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.temas-probable legend { font-size: 0.875rem; color: var(--tenue); padding: 0; margin-bottom: 8px; }
+.tema-probable {
+  display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 8px 14px; border-radius: 18px; cursor: pointer;
+  border: 1.5px solid var(--dorado-suave); background: rgba(0, 0, 0, .2);
+}
+.tema-probable:has(input:checked) { background: var(--vino); border-color: var(--dorado); }
+.tema-probable:has(input:disabled) { opacity: .45; cursor: default; }
+.tema-probable input { width: 20px; height: 20px; flex: none; accent-color: var(--dorado); }
+.tema-nombre { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.tema-sin { font-size: 0.8125rem; color: var(--tenue); text-align: right; }
+.probable-prefijo { margin: 8px 0 0; font-size: 0.875rem; color: var(--tenue); }
+.probable-frase { font-family: var(--serif); font-size: clamp(1.375rem, calc(6vw * var(--escala-letra)), 1.75rem); line-height: 1.25; margin: 4px 0 18px; overflow-wrap: anywhere; }
+.probable .pregunta-juego { min-width: 0; padding: 16px; }
+.opciones-voto { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.opciones-voto .opcion-juego { padding: 10px 6px; hyphens: auto; }
+.opciones-voto .opcion-juego { overflow-wrap: anywhere; }
+.opciones-voto .opcion-juego:last-child { grid-column: 1 / -1; }
+.revelado-votos { list-style: none; padding: 0; margin: 0 0 12px; display: flex; flex-direction: column; gap: 8px; }
+.revelado-fila { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 10px 14px; border-radius: 16px; background: rgba(0, 0, 0, .2); border: 1px solid var(--dorado-suave); }
+.revelado-nombre { color: var(--tenue); overflow-wrap: anywhere; min-width: 0; }
+.revelado-voto { font-family: var(--serif); font-size: 1.125rem; text-align: right; overflow-wrap: anywhere; min-width: 0; }
+.coincidencia { text-align: center; font-family: var(--serif); font-size: 1.375rem; margin: 6px 0 14px; }
+.coincidencia.si { color: var(--dorado); }
+.coincidencia.no { color: var(--tenue); }
+.resumen-eligieron { list-style: none; padding: 0; margin: 14px 0 20px; display: flex; flex-direction: column; gap: 6px; }
+.frases-propias .fila-frase { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-radius: 16px; border: 1px solid var(--dorado-suave); background: var(--superficie); }
+.fila-frase-texto { min-width: 0; overflow-wrap: anywhere; }
+.vacio-lista { color: var(--tenue); padding: 8px 0; }
+.probable .campo input { width: 100%; }

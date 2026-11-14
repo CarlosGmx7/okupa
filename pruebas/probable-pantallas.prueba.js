@@ -1,0 +1,225 @@
+import { prueba, igual, verdadero } from './corredor.js';
+import { crearMundoFalso } from './nube-falsa.js';
+import { almacenEnMemoria } from './pareja.prueba.js';
+import { crearPareja, unirse as unirsePareja } from '../js/nucleo/pareja.js';
+import { crearPantallasProbable } from '../js/modulos/probable/pantallas.js';
+import { crearSala, unirse, votar, rutaSala, leerVistas, crearPropia, listarPropias } from '../js/modulos/probable/sala.js';
+
+const esperar = (ms = 0) => new Promise((r) => setTimeout(r, ms));
+async function hasta(cond, ms = 2000) {
+  for (let t = 0; t < ms && !cond(); t += 20) await esperar(20);
+  verdadero(cond(), 'no llegó a tiempo');
+}
+const boton = (div, texto) => [...div.querySelectorAll('button')].find((b) => b.textContent.trim() === texto);
+const salir = () => window.dispatchEvent(new HashChangeEvent('hashchange'));
+const BANCO = Array.from({ length: 8 }, (_, i) => ({ id: `div-${String(i + 1).padStart(3, '0')}`, tema: 'divertidas', texto: `hace algo raro ${i + 1}` }));
+
+async function parejaProbable({ banco = BANCO } = {}) {
+  const mundo = crearMundoFalso();
+  const almA = almacenEnMemoria();
+  const almB = almacenEnMemoria();
+  const { codigo } = await crearPareja(mundo.nube('u1'), almA, { nombre: 'Carlos' });
+  await unirsePareja(mundo.nube('u2'), almB, { codigo, nombre: 'Sofi' });
+  let t = 0;
+  const reloj = { ahora: () => t, adelantar: (ms) => { t += ms; } };
+  const celular = (uid, almacen, lugar) => {
+    const div = document.createElement('div');
+    const rutas = [];
+    const pantallas = crearPantallasProbable({ cargar: async () => banco, ahora: reloj.ahora, ms: { sondeo: 30, revisar: 20 } });
+    const ctx = { almacen, nube: async () => mundo.nube(uid), ir: (r) => rutas.push(r), refrescar: () => {} };
+    return { div, ctx, rutas, pantallas, nube: mundo.nube(uid), pareja: { codigo, lugar } };
+  };
+  return { reloj, a: celular('u1', almA, 'a'), b: celular('u2', almB, 'b') };
+}
+const sinFeos = (div) => verdadero(!/null|undefined/.test(div.textContent), div.textContent);
+const radio = (div, tema) => div.querySelector(`input[name="tema"][value="${tema}"]`);
+
+async function enJuego(largo = 5) {
+  const p = await parejaProbable();
+  await p.a.pantallas.inicio(p.a.div, {}, p.a.ctx);
+  await hasta(() => boton(p.a.div, 'Abrir sala'));
+  [...p.a.div.querySelectorAll('.chips button')].find((b) => b.textContent === String(largo)).click();
+  boton(p.a.div, 'Abrir sala').click();
+  await hasta(() => p.a.rutas.length > 0);
+  const id = p.a.rutas[0].split('/')[2];
+  salir();
+  await p.b.pantallas.inicio(p.b.div, {}, p.b.ctx);
+  await hasta(() => boton(p.b.div, 'Unirme'));
+  boton(p.b.div, 'Unirme').click();
+  await hasta(() => p.b.rutas.length > 0);
+  salir();
+  await p.a.pantallas.juego(p.a.div, { id }, p.a.ctx);
+  await p.b.pantallas.juego(p.b.div, { id }, p.b.ctx);
+  await hasta(() => boton(p.a.div, 'Sofi') && boton(p.b.div, 'Carlos'));
+  return { ...p, id };
+}
+
+prueba('probable pantallas: inicio muestra temas con conteo y deshabilita «Nuestras frases» vacío', async () => {
+  const { a } = await parejaProbable();
+  await a.pantallas.inicio(a.div, {}, a.ctx);
+  await hasta(() => boton(a.div, 'Abrir sala'));
+  verdadero(a.div.textContent.includes('¿Quién es más probable?'));
+  verdadero(a.div.textContent.includes('8 sin salir'), a.div.textContent);
+  verdadero(radio(a.div, 'nuestras').disabled, 'nuestras vacío deshabilitado');
+  verdadero(radio(a.div, 'romanticas').disabled, 'tema sin frases deshabilitado');
+  verdadero(radio(a.div, 'divertidas').checked && !radio(a.div, 'divertidas').disabled);
+  igual([...a.div.querySelectorAll('.chips button')].map((b) => [b.textContent, b.getAttribute('aria-pressed')]), [['5', 'false'], ['10', 'true'], ['20', 'false']]);
+  verdadero(a.div.querySelector('a[href="#/probable/frases"]').textContent.includes('Nuestras frases'));
+  sinFeos(a.div);
+  salir();
+});
+
+prueba('probable pantallas: abrir sala manda a la sala y el otro ve «te está esperando» y se une', async () => {
+  const p = await parejaProbable();
+  await p.a.pantallas.inicio(p.a.div, {}, p.a.ctx);
+  await hasta(() => boton(p.a.div, 'Abrir sala'));
+  [...p.a.div.querySelectorAll('.chips button')].find((b) => b.textContent === '5').click();
+  boton(p.a.div, 'Abrir sala').click();
+  await hasta(() => p.a.rutas.length > 0);
+  const id = p.a.rutas[0].split('/')[2];
+  igual(p.a.rutas, [`probable/jugar/${id}`]);
+  igual((await p.a.nube.leer(rutaSala(p.a.pareja.codigo, id))).frases.length, 5);
+  salir();
+  await p.b.pantallas.inicio(p.b.div, {}, p.b.ctx);
+  await hasta(() => p.b.div.textContent.includes('Carlos te está esperando'));
+  boton(p.b.div, 'Unirme').click();
+  await hasta(() => p.b.rutas.length > 0);
+  igual(p.b.rutas, [`probable/jugar/${id}`]);
+  salir();
+});
+
+prueba('probable pantallas: el anfitrión espera al otro y puede cancelar', async () => {
+  const p = await parejaProbable();
+  const id = await crearSala(p.a.nube, p.a.pareja, { tema: 'divertidas', frases: BANCO.slice(0, 5) });
+  await p.a.pantallas.juego(p.a.div, { id }, p.a.ctx);
+  await hasta(() => p.a.div.textContent.includes('Esperando a Sofi…'));
+  boton(p.a.div, 'Cancelar').click();
+  await hasta(async () => p.a.rutas.length > 0);
+  igual((await p.a.nube.leer(rutaSala(p.a.pareja.codigo, id))).estado, 'cancelada');
+  salir();
+});
+
+prueba('probable pantallas: nadie ve el voto del otro hasta que los dos votan; luego «¡Coincidieron!»', async () => {
+  const { a, b } = await enJuego(5);
+  verdadero(a.div.textContent.includes('Frase 1 de 5') && a.div.textContent.includes('¿Quién es más probable que…'));
+  igual([...a.div.querySelectorAll('.opcion-juego')].map((x) => x.textContent), ['Carlos', 'Sofi', 'Los dos']);
+  boton(a.div, 'Sofi').click();
+  await hasta(() => a.div.textContent.includes('Esperando a Sofi…'));
+  await esperar(150);
+  verdadero(!b.div.textContent.includes('Coincidieron'), 'b no ve nada del voto de a');
+  verdadero(!a.div.querySelector('.revelado-votos'), 'a no revela antes de tiempo');
+  boton(b.div, 'Sofi').click();
+  await hasta(() => a.div.textContent.includes('¡Coincidieron!') && b.div.textContent.includes('¡Coincidieron!'));
+  for (const c of [a, b]) {
+    const filas = [...c.div.querySelectorAll('.revelado-fila')].map((f) => f.textContent);
+    igual(filas, ['CarlosSofi', 'SofiSofi']);
+  }
+  sinFeos(a.div); sinFeos(b.div);
+  salir();
+});
+
+prueba('probable pantallas: votos distintos dicen «No coincidieron»; Siguiente avanza en los dos y una sola vez', async () => {
+  const { a, b, id } = await enJuego(5);
+  boton(a.div, 'Carlos').click();
+  boton(b.div, 'Los dos').click();
+  await hasta(() => a.div.textContent.includes('No coincidieron') && b.div.textContent.includes('No coincidieron'));
+  verdadero(a.div.textContent.includes('Los dos'));
+  boton(a.div, 'Siguiente').click();
+  boton(b.div, 'Siguiente').click();
+  await hasta(() => a.div.textContent.includes('Frase 2 de 5') && b.div.textContent.includes('Frase 2 de 5'));
+  igual((await a.nube.leer(rutaSala(a.pareja.codigo, id))).indice, 1);
+  salir();
+});
+
+prueba('probable pantallas: resumen al terminar, cierra la sala una vez y anota las vistas', async () => {
+  const { a, b, id } = await enJuego(5);
+  for (let i = 0; i < 5; i++) {
+    await hasta(() => boton(a.div, 'Sofi') && boton(b.div, 'Sofi'));
+    boton(a.div, 'Sofi').click();
+    boton(b.div, i % 2 ? 'Carlos' : 'Sofi').click();
+    await hasta(() => boton(a.div, i === 4 ? 'Ver resumen' : 'Siguiente') && boton(b.div, i === 4 ? 'Ver resumen' : 'Siguiente'));
+    boton(a.div, i === 4 ? 'Ver resumen' : 'Siguiente').click();
+    if (i < 4) await hasta(() => a.div.textContent.includes(`Frase ${i + 2} de 5`) && b.div.textContent.includes(`Frase ${i + 2} de 5`));
+  }
+  await hasta(() => a.div.textContent.includes('Coincidieron en 3 de 5') && b.div.textContent.includes('Coincidieron en 3 de 5'));
+  verdadero(a.div.textContent.includes('A Carlos lo eligieron 2 veces'), a.div.textContent);
+  verdadero(a.div.textContent.includes('A Sofi lo eligieron 5 veces'), a.div.textContent);
+  verdadero([...a.div.querySelectorAll('a')].some((x) => x.textContent === 'Otra ronda' && x.getAttribute('href') === '#/probable'));
+  sinFeos(a.div);
+  let vistas;
+  for (let i = 0; i < 50 && !vistas?.divertidas?.length; i++) { vistas = await leerVistas(a.nube, a.pareja); await esperar(20); }
+  igual(vistas.divertidas.length, 5);
+  salir();
+});
+
+prueba('probable pantallas: sin señal del otro más de 20 s muestra «se salió» y Salir cancela', async () => {
+  const { a, b, reloj, id } = await enJuego(5);
+  salir(); // el celular de Sofi se apaga: ya no manda señal
+  b.div.replaceChildren();
+  await a.pantallas.juego(a.div, { id }, a.ctx);
+  reloj.adelantar(21000);
+  await hasta(() => a.div.textContent.includes('Sofi se salió'));
+  boton(a.div, 'Salir').click();
+  let estado;
+  for (let i = 0; i < 50 && estado !== 'cancelada'; i++) { estado = (await a.nube.leer(rutaSala(a.pareja.codigo, id))).estado; await esperar(20); }
+  igual(estado, 'cancelada');
+  await hasta(() => a.div.textContent.includes('se canceló'));
+  salir();
+});
+
+prueba('probable pantallas: Salir con la sala ya cerrada no la toca', async () => {
+  const { a, reloj, id } = await enJuego(5);
+  reloj.adelantar(21000);
+  await hasta(() => a.div.textContent.includes('Sofi se salió'));
+  await a.nube.escribir(rutaSala(a.pareja.codigo, id), { estado: 'terminada' }, { combinar: true });
+  boton(a.div, 'Salir').click();
+  await esperar(150);
+  igual((await a.nube.leer(rutaSala(a.pareja.codigo, id))).estado, 'terminada');
+  salir();
+});
+
+prueba('probable pantallas: frases propias se agregan, se validan y se borran', async () => {
+  const { a } = await parejaProbable();
+  await a.pantallas.frases(a.div, {}, a.ctx);
+  await hasta(() => boton(a.div, 'Agregar'));
+  verdadero(a.div.textContent.includes('Nuestras frases') && a.div.textContent.includes('¿Quién es más probable que…'));
+  verdadero(a.div.textContent.includes('Todavía no tienen frases propias.'));
+  igual(a.div.querySelector('input[type="text"]').getAttribute('maxlength'), '120');
+  boton(a.div, 'Agregar').click();
+  await hasta(() => a.div.querySelector('p.aviso').textContent.length > 0);
+  a.div.querySelector('input[type="text"]').value = 'se quede dormido en el cine';
+  boton(a.div, 'Agregar').click();
+  await hasta(() => a.div.querySelectorAll('.fila-frase').length === 1);
+  verdadero(a.div.textContent.includes('se quede dormido en el cine'));
+  igual((await listarPropias(a.nube, a.pareja)).length, 1);
+  const real = globalThis.confirm;
+  globalThis.confirm = () => false;
+  boton(a.div, 'Borrar').click();
+  await esperar(100);
+  igual(a.div.querySelectorAll('.fila-frase').length, 1);
+  globalThis.confirm = () => true;
+  boton(a.div, 'Borrar').click();
+  await hasta(() => a.div.textContent.includes('Todavía no tienen frases propias.'));
+  globalThis.confirm = real;
+  igual((await listarPropias(a.nube, a.pareja)).length, 0);
+  sinFeos(a.div);
+  salir();
+});
+
+prueba('probable pantallas: con frases propias el tema «Nuestras frases» se habilita y cuenta', async () => {
+  const { a } = await parejaProbable();
+  await crearPropia(a.nube, a.pareja, 'cante en la ducha');
+  await crearPropia(a.nube, a.pareja, 'olvide las llaves otra vez');
+  await a.pantallas.inicio(a.div, {}, a.ctx);
+  await hasta(() => boton(a.div, 'Abrir sala'));
+  verdadero(!radio(a.div, 'nuestras').disabled);
+  verdadero(radio(a.div, 'nuestras').closest('label').textContent.includes('2 sin salir'));
+  radio(a.div, 'nuestras').checked = true; // los radios sueltos del documento no disparan change con click()
+  radio(a.div, 'nuestras').dispatchEvent(new Event('change'));
+  [...a.div.querySelectorAll('.chips button')].find((b) => b.textContent === '10').click();
+  boton(a.div, 'Abrir sala').click();
+  await hasta(() => a.rutas.length > 0);
+  const s = await a.nube.leer(rutaSala(a.pareja.codigo, a.rutas[0].split('/')[2]));
+  igual([s.tema, s.frases.length], ['nuestras', 2]);
+  salir();
+});
