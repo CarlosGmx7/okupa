@@ -115,6 +115,14 @@ describe('avisos (bandeja)', () => {
     await assertFails(aviso('u1', 'diario_2026-11-13_a', nota({ creado: 5 })));
     await assertFails(aviso('u3', 'diario_2026-11-13_a', nota()));
   });
+  it('aviso de probable: id con sala válida sí, otro no', async () => {
+    await assertSucceeds(aviso('u1', 'probable_q-abcd', nota({ tipo: 'probable' })));
+    await assertFails(aviso('u1', 'probable_x', nota({ tipo: 'probable' })));
+    await assertFails(aviso('u1', 'probable_q-abcd', nota({ tipo: 'trivia' })));
+    await assertFails(aviso('u1', 'probable_q-ab', nota({ tipo: 'probable' })));
+    await assertFails(aviso('u1', 'probable_q-ABCD', nota({ tipo: 'probable' })));
+    await assertFails(aviso('u1', 'probable_q-abcd', nota({ tipo: 'probable', de: 'b' })));
+  });
   it('nadie lee, lista, cambia ni borra la bandeja', async () => {
     await sembrar({ [`${RUTA}/avisos/diario_2026-11-13_a`]: { tipo: 'diario', de: 'a', creado: 1 } });
     for (const uid of ['u1', 'u2']) {
