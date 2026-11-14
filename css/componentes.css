@@ -1051,3 +1051,10 @@ ul.chips { padding: 0; margin: 0; list-style: none; }
 .aviso:empty { display: none; }
 .fila-fecha .fila-titulo, .fila-fecha .fila-detalle { display: block; }
 .lista + .titulo-parte { margin-top: 28px; }
+
+/* ---------- Cápsula del tiempo ---------- */
+.fila-carta .fila-titulo, .fila-carta .fila-detalle { display: block; overflow-wrap: anywhere; }
+.capsula-atajos { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.capsula-contador { align-self: flex-end; }
+.capsula-carta { font-family: var(--serif); font-size: 1.125rem; line-height: 1.6; margin: 0 0 20px; overflow-wrap: anywhere; }
+.capsula-parrafo { white-space: pre-wrap; margin: 0 0 1em; }
