@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { after, before, beforeEach, describe, it } from 'node:test';
 import { assertFails, assertSucceeds, initializeTestEnvironment } from '@firebase/rules-unit-testing';
-import { deleteDoc, doc, getDoc, setDoc } from 'firebase/firestore';
+import { collection, deleteDoc, doc, getDoc, getDocs, setDoc } from 'firebase/firestore';
 
 const CODIGO = 'K7PQ2M';
 const RUTA = `parejas/${CODIGO}`;
@@ -45,6 +45,11 @@ describe('fechas', () => {
     await assertFails(getDoc(d('u9', 'fechas/inicio')));
     await assertFails(setDoc(d('u9', 'fechas/f-zzzz1'), otra));
     await assertFails(deleteDoc(d('u9', 'fechas/inicio')));
+  });
+  it('un miembro lista las fechas; un extraño no', async () => {
+    await sembrar({ [`${RUTA}/fechas/inicio`]: inicio });
+    await assertSucceeds(getDocs(collection(db('u2'), `${RUTA}/fechas`)));
+    await assertFails(getDocs(collection(db('u9'), `${RUTA}/fechas`)));
   });
   it('rechaza: id y tipo que no cuadran, fecha mal escrita, nombre malo y claves extra', async () => {
     const malos = [

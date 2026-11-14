@@ -66,8 +66,9 @@ describe('dispositivos', () => {
   });
   it('u1 no cambia ni borra ultimoRecordatorio', async () => {
     await sembrar({ 'dispositivos/d1': registro({ actualizado: 1, ultimoRecordatorio: '2026-11-12' }) });
-    await assertFails(setDoc(disp('u1'), { ultimoRecordatorio: '2026-11-13' }, { merge: true }));
-    await assertFails(updateDoc(disp('u1'), { ultimoRecordatorio: deleteField() }));
+    await assertFails(setDoc(disp('u1'), { ultimoRecordatorio: '2026-11-13', actualizado: serverTimestamp() }, { merge: true }));
+    await assertFails(updateDoc(disp('u1'), { ultimoRecordatorio: deleteField(), actualizado: serverTimestamp() }));
+    await assertSucceeds(setDoc(disp('u1'), { token: 'tok-9', actualizado: serverTimestamp() }, { merge: true }));
   });
   it('acepta registro viejo sin fechas ni franjaFechas', async () => {
     await assertSucceeds(setDoc(disp('u1'), registro()));
@@ -85,8 +86,9 @@ describe('dispositivos', () => {
   it('el dueño no puede poner ni cambiar ultimoFechas', async () => {
     await assertFails(setDoc(disp('u1'), registro({ ultimoFechas: '2026-11-13' })));
     await sembrar({ 'dispositivos/d1': registro({ actualizado: 1, ultimoFechas: '2026-11-12' }) });
-    await assertFails(setDoc(disp('u1'), { ultimoFechas: '2026-11-13' }, { merge: true }));
-    await assertFails(updateDoc(disp('u1'), { ultimoFechas: deleteField() }));
+    await assertFails(setDoc(disp('u1'), { ultimoFechas: '2026-11-13', actualizado: serverTimestamp() }, { merge: true }));
+    await assertFails(updateDoc(disp('u1'), { ultimoFechas: deleteField(), actualizado: serverTimestamp() }));
+    await assertSucceeds(setDoc(disp('u1'), { token: 'tok-9', actualizado: serverTimestamp() }, { merge: true }));
     await assertSucceeds(setDoc(disp('u1'), { franjaFechas: '13:15', actualizado: serverTimestamp() }, { merge: true }));
   });
   it('u2 no se apropia del registro de u1', async () => {
