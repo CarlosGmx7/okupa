@@ -2,6 +2,7 @@
 // `db` es Firestore de firebase-admin; `mandar(mensajes)` envía y responde [{ ok, codigo }] en orden.
 import { fechaBogota, fechaEnZona, momentoDeFranja, franjasPendientes, textoDe, vencido, destinatarios, quiereRecordatorio, registroVigente } from './logica.mjs';
 import { notificacionDelDia } from '../../js/modulos/fechas/calendario.js';
+import { avisosCapsulas, unirAvisos } from '../../js/modulos/capsula/logica.js';
 
 const MAX_NOTAS = 500;
 // Solo errores que dicen que el token ya no sirve. 'invalid-argument' no: puede ser un error del mensaje
@@ -16,6 +17,7 @@ export async function pasada({ db, mandar, ahora = new Date() }) {
   const parejas = new Map();
   const dispositivos = new Map();
   const fechasDe = new Map();
+  const capsulasDe = new Map();
 
   const leerPareja = async (codigo) => {
     if (!parejas.has(codigo)) {
@@ -30,6 +32,14 @@ export async function pasada({ db, mandar, ahora = new Date() }) {
       fechasDe.set(codigo, fotos.docs.map((d) => ({ id: d.id, ...d.data() })));
     }
     return fechasDe.get(codigo);
+  };
+  // Solo metadatos de las cartas (de y abreEl): el texto nunca se lee aquí.
+  const leerCapsulas = async (codigo) => {
+    if (!capsulasDe.has(codigo)) {
+      const fotos = await db.collection(`parejas/${codigo}/capsulas`).select('de', 'abreEl').get();
+      capsulasDe.set(codigo, fotos.docs.map((d) => ({ id: d.id, ...d.data() })));
+    }
+    return capsulasDe.get(codigo);
   };
   const dispositivosDe = async (codigo) => {
     if (!dispositivos.has(codigo)) {
@@ -101,9 +111,12 @@ export async function pasada({ db, mandar, ahora = new Date() }) {
       if (datos.ultimoFechas === diaLocal) continue;
       const parejaDoc = await leerPareja(datos.pareja);
       if (!registroVigente(datos, parejaDoc)) { await olvidar(d.id); continue; }
-      const aviso = notificacionDelDia(await leerFechas(datos.pareja), diaLocal, datos.lugar, parejaDoc.nombres);
+      const aviso = unirAvisos(
+        notificacionDelDia(await leerFechas(datos.pareja), diaLocal, datos.lugar, parejaDoc.nombres),
+        avisosCapsulas(await leerCapsulas(datos.pareja), diaLocal, datos.lugar, parejaDoc.nombres),
+      );
       if (!aviso) continue;
-      const llegaron = await enviarA([{ id: d.id, token: datos.token }], { ...aviso, ruta: '#/fechas', tipo: 'fechas' });
+      const llegaron = await enviarA([{ id: d.id, token: datos.token }], { ...aviso, tipo: 'fechas' });
       if (llegaron) { await d.ref.update({ ultimoFechas: diaLocal }); resumen.fechas += llegaron; }
     }
   }

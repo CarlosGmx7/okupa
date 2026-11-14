@@ -185,3 +185,42 @@ test('fechas: un registro cuyo uid ya no es del lugar se borra y no recibe nada'
   assert.deepEqual(m.enviados.map((e) => e.token), ['t-a']);
   assert.equal(await existe('dispositivos/viejo'), false);
 });
+
+// --- Cápsula del tiempo: aviso el día de abrir la carta ---
+const cartaDeA = { de: 'a', abreEl: '2026-03-10', abreMs: 0, creadaMs: 0 };
+
+test('capsula: la carta de a abre hoy y solo el celular de b recibe el aviso', async () => {
+  await sembrar({ ...base, 'parejas/K7PQ2M': pareja, 'dispositivos/da': dispF('u1', 'a'), 'dispositivos/db': dispF('u2', 'b'),
+    'parejas/K7PQ2M/capsulas/c-abcd1': cartaDeA });
+  const m = mandador();
+  const r = await pasada({ db, mandar: m.mandar, ahora: AHORA_F });
+  assert.deepEqual(m.enviados, [{ token: 't-b', data: { titulo: 'Hoy puedes abrir la carta de Carlos 💌', texto: 'Entra a leerla.', ruta: '#/capsula', tipo: 'fechas' } }]);
+  assert.equal(r.fechas, 1);
+  assert.equal((await db.doc('dispositivos/db').get()).data().ultimoFechas, '2026-03-10');
+  assert.equal((await db.doc('dispositivos/da').get()).data().ultimoFechas, undefined);
+});
+
+test('capsula: con una fecha el mismo día llega una sola notificación unida', async () => {
+  await sembrar({ ...base, 'parejas/K7PQ2M': pareja, 'dispositivos/db': dispF('u2', 'b'),
+    'parejas/K7PQ2M/capsulas/c-abcd1': cartaDeA, 'parejas/K7PQ2M/fechas/otra_1': otra });
+  const m = mandador();
+  await pasada({ db, mandar: m.mandar, ahora: AHORA_F });
+  assert.deepEqual(m.enviados, [{ token: 't-b', data: { titulo: 'Hoy puedes abrir la carta de Carlos 💌', texto: 'Hoy: Mudanza', ruta: '#/capsula', tipo: 'fechas' } }]);
+});
+
+test('capsula: avisos.fechas false no recibe nada', async () => {
+  await sembrar({ ...base, 'parejas/K7PQ2M': pareja, 'dispositivos/db': dispF('u2', 'b', { avisos: { ...avisosOn, fechas: false } }),
+    'parejas/K7PQ2M/capsulas/c-abcd1': cartaDeA });
+  const m = mandador();
+  await pasada({ db, mandar: m.mandar, ahora: AHORA_F });
+  assert.deepEqual(m.enviados, []);
+});
+
+test('capsula: sin cartas ni fechas no manda ni escribe ultimoFechas', async () => {
+  await sembrar({ ...base, 'parejas/K7PQ2M': pareja, 'dispositivos/db': dispF('u2', 'b'),
+    'parejas/K7PQ2M/capsulas/c-abcd2': { ...cartaDeA, abreEl: '2026-03-11' } });
+  const m = mandador();
+  await pasada({ db, mandar: m.mandar, ahora: AHORA_F });
+  assert.deepEqual(m.enviados, []);
+  assert.equal((await db.doc('dispositivos/db').get()).data().ultimoFechas, undefined);
+});
