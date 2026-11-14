@@ -8,9 +8,14 @@ const VIGENCIA_GENERAL_MS = 24 * 60 * 60 * 1000;
 const FORMATO_BOGOTA = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Bogota', year: 'numeric', month: '2-digit', day: '2-digit' });
 export const fechaBogota = (fecha) => FORMATO_BOGOTA.format(fecha);
 
-// Fecha 'YYYY-MM-DD' de un instante en la zona horaria dada.
-export const fechaEnZona = (fecha, zona) =>
-  new Intl.DateTimeFormat('en-CA', { timeZone: zona, year: 'numeric', month: '2-digit', day: '2-digit' }).format(fecha);
+// Fecha 'YYYY-MM-DD' de un instante en la zona horaria dada; una zona inválida cae en Bogotá (nunca lanza).
+export function fechaEnZona(fecha, zona) {
+  try {
+    return new Intl.DateTimeFormat('en-CA', { timeZone: zona, year: 'numeric', month: '2-digit', day: '2-digit' }).format(fecha);
+  } catch {
+    return fechaBogota(fecha);
+  }
+}
 
 const inicioFranja = (ms) => Math.floor(ms / QUINCE_MIN) * QUINCE_MIN;
 const comoFranja = (ms) => new Date(ms).toISOString().slice(11, 16);

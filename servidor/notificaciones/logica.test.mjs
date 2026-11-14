@@ -68,3 +68,10 @@ test('momentoDeFranja: la franja más reciente con esa hora UTC', () => {
   assert.equal(momentoDeFranja('13:00', new Date('2026-03-10T13:05:00Z')).toISOString(), '2026-03-10T13:00:00.000Z');
   assert.equal(momentoDeFranja('23:45', new Date('2026-03-11T00:10:00Z')).toISOString(), '2026-03-10T23:45:00.000Z');
 });
+
+test('fechaEnZona con zona inválida usa Bogotá y no lanza', () => {
+  const t = new Date('2026-03-10T03:00:00Z');
+  assert.equal(fechaEnZona(t, 'No/Existe'), '2026-03-09');
+  assert.equal(fechaEnZona(t, undefined), '2026-03-09');
+  assert.equal(fechaEnZona(t, ''), '2026-03-09');
+});

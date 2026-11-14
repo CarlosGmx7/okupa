@@ -1,4 +1,4 @@
-// Una pasada de notificaciones: vacía la bandeja de avisos manda los recordatorios del Diario y los avisos de fechas.
+// Una pasada de notificaciones: vacía la bandeja de avisos, manda los recordatorios del Diario y los avisos de fechas.
 // `db` es Firestore de firebase-admin; `mandar(mensajes)` envía y responde [{ ok, codigo }] en orden.
 import { fechaBogota, fechaEnZona, momentoDeFranja, franjasPendientes, textoDe, vencido, destinatarios, quiereRecordatorio, registroVigente } from './logica.mjs';
 import { notificacionDelDia } from '../../js/modulos/fechas/calendario.js';

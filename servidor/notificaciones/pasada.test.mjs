@@ -167,3 +167,21 @@ test('fechas: semana antes del cumple solo al otro', async () => {
   assert.equal(m.enviados[0].token, 't-b');
   assert.equal(m.enviados[0].data.titulo, 'En una semana: cumpleaños de Carlos');
 });
+
+test('fechas: una zona inválida no detiene la pasada', async () => {
+  await sembrar({ ...base, 'parejas/K7PQ2M': pareja, 'dispositivos/da': dispF('u1', 'a', { zona: 'No/Existe' }), 'dispositivos/db': dispF('u2', 'b'),
+    'parejas/K7PQ2M/fechas/otra_1': otra });
+  const m = mandador();
+  await pasada({ db, mandar: m.mandar, ahora: AHORA_F });
+  assert.equal(m.enviados.length, 2);
+  assert.equal((await db.doc('sistema/notificaciones').get()).data().ultimaFranja, '2026-03-10T13:00:00.000Z');
+});
+
+test('fechas: un registro cuyo uid ya no es del lugar se borra y no recibe nada', async () => {
+  await sembrar({ ...base, 'parejas/K7PQ2M': pareja, 'dispositivos/viejo': dispF('u9', 'b'), 'dispositivos/da': dispF('u1', 'a'),
+    'parejas/K7PQ2M/fechas/otra_1': otra });
+  const m = mandador();
+  await pasada({ db, mandar: m.mandar, ahora: AHORA_F });
+  assert.deepEqual(m.enviados.map((e) => e.token), ['t-a']);
+  assert.equal(await existe('dispositivos/viejo'), false);
+});
