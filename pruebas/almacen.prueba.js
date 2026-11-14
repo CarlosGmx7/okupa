@@ -1,5 +1,5 @@
 import { prueba, igual, verdadero } from './corredor.js';
-import { crearAlmacen, exportarRespaldo, importarRespaldo } from '../js/nucleo/almacen.js';
+import { crearAlmacen, exportarRespaldo, importarRespaldo, esDeEsteCelular } from '../js/nucleo/almacen.js';
 import { VALIDADORES_RESPALDO } from '../js/modulos/preguntas/propio.js';
 
 function storageFalso() {
@@ -130,4 +130,47 @@ prueba('respaldo: combinar une listas por id y gana lo importado', () => {
   const p = alm.leer('okupa:preguntas:propio');
   igual(p.preguntas.map((x) => `${x.id}:${x.texto}`).sort(), ['n-1:nueva', 'n-2:local', 'n-3:otra']);
   igual(p.ocultas.sort(), ['a', 'b']);
+});
+
+// v18: la copia no lleva la pareja, el registro de avisos ni la marca de bienvenida.
+const DE_ESTE_CELULAR = ['okupa:pareja:actual', 'okupa:pareja:nombres', 'okupa:dispositivo', 'okupa:dispositivo:borrar', 'okupa:notificaciones', 'okupa:bienvenida'];
+
+prueba('respaldo: esDeEsteCelular reconoce solo las claves del celular', () => {
+  igual(DE_ESTE_CELULAR.map(esDeEsteCelular), DE_ESTE_CELULAR.map(() => true));
+  igual(['okupa:preguntas:vistas', 'okupa:portada', 'okupa:ajustes', 'okupa:diario:estado'].map(esDeEsteCelular), [false, false, false, false]);
+});
+
+prueba('respaldo: no exporta lo de este celular', () => {
+  const a = crearAlmacen(storageFalso());
+  for (const clave of DE_ESTE_CELULAR) a.escribir(clave, { x: 1 });
+  a.escribir('okupa:preguntas:vistas', ['p1']);
+  igual(Object.keys(exportarRespaldo(a).datos), ['okupa:preguntas:vistas']);
+});
+
+prueba('respaldo: reemplazar conserva la pareja del celular e ignora la del archivo', () => {
+  const a = crearAlmacen(storageFalso());
+  a.escribir('okupa:pareja:actual', { codigo: 'AAAAAA', lugar: 'a' });
+  a.escribir('okupa:dispositivo', 'mio');
+  a.escribir('okupa:preguntas:vistas', ['viejo']);
+  const copia = { app: 'okupa', version: 1, fecha: '2026-11-01T00:00:00Z', datos: {
+    'okupa:pareja:actual': { codigo: 'BBBBBB', lugar: 'b' },
+    'okupa:dispositivo': 'ajeno',
+    'okupa:portada': 'data:image/jpeg;base64,AAAA',
+  } };
+  igual(importarRespaldo(a, copia, 'reemplazar').ok, true);
+  igual(a.leer('okupa:pareja:actual'), { codigo: 'AAAAAA', lugar: 'a' });
+  igual(a.leer('okupa:dispositivo'), 'mio');
+  igual(a.leer('okupa:portada'), 'data:image/jpeg;base64,AAAA');
+  igual(a.leer('okupa:preguntas:vistas', null), null);
+});
+
+prueba('respaldo: combinar también ignora la pareja del archivo', () => {
+  const a = crearAlmacen(storageFalso());
+  const copia = { app: 'okupa', version: 1, fecha: '2026-11-01T00:00:00Z', datos: {
+    'okupa:pareja:actual': { codigo: 'BBBBBB', lugar: 'b' },
+    'okupa:preguntas:vistas': ['p2'],
+  } };
+  igual(importarRespaldo(a, copia, 'combinar').ok, true);
+  igual(a.leer('okupa:pareja:actual', null), null);
+  igual(a.leer('okupa:preguntas:vistas'), ['p2']);
 });

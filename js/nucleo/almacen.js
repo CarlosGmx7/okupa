@@ -56,9 +56,14 @@ export function crearAlmacen(storage = storagePorDefecto()) {
 
 export const almacen = crearAlmacen();
 
+// Lo que es de este celular no viaja en la copia: el lugar en la pareja (importarlo en otro celular
+// le quitaría el lugar al de verdad), el registro de avisos y la marca de la bienvenida.
+const PREFIJOS_DEL_CELULAR = ['okupa:pareja', 'okupa:dispositivo', 'okupa:notificaciones', 'okupa:bienvenida'];
+export const esDeEsteCelular = (clave) => PREFIJOS_DEL_CELULAR.some((p) => clave === p || clave.startsWith(`${p}:`));
+
 export function exportarRespaldo(alm, prefijo = PREFIJO) {
   const datos = {};
-  for (const clave of alm.claves(prefijo)) datos[clave] = alm.leer(clave);
+  for (const clave of alm.claves(prefijo)) if (!esDeEsteCelular(clave)) datos[clave] = alm.leer(clave);
   return { app: 'okupa', version: 1, fecha: new Date().toISOString(), datos };
 }
 
@@ -104,14 +109,16 @@ export function importarRespaldo(alm, respaldo, modo = 'reemplazar', validadores
   const error = validarRespaldo(respaldo, validadores);
   if (error) return { ok: false, error };
   const anterior = exportarRespaldo(alm).datos;
+  const borrarLoCopiable = () => {
+    for (const clave of alm.claves(PREFIJO)) if (!esDeEsteCelular(clave)) alm.borrar(clave);
+  };
   const restaurar = () => {
-    for (const clave of alm.claves(PREFIJO)) alm.borrar(clave);
+    borrarLoCopiable();
     for (const [clave, valor] of Object.entries(anterior)) alm.escribir(clave, valor);
   };
-  if (modo === 'reemplazar') {
-    for (const clave of alm.claves(PREFIJO)) alm.borrar(clave);
-  }
+  if (modo === 'reemplazar') borrarLoCopiable();
   for (const [clave, valor] of Object.entries(respaldo.datos)) {
+    if (esDeEsteCelular(clave)) continue;
     const final = modo === 'combinar' ? combinarValor(alm.leer(clave), valor) : valor;
     if (!alm.escribir(clave, final)) {
       restaurar();
