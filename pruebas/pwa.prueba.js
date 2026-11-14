@@ -12,6 +12,7 @@ const ESPERADOS = [
   'js/modulos/match/modulo.js', 'js/modulos/match/logica.js', 'js/modulos/match/pantallas.js',
   'data/match/tarjetas.json',
   'js/modulos/fechas/modulo.js', 'js/modulos/fechas/pantallas.js', 'js/modulos/fechas/calendario.js', 'js/modulos/fechas/datos.js',
+  'js/modulos/capsula/logica.js', 'js/modulos/capsula/datos.js', 'js/modulos/capsula/modulo.js', 'js/modulos/capsula/pantallas.js',
   'js/modulos/diario/archivo.js', 'iconos/mapa/carlos.png', 'iconos/mapa/yuli.png',
   'js/modulos/trivia/modulo.js', 'js/modulos/trivia/pantallas.js', 'js/modulos/trivia/banco.js',
   'js/modulos/trivia/matematicas.js', 'js/modulos/trivia/partida.js', 'js/modulos/trivia/sala.js',

@@ -22,10 +22,16 @@ prueba('privacidad: dice que «Borrar todo» borra también Match, lugares con f
   verdadero(!main.includes('todavía no se borran'), 'quedó el texto viejo');
 });
 
+prueba('privacidad: cuenta lo de la cápsula del tiempo', async () => {
+  const main = new DOMParser().parseFromString(await pagina(), 'text/html').querySelector('main').textContent.replace(/\s+/g, ' ');
+  verdadero(main.includes('Las cartas de la cápsula del tiempo'), 'falta qué se guarda de las cartas');
+  verdadero(main.includes('solo puede leer desde esa fecha'), 'falta que están selladas');
+});
+
 prueba('privacidad: cuenta lo de las fechas especiales', async () => {
   const main = new DOMParser().parseFromString(await pagina(), 'text/html').querySelector('main').textContent.replace(/\s+/g, ' ');
   verdadero(main.includes('Las fechas especiales: el día en que empezaron'), 'falta qué fechas se guardan');
-  verdadero(main.includes('las fechas especiales y las ubicaciones'), 'falta que «Borrar todo» las borra');
+  verdadero(main.includes('las fechas especiales, las cartas de la cápsula y las ubicaciones'), 'falta que «Borrar todo» las borra');
   verdadero(main.includes('8:00 a. m.'), 'falta la hora de los avisos de fechas');
 });
 
