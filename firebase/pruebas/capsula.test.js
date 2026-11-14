@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { after, before, beforeEach, describe, it } from 'node:test';
 import { assertFails, assertSucceeds, initializeTestEnvironment } from '@firebase/rules-unit-testing';
-import { collection, deleteDoc, doc, getDoc, getDocs, setDoc } from 'firebase/firestore';
+import { collection, deleteDoc, doc, getDoc, getDocs, setDoc, writeBatch } from 'firebase/firestore';
 
 const CODIGO = 'K7PQ2M';
 const RUTA = `parejas/${CODIGO}`;
@@ -72,6 +72,37 @@ describe('capsulas: metadatos', () => {
     await assertFails(setDoc(d('u2', CARTA), meta()));
     await assertFails(deleteDoc(d('u9', CARTA)));
     await assertSucceeds(deleteDoc(d('u2', CARTA)));
+  });
+});
+
+describe('capsulas: borrar sin destapar', () => {
+  const conTexto = () => sembrar({ [`${RUTA}/${CARTA}`]: meta(), [`${RUTA}/${TEXTO}`]: { texto: 'Secreto' } });
+  it('el otro no puede borrar los metadatos mientras exista el texto', async () => {
+    await conTexto();
+    await assertFails(deleteDoc(d('u2', CARTA)));
+    await assertFails(deleteDoc(d('u1', CARTA)));
+  });
+  it('ataque: borrar y recrear la carta con de propio no deja leer el texto', async () => {
+    await conTexto();
+    await assertFails(deleteDoc(d('u2', CARTA)));
+    await assertFails(setDoc(d('u2', CARTA), { ...meta(), de: 'b', abreMs: Date.now() + 60000 }));
+    await assertFails(getDoc(d('u2', TEXTO)));
+  });
+  it('borrando primero el texto y luego los metadatos, cualquier miembro puede', async () => {
+    await conTexto();
+    await assertSucceeds(deleteDoc(d('u2', TEXTO)));
+    await assertSucceeds(deleteDoc(d('u2', CARTA)));
+    await conTexto();
+    await assertSucceeds(deleteDoc(d('u1', TEXTO)));
+    await assertSucceeds(deleteDoc(d('u1', CARTA)));
+  });
+  it('un lote que borra texto y metadatos a la vez funciona', async () => {
+    await conTexto();
+    const bd = db('u2'); // una sola instancia: el lote exige que las referencias sean de la misma
+    const lote = writeBatch(bd);
+    lote.delete(doc(bd, `${RUTA}/${TEXTO}`));
+    lote.delete(doc(bd, `${RUTA}/${CARTA}`));
+    await assertSucceeds(lote.commit());
   });
 });
 

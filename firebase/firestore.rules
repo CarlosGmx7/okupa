@@ -209,7 +209,10 @@ service cloud.firestore {
         allow read: if esMiembro(codigo);
         allow create: if esMiembro(codigo) && id.matches('^c-[a-z0-9]{4,30}$') && metaValida(request.resource.data);
         allow update: if false;
-        allow delete: if esMiembro(codigo);
+        // Los metadatos solo se borran cuando el texto ya no existe (o en el mismo lote): si no, el otro
+        // podría borrar y recrear la carta como suya y leer el texto antes de la hora.
+        allow delete: if esMiembro(codigo)
+          && !existsAfter(/databases/$(db)/documents/parejas/$(codigo)/capsulas/$(id)/contenido/texto);
 
         match /contenido/{doc} {
           function meta() { return get(/databases/$(db)/documents/parejas/$(codigo)/capsulas/$(id)).data; }
