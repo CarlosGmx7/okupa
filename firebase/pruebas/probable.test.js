@@ -17,7 +17,7 @@ async function sembrar(datos) {
   });
 }
 const completa = { lugares: { a: 'u1', b: 'u2' }, nombres: { a: 'Carlos', b: 'Yuli' } };
-const sala = (estado = 'jugando', extra = {}) => ({ estado, tema: 'divertidas', largo: 5, creadaMs: 1, ...extra });
+const sala = (estado = 'jugando', extra = {}) => ({ estado, anfitrion: 'a', tema: 'divertidas', largo: 5, creadaMs: 1, ...extra });
 const salaEn = (estado) => sembrar({ [`${RUTA}/${SALA}`]: sala(estado) });
 const voto = (v = 'a') => ({ voto: v });
 const V = (clave) => `${SALA}/votos/${clave}`;
@@ -42,6 +42,17 @@ describe('probable: sala', () => {
     await assertSucceeds(getDoc(d('u1', SALA)));
     await assertFails(getDoc(d('u9', SALA)));
     await assertFails(setDoc(d('u9', 'probable/q-zzzz1'), sala()));
+  });
+  it('al crear exige estado esperando y anfitrion propio', async () => {
+    await assertFails(setDoc(d('u1', SALA), sala('jugando')));
+    await assertFails(setDoc(d('u1', SALA), sala('terminada')));
+    await assertFails(setDoc(d('u1', SALA), sala('esperando', { anfitrion: 'b' })));
+    await assertFails(setDoc(d('u2', SALA), sala('esperando', { anfitrion: 'a' })));
+    const { anfitrion, ...sinAnfitrion } = sala('esperando');
+    await assertFails(setDoc(d('u1', SALA), sinAnfitrion));
+    const { estado, ...sinEstado } = sala('esperando');
+    await assertFails(setDoc(d('u1', SALA), sinEstado));
+    await assertSucceeds(setDoc(d('u2', SALA), sala('esperando', { anfitrion: 'b' })));
   });
   it('rechaza ids malos', async () => {
     for (const id of ['abcd1', 'q-ab', 'q-ABCD1', 'q-' + 'a'.repeat(31), 'p-abcd1'])
@@ -165,7 +176,26 @@ describe('probable: «Borrar todo»', () => {
     await assertSucceeds(deleteDoc(d('u2', V('0_b'))));
     await assertSucceeds(deleteDoc(d('u2', V('1_a'))));
     await assertSucceeds(deleteDoc(d('u2', SALA)));
-    await assertSucceeds(deleteDoc(d('u2', V('3_b')))); // sin sala, borrar a ciegas sigue bien
+  });
+  it('ataque: borrar la sala jugando se rechaza', async () => {
+    await salaEn('jugando');
+    await assertFails(deleteDoc(d('u1', SALA)));
+    await assertFails(deleteDoc(d('u2', SALA)));
+    await salaEn('esperando');
+    await assertFails(deleteDoc(d('u1', SALA)));
+  });
+  it('ataque: sin sala, borrar el propio voto se rechaza', async () => {
+    await sembrar({ [`${RUTA}/${V('0_a')}`]: voto('a') }); // voto huérfano, sin sala
+    await assertFails(deleteDoc(d('u1', V('0_a'))));
+    await assertFails(deleteDoc(d('u2', V('0_a'))));
+  });
+  it('ataque: borrar sala, borrar voto, recrear sala y votar de nuevo falla en el primer paso', async () => {
+    await salaEn('jugando');
+    await sembrar({ [`${RUTA}/${V('0_a')}`]: voto('a') });
+    await assertFails(deleteDoc(d('u1', SALA)));
+    await assertFails(deleteDoc(d('u1', V('0_a'))));
+    await assertFails(setDoc(d('u1', V('0_a')), voto('b')));
+    await assertSucceeds(getDoc(d('u1', V('0_a'))));
   });
   it('sala terminada con votos: votos y sala sin tocar el estado', async () => {
     await salaEn('terminada');
@@ -195,6 +225,9 @@ describe('probable_frases', () => {
     await assertFails(setDoc(d('u1', FRASE), frase({ texto: 'x'.repeat(121) })));
     await assertFails(setDoc(d('u1', FRASE), frase({ texto: 12345 })));
     await assertFails(setDoc(d('u1', FRASE), frase({ extra: 1 })));
+    await assertFails(setDoc(d('u1', FRASE), { texto: 'dejar la ropa tirada' })); // falta creadaMs
+    await assertFails(setDoc(d('u1', FRASE), { creadaMs: 1 })); // falta texto
+    await assertFails(setDoc(d('u1', FRASE), frase({ creadaMs: 'hoy' }))); // creadaMs no es número
     await assertSucceeds(setDoc(d('u1', FRASE), frase({ texto: 'abcde' })));
     await assertSucceeds(setDoc(d('u1', 'probable_frases/f-largo1'), frase({ texto: 'x'.repeat(120) })));
   });
