@@ -63,6 +63,24 @@ Hoy el inicio tiene todo seguido y con el mismo peso: el bloque «Nuestra pareja
 - El texto de «te está esperando» se pinta sin internet, desde una copia local que `precalentar` refresca leyendo el puntero de sala abierta (`estado/uso`: `salaAbierta` y `probableAbierta`), con una lectura por apertura; solo se muestra si la sala sigue abierta y la abrió el otro.
 - Estilo: filas dentro de una tarjeta por sección, con los colores actuales (vino y dorado). Los títulos de sección van en versalitas pequeñas. Se quitan los botones dorados grandes. El aviso de instalar y «Acerca de» quedan al final.
 
+## Parte 3 — Interfaz moderna del inicio (pedida y aprobada por Carlos)
+
+### Para qué
+Carlos quiere conservar el inicio por secciones (la interfaz «Simple») y agregar una interfaz «Moderna» más visual, que se pueda escoger en Ajustes.
+
+### Lo que decidió Carlos
+1. **Ajustes → «Interfaz del inicio»**, con las opciones **Moderna** y **Simple**. **Moderna es la de por defecto.** Simple es exactamente el inicio por secciones de la Parte 2.
+2. **Moderna:** la cabecera (foto, logo, lema), la tarjeta para enlazar (si hace falta) y la «Pregunta de hoy» se quedan igual. Debajo van tres tarjetas grandes, una por sección: «Jugar juntos» a la izquierda, «Conocernos» a la derecha y «Nosotros» abajo, a todo el ancho de las dos de arriba. Cada tarjeta lleva un ícono grande (✦, ❖, ♥), el título y debajo, en pequeño, sus modos separados por « · ».
+3. **Al tocar una tarjeta**, esta queda marcada y debajo de las tres tarjetas se abre, suave (unos 0,3 s), un panel a todo el ancho con **mini tarjetas** de sus modos en 2 columnas. Cada mini tarjeta lleva ícono, nombre y su aviso si lo tiene, y lleva a la ruta del modo. **Solo una abierta a la vez**: al tocar otra, se cambia; al tocar la misma, se cierra. Al volver al inicio, todas están cerradas.
+4. **Avisos:** la tarjeta grande muestra un **puntico dorado** si algún modo de adentro tiene `detalle`; la mini tarjeta muestra el texto completo («Sofi te está esperando»). Sin pareja enlazada no hay avisos ni punticos.
+5. Si el celular pide menos movimiento (`prefers-reduced-motion`), el panel se abre sin animación.
+
+### Mi propuesta de construcción
+- La preferencia se guarda en el celular, como el tema (ver `js/nucleo/ajustes.js` / `tema.js`), con valores `'moderna' | 'simple'`. Viaja en la copia de seguridad igual que los demás ajustes.
+- `inicio.js` reutiliza el mismo agrupamiento por `SECCIONES` para las dos interfaces; solo cambia cómo se pinta.
+- Accesibilidad: las tarjetas son `button` con `aria-expanded` y `aria-controls` hacia el panel; el panel es una región con nombre. Se usan Enter y Espacio.
+- Animación con `grid-template-rows: 0fr → 1fr` (o `max-height`) y opacidad; nada de JavaScript para animar.
+
 ## No metas
 Modo a ratos, puntos o ganador, historial de rondas, grupos de verdad (solo queda el modelo listo: lugares, «todos menos quien abre»), editar frases propias, elegir tema para las propias, cambiar el voto.
 
