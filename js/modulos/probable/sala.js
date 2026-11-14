@@ -1,6 +1,7 @@
 // «¿Quién es más probable?» en la nube: sala, votos, vistas y frases propias de la pareja.
 import { marcarVistas, reveladas, validarFrase, MAX_PROPIAS } from './logica.js';
 import { avisar, idAviso } from '../../nucleo/avisos.js';
+import { sigueEsperando } from '../../nucleo/esperando.js';
 
 const MAX_CONTADAS = 50;
 const LUGARES = ['a', 'b'];
@@ -12,25 +13,43 @@ const rutaFrases = (codigo) => `parejas/${codigo}/probable_frases`;
 const nuevoId = () => `q-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 const nuevoIdFrase = () => `f-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 
+// El otro ya tiene una sala abierta (esperando o jugando): no se abre una segunda. `existente` es su id.
+const abierta = (s) => s?.estado === 'esperando' || s?.estado === 'jugando';
+
+export class ErrorSalaAjena extends Error {
+  constructor(existente) {
+    super('sala-ajena');
+    this.name = 'ErrorSalaAjena';
+    this.existente = existente;
+  }
+}
+
 export async function crearSala(nube, pareja, { tema, frases, id = nuevoId() }) {
+  // Una sola transacción: si los dos tocan «Abrir sala» a la vez, solo una sala queda apuntada.
   // Las reglas exigen crearla `esperando` y con el anfitrión que la crea.
-  await nube.escribir(rutaSala(pareja.codigo, id), {
-    anfitrion: pareja.lugar,
-    estado: 'esperando',
-    tema,
-    frases,
-    indice: 0,
-    ronda: 0,
-    votaron: {},
-    creada: nube.horaServidor(),
-    creadaMs: Date.now(),
+  await nube.transaccion(async (tx) => {
+    const uso = await tx.leer(rutaUso(pareja.codigo));
+    if (uso?.probableAbierta) {
+      const s = await tx.leer(rutaSala(pareja.codigo, uso.probableAbierta));
+      const viva = s?.estado === 'jugando' || sigueEsperando(s);
+      if (viva && s.anfitrion !== pareja.lugar) throw new ErrorSalaAjena(uso.probableAbierta);
+    }
+    tx.escribir(rutaSala(pareja.codigo, id), {
+      anfitrion: pareja.lugar,
+      estado: 'esperando',
+      tema,
+      frases,
+      indice: 0,
+      ronda: 0,
+      votaron: {},
+      creada: nube.horaServidor(),
+      creadaMs: Date.now(),
+    });
+    tx.escribir(rutaUso(pareja.codigo), { probableAbierta: id }, { combinar: true });
   });
-  await nube.escribir(rutaUso(pareja.codigo), { probableAbierta: id }, { combinar: true });
   await avisar(nube, pareja, 'probable', idAviso('probable', { idSala: id }));
   return id;
 }
-
-const abierta = (s) => s?.estado === 'esperando' || s?.estado === 'jugando';
 
 export async function salaPendiente(nube, pareja) {
   const uso = await nube.leer(rutaUso(pareja.codigo));
@@ -48,6 +67,23 @@ export async function unirse(nube, pareja, id) {
 
 export const cancelarSala = (nube, pareja, id) =>
   nube.escribir(rutaSala(pareja.codigo, id), { estado: 'cancelada' }, { combinar: true });
+
+// Cancela solo si la sala sigue abierta: las reglas rechazan tocar una sala ya cerrada.
+export async function cancelarSiAbierta(nube, pareja, id) {
+  const fresca = await nube.leer(rutaSala(pareja.codigo, id));
+  if (!abierta(fresca)) return false;
+  await cancelarSala(nube, pareja, id);
+  return true;
+}
+
+// Cierra una sala que se quedó esperando de más; si mientras tanto el otro se unió, no la toca.
+export const cancelarSiSigueEsperando = (nube, pareja, id) =>
+  nube.transaccion(async (tx) => {
+    const s = await tx.leer(rutaSala(pareja.codigo, id));
+    if (s?.estado !== 'esperando') return false;
+    tx.escribir(rutaSala(pareja.codigo, id), { estado: 'cancelada' }, { combinar: true });
+    return true;
+  });
 
 // El voto se crea una sola vez y nunca se cambia (las reglas lo exigen). Si ya existía, no se toca.
 export async function votar(nube, pareja, id, { indice, voto }) {

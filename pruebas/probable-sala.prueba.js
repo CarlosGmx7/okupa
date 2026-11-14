@@ -3,7 +3,7 @@ import { crearMundoFalso } from './nube-falsa.js';
 import { almacenEnMemoria } from './pareja.prueba.js';
 import { crearPareja, unirse as unirsePareja } from '../js/nucleo/pareja.js';
 import {
-  crearSala, salaPendiente, unirse, cancelarSala, votar, leerVotos, intentarAvanzar, cerrarSala, leerVistas,
+  crearSala, salaPendiente, unirse, cancelarSala, ErrorSalaAjena, cancelarSiSigueEsperando, votar, leerVotos, intentarAvanzar, cerrarSala, leerVistas,
   escucharSala, latir, listarPropias, crearPropia, borrarPropia, rutaSala, rutaVoto, rutaUso,
 } from '../js/modulos/probable/sala.js';
 
@@ -192,4 +192,41 @@ prueba('probable-sala: frase inválida rechazada y la 201 también', async () =>
   const r = await crearPropia(a.nube, a.pareja, 'Una frase más para pasarnos');
   igual(r, { ok: false, error: 'Ya tienen 200 frases; borra alguna.' });
   igual((await listarPropias(a.nube, a.pareja)).length, 200);
+});
+
+// ---- Ronda final: dos «Abrir sala» a la vez, cancelar la vencida ----
+prueba('probable-sala: si el otro ya tiene una sala abierta no se crea otra y se avisa cuál es', async () => {
+  const { a, b } = await dosCelulares();
+  const idA = await crearSala(a.nube, a.pareja, { tema: 'divertidas', frases: frases(5) });
+  let error;
+  try { await crearSala(b.nube, b.pareja, { tema: 'divertidas', frases: frases(5), id: 'q-deb0001' }); } catch (e) { error = e; }
+  verdadero(error instanceof ErrorSalaAjena, String(error));
+  igual(error.existente, idA);
+  igual(await leer(b, 'q-deb0001'), null);
+  igual((await a.nube.leer(rutaUso(a.pareja.codigo))).probableAbierta, idA);
+  // También cuando ya están jugando.
+  await unirse(b.nube, b.pareja, idA);
+  let otro;
+  try { await crearSala(b.nube, b.pareja, { tema: 'divertidas', frases: frases(5), id: 'q-deb0002' }); } catch (e) { otro = e; }
+  verdadero(otro instanceof ErrorSalaAjena);
+});
+
+prueba('probable-sala: se puede crear si la del otro se cerró o venció, o si la abierta es propia', async () => {
+  const { a, b } = await dosCelulares();
+  const idA = await crearSala(a.nube, a.pareja, { tema: 'divertidas', frases: frases(5) });
+  await a.nube.escribir(rutaSala(a.pareja.codigo, idA), { creadaMs: Date.now() - 31 * 60 * 1000 }, { combinar: true });
+  const idB = await crearSala(b.nube, b.pareja, { tema: 'divertidas', frases: frases(5) }); // la de A venció
+  igual((await a.nube.leer(rutaUso(a.pareja.codigo))).probableAbierta, idB);
+  await cancelarSala(b.nube, b.pareja, idB);
+  const idA2 = await crearSala(a.nube, a.pareja, { tema: 'divertidas', frases: frases(5) }); // la de B se cerró
+  const idA3 = await crearSala(a.nube, a.pareja, { tema: 'divertidas', frases: frases(5) }); // la abierta es de A
+  verdadero(idA2 !== idA3);
+});
+
+prueba('probable-sala: cancelarSiSigueEsperando no toca una sala a la que el otro ya se unió', async () => {
+  const { a, b } = await dosCelulares();
+  const id = await crearSala(a.nube, a.pareja, { tema: 'divertidas', frases: frases(5) });
+  await unirse(b.nube, b.pareja, id);
+  igual(await cancelarSiSigueEsperando(a.nube, a.pareja, id), false);
+  igual((await leer(a, id)).estado, 'jugando');
 });

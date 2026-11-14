@@ -90,3 +90,33 @@ prueba('esperando: mi propia sala no cuenta y sin pareja o sin red no lanza', as
   await probable.precalentar({ almacen: ctx.almacen, nube: async () => { throw new Error('sin red'); } });
   await probable.precalentar(undefined);
 });
+
+// ---- Ronda final: la sala que espera más de 30 minutos ya no cuenta ----
+const hace = (min) => Date.now() - min * 60 * 1000;
+
+prueba('esperando: la copia guardada caduca a los 30 minutos', () => {
+  const almacen = almacenEnMemoria();
+  guardarEsperando(almacen, COD, 'probable', { ...SALA_DE_SOFI, creadaMs: hace(29) });
+  igual(textoEsperando(almacen, YO, 'probable'), 'Sofi te está esperando');
+  guardarEsperando(almacen, COD, 'probable', { ...SALA_DE_SOFI, creadaMs: hace(31) });
+  igual(textoEsperando(almacen, YO, 'probable'), null);
+});
+
+prueba('esperando: el precalentar de los dos juegos ignora una sala que lleva más de 30 minutos', async () => {
+  const { ctx, a, b } = await dosCelulares();
+  const yo = miPareja(ctx.almacen);
+  await crearSalaTrivia(b.nube, b.pareja, { preguntas: [], id: 'p-vieja1' });
+  await crearSalaProbable(b.nube, b.pareja, { tema: 'divertidas', frases: [], id: 'q-vieja1' });
+  await trivia.precalentar(ctx);
+  await probable.precalentar(ctx);
+  igual(textoEsperando(ctx.almacen, yo, 'trivia'), 'Sofi te está esperando');
+  igual(textoEsperando(ctx.almacen, yo, 'probable'), 'Sofi te está esperando');
+  await b.nube.escribir(`parejas/${a.pareja.codigo}/partidas/p-vieja1`, { creadaMs: hace(31) }, { combinar: true });
+  await b.nube.escribir(`parejas/${a.pareja.codigo}/probable/q-vieja1`, { creadaMs: hace(31) }, { combinar: true });
+  await trivia.precalentar(ctx);
+  await probable.precalentar(ctx);
+  igual(textoEsperando(ctx.almacen, yo, 'trivia'), null);
+  igual(textoEsperando(ctx.almacen, yo, 'probable'), null);
+  igual(trivia.accesoJuntos.detalle(ctx), null);
+  igual(probable.accesoJuntos.detalle(ctx), null);
+});

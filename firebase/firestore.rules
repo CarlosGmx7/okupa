@@ -88,8 +88,14 @@ service cloud.firestore {
         allow create: if esMiembro(codigo) && id.matches('^q-[a-z0-9]{4,30}$')
           && request.resource.data.estado == 'esperando'
           && request.resource.data.anfitrion == miLugar(codigo);
+        // Transiciones: esperando→jugando, esperando/jugando→terminada/cancelada o el mismo estado.
+        // Nunca vuelve de jugando a esperando, una cerrada no se reabre y el anfitrión no cambia.
         allow update: if esMiembro(codigo)
-          && (!cerrada() || request.resource.data.estado == resource.data.estado);
+          && request.resource.data.estado in ['esperando', 'jugando', 'terminada', 'cancelada']
+          && request.resource.data.anfitrion == resource.data.anfitrion
+          && (request.resource.data.estado == resource.data.estado
+            || (resource.data.estado == 'esperando' && request.resource.data.estado in ['jugando', 'terminada', 'cancelada'])
+            || (resource.data.estado == 'jugando' && request.resource.data.estado in ['terminada', 'cancelada']));
 
         // Votos {indice}_{lugar}: cada uno escribe el suyo una sola vez, mientras se juega, y solo ve el
         // del otro en una frase si ya votó esa misma frase. Se borran cuando la sala ya está cerrada.

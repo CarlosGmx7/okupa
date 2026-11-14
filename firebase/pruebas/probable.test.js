@@ -75,6 +75,30 @@ describe('probable: sala', () => {
       await assertSucceeds(updateDoc(d('u2', SALA), { indice: 3 }));
     }
   });
+  it('solo se aceptan los cuatro estados y el anfitrión no cambia', async () => {
+    await salaEn('jugando');
+    await assertFails(updateDoc(d('u1', SALA), { estado: 'raro' }));
+    await assertFails(updateDoc(d('u1', SALA), { estado: 5 }));
+    await assertFails(updateDoc(d('u2', SALA), { anfitrion: 'b' }));
+    await assertFails(updateDoc(d('u1', SALA), { anfitrion: 'x' }));
+    await assertSucceeds(updateDoc(d('u2', SALA), { indice: 2, senal: { b: 1 } })); // otros campos no tocan estado ni anfitrión
+  });
+  it('transiciones: esperando→jugando/terminada/cancelada y jugando→terminada/cancelada; jugando→esperando no', async () => {
+    for (const destino of ['jugando', 'terminada', 'cancelada']) {
+      await salaEn('esperando');
+      await assertSucceeds(updateDoc(d('u2', SALA), { estado: destino }));
+    }
+    for (const destino of ['terminada', 'cancelada']) {
+      await salaEn('jugando');
+      await assertSucceeds(updateDoc(d('u1', SALA), { estado: destino }));
+    }
+    await salaEn('jugando');
+    await assertFails(updateDoc(d('u1', SALA), { estado: 'esperando' }));
+    await assertFails(updateDoc(d('u2', SALA), { estado: 'esperando' }));
+    await assertSucceeds(updateDoc(d('u2', SALA), { estado: 'jugando' })); // mismo estado
+    await salaEn('esperando');
+    await assertSucceeds(updateDoc(d('u1', SALA), { estado: 'esperando', tema: 'otra' }));
+  });
   it('poner cancelada y volver a jugando se rechaza', async () => {
     await salaEn('jugando');
     await assertSucceeds(updateDoc(d('u1', SALA), { estado: 'cancelada' }));

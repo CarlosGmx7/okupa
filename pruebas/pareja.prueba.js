@@ -234,3 +234,57 @@ prueba('pareja: sin conexión se propaga sin-conexion', async () => {
   verdadero(e instanceof ErrorNube);
   verdadero(!(e instanceof ErrorPareja));
 });
+
+prueba('pareja: borrarTodo sigue si la sala terminó justo antes de cancelarla', async () => {
+  const { mundo, codigo, alm1 } = await parejaCompleta();
+  const nube = mundo.nube('u1');
+  const b = `parejas/${codigo}/probable`;
+  await nube.escribir(`${b}/q-justo`, { estado: 'jugando', frases: [{ id: 'x1' }, { id: 'x2' }] });
+  await nube.escribir(`${b}/q-justo/votos/0_a`, { voto: 'a' });
+  await nube.escribir(`${b}/q-malo`, { estado: 'jugando', frases: [{ id: 'x1' }] });
+  // Las reglas rechazan cancelar una sala que justo pasó a terminada.
+  const espia = { ...nube, escribir: async (r, datos, op) => {
+    if (r === `${b}/q-justo` && datos.estado === 'cancelada') {
+      await nube.escribir(r, { estado: 'terminada' }, { combinar: true });
+      throw new Error('permission-denied');
+    }
+    return nube.escribir(r, datos, op);
+  } };
+  await borrarTodo(espia, alm1, { cargarIdsTarjetas: async () => [] });
+  igual(await nube.leer(`${b}/q-justo`), null);
+  igual(await nube.leer(`${b}/q-justo/votos/0_a`), null);
+  igual(await nube.leer(`parejas/${codigo}`), null);
+});
+
+prueba('pareja: borrarTodo falla si cancelar la sala no funciona y sigue abierta', async () => {
+  const { mundo, codigo, alm1 } = await parejaCompleta();
+  const nube = mundo.nube('u1');
+  const b = `parejas/${codigo}/probable`;
+  await nube.escribir(`${b}/q-abre`, { estado: 'jugando', frases: [{ id: 'x1' }] });
+  const espia = { ...nube, escribir: async (r, datos, op) => {
+    if (r === `${b}/q-abre`) throw new Error('sin red');
+    return nube.escribir(r, datos, op);
+  } };
+  let error;
+  try { await borrarTodo(espia, alm1, { cargarIdsTarjetas: async () => [] }); } catch (e) { error = e; }
+  verdadero(error && error.message === 'sin red', String(error));
+  igual((await nube.leer(`${b}/q-abre`)).estado, 'jugando');
+});
+
+prueba('pareja: borrarTodo borra los votos de probable en tandas, no uno por uno', async () => {
+  const { mundo, codigo, alm1 } = await parejaCompleta();
+  const nube = mundo.nube('u1');
+  const b = `parejas/${codigo}/probable`;
+  await nube.escribir(`${b}/q-larga`, { estado: 'terminada', frases: Array.from({ length: 20 }, (_, i) => ({ id: `x${i}` })) });
+  let enCurso = 0;
+  let maximo = 0;
+  const espia = { ...nube, borrar: async (r) => {
+    if (!r.includes('/votos/')) return nube.borrar(r);
+    enCurso++; maximo = Math.max(maximo, enCurso);
+    await new Promise((x) => setTimeout(x, 1));
+    enCurso--;
+    return nube.borrar(r);
+  } };
+  await borrarTodo(espia, alm1, { cargarIdsTarjetas: async () => [] });
+  verdadero(maximo > 1, `máximo en paralelo: ${maximo}`);
+});

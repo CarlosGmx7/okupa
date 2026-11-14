@@ -17,7 +17,7 @@ export const MOTIVOS = {
 };
 const TIPOS_AVISO = [
   ['diario', 'Tu pareja respondió el Diario'],
-  ['trivia', 'Invitación a la Trivia'],
+  ['trivia', 'Invitaciones a jugar'],
   ['mapa', 'Novedades del mapa'],
   ['fechas', 'Fechas especiales'],
   ['recordatorio', 'Recordatorio del Diario'],

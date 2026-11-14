@@ -125,7 +125,7 @@ prueba('ajustes: activar con éxito muestra los 4 tipos y la hora 20:00', async 
   div.querySelector('.interruptor[data-ajuste="notificaciones"]').click();
   await esperar();
   igual(notif.llamadas, [['activar']]);
-  for (const t of ['Tu pareja respondió el Diario', 'Invitación a la Trivia', 'Novedades del mapa', 'Recordatorio del Diario', 'Hora del recordatorio']) {
+  for (const t of ['Tu pareja respondió el Diario', 'Invitaciones a jugar', 'Novedades del mapa', 'Recordatorio del Diario', 'Hora del recordatorio']) {
     verdadero(filaDe(div, t), `falta "${t}"`);
   }
   igual(div.querySelector('input[type="time"]').value, '20:00');

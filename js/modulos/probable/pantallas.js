@@ -1,11 +1,11 @@
 // Pantallas de «¿Quién es más probable?»: elegir tema, jugar, revelar cada frase y frases propias.
 import { el } from '../../nucleo/ui.js';
 import { exigirPareja } from '../../nucleo/pantallas-pareja.js';
-import { guardarEsperando } from '../../nucleo/esperando.js';
+import { guardarEsperando, sigueEsperando } from '../../nucleo/esperando.js';
 import { TEMAS, LARGOS, elegirFrases, opcionesVoto, votaronTodos, coincidieron, resumen } from './logica.js';
 import {
   crearSala, salaPendiente, unirse, cancelarSala, votar, leerVotos, intentarAvanzar, cerrarSala, leerVistas,
-  escucharSala, latir, listarPropias, crearPropia, borrarPropia, rutaSala,
+  escucharSala, latir, listarPropias, crearPropia, borrarPropia, ErrorSalaAjena, cancelarSiSigueEsperando, cancelarSiAbierta, rutaSala,
 } from './sala.js';
 
 const MS_SIN_SENAL = 20000;
@@ -14,7 +14,6 @@ const PREFIJO = '¿Quién es más probable que…';
 const otroLugar = (l) => (l === 'a' ? 'b' : 'a');
 const alSalirDeRuta = (fn) => window.addEventListener('hashchange', fn, { once: true });
 const vacio = (mensaje, ...acciones) => el('div', { clase: 'vacio' }, el('p', {}, mensaje), acciones);
-const abierta = (s) => s?.estado === 'esperando' || s?.estado === 'jugando';
 const veces = (n) => `${n} ${n === 1 ? 'vez' : 'veces'}`;
 const frase = (texto) => [el('p', { clase: 'probable-prefijo' }, PREFIJO), el('p', { clase: 'probable-frase' }, texto)];
 
@@ -67,22 +66,55 @@ export function crearPantallasProbable({ cargar, ahora = () => performance.now()
     const aviso = el('p', { clase: 'error-formulario', role: 'alert' });
     let firma = null;
     let yendo = false;
+    let invitacion = null; // «<nombre> ya abrió una sala» cuando los dos abrieron a la vez
     const sondeo = setInterval(() => pintar().catch(() => {}), T.sondeo);
     alSalirDeRuta(() => clearInterval(sondeo));
     const ir = (id) => { yendo = true; ctx.ir(`probable/jugar/${id}`); };
 
     async function pintar() {
       if (yendo) return;
-      const pendiente = await salaPendiente(nube, pareja);
-      guardarEsperando(ctx.almacen, pareja.codigo, 'probable', pendiente?.estado === 'esperando' && pendiente.anfitrion !== yo
-        ? { id: pendiente.id, anfitrion: pendiente.anfitrion, nombre: pareja.nombres[pendiente.anfitrion] ?? null } : null);
+      let pendiente = await salaPendiente(nube, pareja);
+      // Una sala que lleva esperando más de 30 minutos ya no cuenta: se cierra y se ofrece abrir otra.
+      if (pendiente?.estado === 'esperando' && !sigueEsperando(pendiente)) {
+        await cancelarSiSigueEsperando(nube, pareja, pendiente.id).catch((e) => console.warn('Okupa:', e));
+        pendiente = await salaPendiente(nube, pareja);
+        if (pendiente?.estado === 'esperando' && !sigueEsperando(pendiente)) pendiente = null;
+      }
+      guardarEsperando(ctx.almacen, pareja.codigo, 'probable', sigueEsperando(pendiente) && pendiente.anfitrion !== yo
+        ? { id: pendiente.id, anfitrion: pendiente.anfitrion, nombre: pareja.nombres[pendiente.anfitrion] ?? null, creadaMs: pendiente.creadaMs } : null);
       const nuevaFirma = JSON.stringify([pendiente?.id, pendiente?.estado]);
       if (nuevaFirma === firma) return;
       firma = nuevaFirma;
-      if (pendiente && (pendiente.estado === 'jugando' || pendiente.anfitrion === yo)) { ir(pendiente.id); return; }
+      if (pendiente?.estado === 'jugando') {
+        invitacion = null;
+        zona.replaceChildren(...cabecera(), el('div', { clase: 'sala-accion' },
+          el('p', { clase: 'sala-invitacion' }, 'Tienen una ronda en curso'),
+          el('button', { clase: 'boton boton-principal', type: 'button', onclick: () => ir(pendiente.id) }, 'Volver a la ronda'),
+          el('button', { clase: 'boton', type: 'button', onclick: (e) => {
+            if (!globalThis.confirm('¿Terminar la ronda para los dos?')) return;
+            accion(aviso, async () => {
+              await cancelarSiAbierta(nube, pareja, pendiente.id);
+              guardarEsperando(ctx.almacen, pareja.codigo, 'probable', null);
+              ir(pendiente.id); // la pantalla de la ronda enseña el resumen de lo revelado
+            })(e);
+          } }, 'Terminar ronda')), aviso);
+        return;
+      }
+      if (pendiente && pendiente.anfitrion === yo) {
+        invitacion = null;
+        zona.replaceChildren(...cabecera(), el('div', { clase: 'sala-accion' },
+          el('p', { clase: 'sala-invitacion' }, `Tu sala está abierta; ${nombreOtro} todavía no se une`),
+          el('button', { clase: 'boton boton-principal', type: 'button', onclick: () => ir(pendiente.id) }, 'Volver a la sala'),
+          el('button', { clase: 'boton', type: 'button', onclick: accion(aviso, async () => {
+            await cancelarSiSigueEsperando(nube, pareja, pendiente.id);
+            firma = null;
+            await pintar();
+          }) }, 'Cancelar sala')), aviso);
+        return;
+      }
       if (pendiente) {
         zona.replaceChildren(...cabecera(), el('div', { clase: 'sala-accion' },
-          el('p', { clase: 'sala-invitacion' }, `${nombreOtro} te está esperando`),
+          el('p', { clase: 'sala-invitacion' }, invitacion ?? `${nombreOtro} te está esperando`),
           el('button', { clase: 'boton boton-principal', type: 'button', onclick: accion(aviso, async () => {
             await unirse(nube, pareja, pendiente.id);
             guardarEsperando(ctx.almacen, pareja.codigo, 'probable', null);
@@ -90,6 +122,7 @@ export function crearPantallasProbable({ cargar, ahora = () => performance.now()
           }) }, 'Unirme')), aviso);
         return;
       }
+      invitacion = null;
       const [vistas, propias] = await Promise.all([leerVistas(nube, pareja), listarPropias(nube, pareja)]);
       const lista = (t) => (t === 'nuestras' ? propias : datos.filter((f) => f.tema === t));
       const sinSalir = (t) => lista(t).filter((f) => !(vistas[t] || []).includes(f.id)).length;
@@ -112,9 +145,14 @@ export function crearPantallasProbable({ cargar, ahora = () => performance.now()
         el('div', { clase: 'sala-accion' },
           el('button', { clase: 'boton boton-principal boton-grande', type: 'button', disabled: tema === null, onclick: accion(aviso, async () => {
             const frases = elegirFrases(lista(tema), vistas[tema] || [], largo).map(({ id, texto }) => ({ id, texto }));
-            await crearSala(nube, pareja, { tema, frases });
-            firma = null;
-            await pintar();
+            try {
+              ir(await crearSala(nube, pareja, { tema, frases }));
+            } catch (e) {
+              if (!(e instanceof ErrorSalaAjena)) throw e;
+              invitacion = `${nombreOtro} ya abrió una sala`;
+              firma = null;
+              await pintar();
+            }
           }) }, 'Abrir sala'),
           el('a', { clase: 'boton-texto', href: '#/probable/frases' }, 'Nuestras frases ›')),
         aviso);
@@ -123,7 +161,7 @@ export function crearPantallasProbable({ cargar, ahora = () => performance.now()
     try { await pintar(); } catch (e) {
       console.warn('Okupa: la sala no cargó', e);
       zona.replaceChildren(...cabecera(), vacio('Se perdió la conexión',
-        el('button', { clase: 'boton boton-principal', type: 'button', onclick: () => ctx.refrescar() }, 'Reintentar')));
+        el('button', { clase: 'boton boton-principal', type: 'button', onclick: () => { clearInterval(sondeo); ctx.refrescar(); } }, 'Reintentar')));
     }
   }
 
@@ -150,7 +188,10 @@ export function crearPantallasProbable({ cargar, ahora = () => performance.now()
     const salir = el('button', { clase: 'boton-texto', type: 'button' }, 'Salir');
     const banda = el('div', { clase: 'banda-aviso', hidden: true, role: 'status' }, textoAviso, salir);
     const escena = el('div', { clase: 'escena' });
-    zona.replaceChildren(banda, escena);
+    // Salida permanente: cualquiera de los dos puede cerrar la ronda sin esperar a que el otro se calle.
+    const terminar = el('button', { clase: 'boton-texto', type: 'button', hidden: true }, 'Terminar ronda');
+    const errorTerminar = el('p', { clase: 'error-formulario', role: 'alert' });
+    zona.replaceChildren(banda, escena, el('div', { clase: 'pie-ronda' }, terminar, errorTerminar));
 
     const dejarDeEscuchar = escucharSala(nube, pareja, id, (s) => {
       if (saliendo) return;
@@ -159,6 +200,7 @@ export function crearPantallasProbable({ cargar, ahora = () => performance.now()
         fase = 'inexistente';
         detenerLatido(); detenerLatido = () => {}; clearInterval(tic);
         banda.hidden = true;
+        terminar.hidden = true;
         escena.replaceChildren(vacio('Esta sala ya no existe', el('a', { clase: 'boton', href: '#/probable' }, 'Volver')));
         return;
       }
@@ -170,12 +212,21 @@ export function crearPantallasProbable({ cargar, ahora = () => performance.now()
     alSalirDeRuta(() => { dejarDeEscuchar(); detenerLatido(); clearInterval(tic); });
 
     // Cancela solo si la sala sigue abierta: las reglas rechazan tocar una sala ya cerrada.
-    async function cancelarSiAbierta() {
-      const fresca = await nube.leer(rutaSala(pareja.codigo, id));
-      if (abierta(fresca)) await cancelarSala(nube, pareja, id);
+    async function cerrarAbierta() {
+      await cancelarSiAbierta(nube, pareja, id);
       guardarEsperando(ctx.almacen, pareja.codigo, 'probable', null);
     }
-    salir.addEventListener('click', () => { salir.disabled = true; cancelarSiAbierta().catch((e) => console.warn('Okupa:', e)).finally(() => { salir.disabled = false; }); });
+    salir.addEventListener('click', () => { salir.disabled = true; cerrarAbierta().catch((e) => console.warn('Okupa:', e)).finally(() => { salir.disabled = false; }); });
+    terminar.addEventListener('click', () => {
+      if (!globalThis.confirm('¿Terminar la ronda para los dos?')) return;
+      terminar.disabled = true;
+      errorTerminar.textContent = '';
+      // La sala cancelada llega por la escucha y enseña el resumen de las frases reveladas.
+      cerrarAbierta().catch((e) => {
+        console.warn('Okupa:', e);
+        errorTerminar.textContent = 'No se pudo terminar la ronda. Revisa la conexión e intenta otra vez.';
+      }).finally(() => { terminar.disabled = false; });
+    });
 
     function revisar() {
       const sinSenal = sala?.estado === 'jugando' && ahora() - cambioSenal > T.sinSenal;
@@ -190,13 +241,14 @@ export function crearPantallasProbable({ cargar, ahora = () => performance.now()
       const senal = JSON.stringify(sala.senal?.[otro] ?? null);
       if (senal !== senalOtro) { senalOtro = senal; cambioSenal = ahora(); }
       revisar();
+      terminar.hidden = sala.estado !== 'jugando';
       if (sala.estado === 'terminada' || sala.estado === 'cancelada') { final(); return; }
       if (sala.estado === 'esperando') {
         pintarFase('esperando', () => escena.replaceChildren(vacio(`Esperando a ${nombre(otro)}…`,
           el('button', { clase: 'boton', type: 'button', onclick: (e) => {
             e.currentTarget.disabled = true;
             saliendo = true;
-            cancelarSiAbierta().catch((x) => console.warn('Okupa:', x)).finally(() => ctx.ir('probable'));
+            cerrarAbierta().catch((x) => console.warn('Okupa:', x)).finally(() => ctx.ir('probable'));
           } }, 'Cancelar'))));
         return;
       }
@@ -221,13 +273,36 @@ export function crearPantallasProbable({ cargar, ahora = () => performance.now()
       votoMio[i] = valor;
       fase = `${clave}:espera`;
       escena.replaceChildren(tarjeta(i, esperando(`Esperando a ${nombre(otro)}…`)));
-      votar(nube, pareja, id, { indice: i, voto: valor }).catch((e) => {
+      votar(nube, pareja, id, { indice: i, voto: valor }).catch(async (e) => {
         console.warn('Okupa:', e);
+        // Si el voto ya quedó creado, es el que elegiste: no se vuelve a ofrecer elegir.
+        const propio = await leerVotos(nube, pareja, id, i, [yo]).then((v) => v[yo], () => undefined);
+        if (fase !== `${clave}:espera`) return; // mientras tanto la pantalla cambió
+        if (propio !== undefined) { votoGuardado(i, propio); return; }
         delete votoMio[i];
         fase = `${clave}:voto`;
         pintarVoto(i, clave);
         escena.append(el('p', { clase: 'error-formulario', role: 'alert' }, 'No se pudo enviar tu voto. Revisa la conexión e intenta otra vez.'));
       });
+    }
+
+    // El voto existe pero no se pudo avisar al otro celular: se muestra tal cual y se reintenta el aviso.
+    function votoGuardado(i, valor) {
+      votoMio[i] = valor;
+      const error = el('p', { clase: 'error-formulario', role: 'alert' }, `Tu voto quedó guardado, pero no se pudo avisar a ${nombre(otro)}.`);
+      const reintentar = el('button', { clase: 'boton', type: 'button', onclick: async () => {
+        reintentar.disabled = true;
+        try {
+          await votar(nube, pareja, id, { indice: i, voto: valor });
+          error.remove();
+          reintentar.remove();
+        } catch (x) {
+          console.warn('Okupa:', x);
+          reintentar.disabled = false;
+        }
+      } }, 'Reintentar');
+      escena.replaceChildren(tarjeta(i, el('p', { clase: 'estado-juego' }, `Tu voto: ${textoVoto(valor)}`),
+        esperando(`Esperando a ${nombre(otro)}…`), error, reintentar));
     }
 
     // Solo se lee el voto del otro cuando los dos ya votaron esta frase.
@@ -295,7 +370,7 @@ export function crearPantallasProbable({ cargar, ahora = () => performance.now()
         escena.replaceChildren(el('div', { clase: 'final-juego' },
           el('h2', { clase: 'titulo-final' }, `Coincidieron en ${res.coincidencias} de ${res.total}`),
           fresca.estado === 'cancelada' ? el('p', { clase: 'subtitulo' }, 'La sala se cortó antes del final.') : null,
-          el('ul', { clase: 'resumen-eligieron' }, ['a', 'b'].map((l) => el('li', {}, `A ${nombre(l)} lo eligieron ${veces(res.elegido[l])}`))),
+          el('ul', { clase: 'resumen-eligieron' }, ['a', 'b'].map((l) => el('li', {}, `Eligieron a ${nombre(l)} ${veces(res.elegido[l])}`))),
           el('div', { clase: 'enlace-acciones' }, otra, el('a', { clase: 'boton', href: '#/' }, 'Inicio'))));
       })().catch((e) => {
         console.warn('Okupa: no se pudo cerrar la sala', e);

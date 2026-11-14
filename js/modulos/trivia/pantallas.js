@@ -3,7 +3,7 @@ import { el, movimientoReducido } from '../../nucleo/ui.js';
 import { icono } from '../../nucleo/iconos.js';
 import { sonar, vibrar } from '../../nucleo/sonidos.js';
 import { exigirPareja } from '../../nucleo/pantallas-pareja.js';
-import { guardarEsperando } from '../../nucleo/esperando.js';
+import { guardarEsperando, sigueEsperando } from '../../nucleo/esperando.js';
 import { elegirPartida } from './banco.js';
 import { preguntasConoces, insertarConoces } from './conoces.js';
 import { MS_PREGUNTA, MS_GRACIA, MS_REVELADO, ambosRespondieron, resultadoPregunta, puntaje, ganador, preguntaDe } from './partida.js';
@@ -100,8 +100,8 @@ export function crearPantallasTrivia({ cargar, ahora = () => performance.now(), 
 
     async function pintar() {
       const [pendiente, uso] = await Promise.all([partidaPendiente(nube, pareja), leerUso(nube, pareja)]);
-      guardarEsperando(ctx.almacen, pareja.codigo, 'trivia', pendiente?.estado === 'esperando' && pendiente.anfitrion !== yo
-        ? { id: pendiente.id, anfitrion: pendiente.anfitrion, nombre: pareja.nombres[pendiente.anfitrion] ?? null } : null);
+      guardarEsperando(ctx.almacen, pareja.codigo, 'trivia', sigueEsperando(pendiente) && pendiente.anfitrion !== yo
+        ? { id: pendiente.id, anfitrion: pendiente.anfitrion, nombre: pareja.nombres[pendiente.anfitrion] ?? null, creadaMs: pendiente.creadaMs } : null);
       const nuevaFirma = JSON.stringify([pendiente?.id, pendiente?.estado, uso.victorias]);
       if (nuevaFirma === firma) return;
       firma = nuevaFirma;

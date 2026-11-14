@@ -213,12 +213,18 @@ async function borrarMatch(nube, base, cargarIdsTarjetas) {
 async function borrarProbable(nube, base) {
   for (const { id, datos } of await nube.listar(`${base}/probable`)) {
     if (datos?.estado !== 'terminada' && datos?.estado !== 'cancelada') {
-      await nube.escribir(`${base}/probable/${id}`, { estado: 'cancelada' }, { combinar: true });
+      try {
+        await nube.escribir(`${base}/probable/${id}`, { estado: 'cancelada' }, { combinar: true });
+      } catch (e) {
+        // Si justo terminó la sala, las reglas rechazan el cambio: ya está cerrada y se sigue borrando.
+        const fresca = await nube.leer(`${base}/probable/${id}`);
+        if (fresca && fresca.estado !== 'terminada' && fresca.estado !== 'cancelada') throw e;
+      }
     }
     const total = datos?.frases?.length || 0;
-    for (let i = 0; i < total; i++) {
-      for (const l of LUGARES) await nube.borrar(`${base}/probable/${id}/votos/${i}_${l}`);
-    }
+    const votos = [];
+    for (let i = 0; i < total; i++) for (const l of LUGARES) votos.push(`${base}/probable/${id}/votos/${i}_${l}`);
+    await borrarRutas(nube, votos);
     await nube.borrar(`${base}/probable/${id}`);
   }
   for (const { id } of await nube.listar(`${base}/probable_frases`)) await nube.borrar(`${base}/probable_frases/${id}`);
