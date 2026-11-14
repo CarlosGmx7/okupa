@@ -111,11 +111,29 @@ describe('match', () => {
     await assertSucceeds(setDoc(d('u1', 'match_matches/mat-001'), nuevo));
     await assertSucceeds(getDocs(collection(db('u2'), `${RUTA}/match_matches`)));
   });
-  it('del match solo se cambia "hecho", y no se borra', async () => {
+  it('del match solo se cambia "hecho"', async () => {
     await sembrar({ [`${RUTA}/match_matches/mat-001`]: { creadoMs: 1, hecho: false } });
     await assertSucceeds(setDoc(d('u2', 'match_matches/mat-001'), { hecho: true }, { merge: true }));
     await assertFails(setDoc(d('u2', 'match_matches/mat-001'), { creadoMs: 9 }, { merge: true }));
-    await assertFails(deleteDoc(d('u1', 'match_matches/mat-001')));
+  });
+  it('para «Borrar todo», cualquiera de los dos borra todo lo del Match, sin poder leer lo del otro', async () => {
+    await sembrar({
+      [`${RUTA}/match_privado/b`]: { votos: { 'mat-001': 'no' } },
+      [`${RUTA}/match_si/mat-002_b`]: { voto: 'si' },
+      [`${RUTA}/match_matches/mat-003`]: { creadoMs: 1, hecho: false },
+      [`${RUTA}/match_tarjetas/n-abc123`]: { mazo: 'retos', texto: 'Bailar salsa', creadaMs: 1 },
+    });
+    await assertFails(getDoc(d('u1', 'match_privado/b')));
+    await assertFails(deleteDoc(d('u9', 'match_privado/b')));
+    await assertFails(deleteDoc(d('u9', 'match_si/mat-002_b')));
+    await assertFails(deleteDoc(d('u9', 'match_matches/mat-003')));
+    await assertFails(deleteDoc(d('u9', 'match_tarjetas/n-abc123')));
+    await assertFails(deleteDoc(d('u1', 'match_si/mat-002_c')));
+    await assertSucceeds(deleteDoc(d('u1', 'match_privado/b')));
+    await assertSucceeds(deleteDoc(d('u1', 'match_si/mat-002_b')));
+    await assertSucceeds(deleteDoc(d('u1', 'match_si/mat-404_b'))); // a ciegas: no existe y no se nota
+    await assertSucceeds(deleteDoc(d('u1', 'match_matches/mat-003')));
+    await assertSucceeds(deleteDoc(d('u1', 'match_tarjetas/n-abc123')));
   });
   it('tarjetas propias: sin autor, mazo válido y largo razonable', async () => {
     const t = { mazo: 'retos', texto: 'Bailar salsa a medianoche', creadaMs: 1 };

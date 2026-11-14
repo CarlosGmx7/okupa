@@ -15,9 +15,11 @@ prueba('privacidad: la página suelta tiene lo esencial', async () => {
   verdadero(doc.querySelector('meta[name=viewport]'), 'falta viewport');
 });
 
-prueba('privacidad: dice lo que de verdad borra «Borrar todo» y lo que no', async () => {
+prueba('privacidad: dice que «Borrar todo» borra también Match, lugares con fotos y avisos', async () => {
   const main = new DOMParser().parseFromString(await pagina(), 'text/html').querySelector('main').textContent.replace(/\s+/g, ' ');
-  verdadero(main.includes('Los lugares del mapa (con sus notas y fotos) y los votos del Match todavía no se borran desde la app'), 'falta aclarar lo que Borrar todo no borra');
+  verdadero(main.includes('los votos y coincidencias del Match, los lugares del mapa con sus notas y fotos'), 'falta decir que borra Match y lugares');
+  verdadero(main.includes('Los avisos que estuvieran por enviarse se descartan'), 'falta lo de los avisos');
+  verdadero(!main.includes('todavía no se borran'), 'quedó el texto viejo');
 });
 
 prueba('privacidad: nombra los servicios de mapas que reciben datos', async () => {

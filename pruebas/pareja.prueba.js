@@ -152,7 +152,7 @@ prueba('pareja: si el otro borra todo, el celular se entera', async () => {
   const motivos = [];
   vigilarLugar(mundo.nube('u2'), alm2, (m) => motivos.push(m));
   await microtareas();
-  await borrarTodo(mundo.nube('u1'), alm1);
+  await borrarTodo(mundo.nube('u1'), alm1, { cargarIdsTarjetas: async () => [] });
   await microtareas();
   igual(motivos, ['borrada']);
   igual(miPareja(alm2), null);
@@ -186,9 +186,23 @@ prueba('pareja: borrarTodo deja la nube sin nada de la pareja', async () => {
   const rutas = ['perfiles/a', 'partidas/p1', 'estado/uso', 'dias/2026-11-04', 'dias/2026-11-04/respuestas/gustos_a']
     .map((r) => `parejas/${codigo}/${r}`);
   for (const r of rutas) await nube.escribir(r, { x: 1 });
-  await borrarTodo(nube, alm1);
+  await borrarTodo(nube, alm1, { cargarIdsTarjetas: async () => [] });
   for (const r of [...rutas, `parejas/${codigo}`]) igual(await nube.leer(r), null, r);
   igual(miPareja(alm1), null);
+});
+
+prueba('pareja: borrarTodo también borra lugares con fotos, Match y votos del otro', async () => {
+  const { mundo, codigo, alm1 } = await parejaCompleta();
+  const nube = mundo.nube('u1');
+  const rutas = [
+    'lugares/L1', 'lugares/L1/fotos/f1', 'lugares/L1/versiones/a', 'lugares/L1/versiones/b',
+    'match_privado/a', 'match_privado/b', 'match_si/mat-001_a', 'match_si/mat-002_b', 'match_si/n-abc_b',
+    'match_matches/mat-001', 'match_tarjetas/n-abc',
+  ].map((r) => `parejas/${codigo}/${r}`);
+  for (const r of rutas) await nube.escribir(r, { x: 1 });
+  // El voto mat-002_b solo se encuentra probando las tarjetas del mazo (el del otro no se lee).
+  await borrarTodo(nube, alm1, { cargarIdsTarjetas: async () => ['mat-001', 'mat-002'] });
+  for (const r of [...rutas, `parejas/${codigo}`]) igual(await nube.leer(r), null, r);
 });
 
 prueba('pareja: sin conexión se propaga sin-conexion', async () => {

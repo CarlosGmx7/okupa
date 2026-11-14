@@ -168,11 +168,55 @@ export function salir(almacen) {
   anunciar(false);
 }
 
-// Borra para los dos todo lo que la pareja tiene en la nube.
-export async function borrarTodo(nube, almacen) {
+const idsTarjetasBase = async () => {
+  const { cargarTarjetas } = await import('../modulos/match/logica.js');
+  return (await cargarTarjetas()).map((t) => t.id);
+};
+
+// Borra en tandas para no esperar uno por uno (pueden ser cientos).
+async function borrarRutas(nube, rutas, tanda = 40) {
+  for (let i = 0; i < rutas.length; i += tanda) {
+    await Promise.all(rutas.slice(i, i + tanda).map((r) => nube.borrar(r)));
+  }
+}
+
+// Lugares del mapa con sus fotos y las dos versiones (las versiones no se listan: nombre fijo).
+async function borrarLugares(nube, base) {
+  for (const { id } of await nube.listar(`${base}/lugares`)) {
+    const fotos = await nube.listar(`${base}/lugares/${id}/fotos`);
+    await borrarRutas(nube, [
+      ...fotos.map((f) => `${base}/lugares/${id}/fotos/${f.id}`),
+      ...LUGARES.map((l) => `${base}/lugares/${id}/versiones/${l}`),
+    ]);
+    await nube.borrar(`${base}/lugares/${id}`);
+  }
+}
+
+// Match: los votos del otro no se pueden leer ni listar, así que se borran a ciegas probando cada
+// tarjeta (las del mazo y las propias de la pareja). Las reglas lo permiten sin revelar nada.
+async function borrarMatch(nube, base, cargarIdsTarjetas) {
+  const propias = (await nube.listar(`${base}/match_tarjetas`)).map((t) => t.id);
+  const misVotos = Object.keys((await nube.leer(`${base}/match_privado/a`).catch(() => null))?.votos || {})
+    .concat(Object.keys((await nube.leer(`${base}/match_privado/b`).catch(() => null))?.votos || {}));
+  const ids = [...new Set([...(await cargarIdsTarjetas()), ...propias, ...misVotos])];
+  await borrarRutas(nube, ids.flatMap((id) => LUGARES.map((l) => `${base}/match_si/${id}_${l}`)));
+  const matches = (await nube.listar(`${base}/match_matches`)).map((m) => `${base}/match_matches/${m.id}`);
+  await borrarRutas(nube, [
+    ...matches,
+    ...propias.map((id) => `${base}/match_tarjetas/${id}`),
+    ...LUGARES.map((l) => `${base}/match_privado/${l}`),
+  ]);
+}
+
+// Borra para los dos todo lo que la pareja tiene en la nube. Los avisos pendientes no se pueden
+// leer desde el celular: el servidor descarta los de parejas que ya no existen.
+export async function borrarTodo(nube, almacen, { cargarIdsTarjetas = idsTarjetasBase } = {}) {
   const pareja = miPareja(almacen);
   if (!pareja) throw new ErrorPareja('sin-pareja');
   const base = ruta(pareja.codigo);
+  // Primero lo que necesita que la pareja exista (las reglas miran quién es miembro).
+  await borrarLugares(nube, base);
+  await borrarMatch(nube, base, cargarIdsTarjetas);
   for (const sub of SUBCOLECCIONES) {
     for (const { id } of await nube.listar(`${base}/${sub}`)) {
       // Las respuestas no se pueden listar (protegen lo del otro): se borran por su nombre fijo.

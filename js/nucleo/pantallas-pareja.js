@@ -196,7 +196,7 @@ function pintarEnlazados(zona, ctx, nube) {
       }, 'Salir de este celular')),
     el('section', { clase: 'bloque-texto' },
       el('h2', {}, 'Borrar nuestros datos'),
-      el('p', {}, 'Borra de la nube todo lo de la pareja: perfiles, respuestas y partidas.'),
+      el('p', {}, 'Borra de la nube todo lo de la pareja: perfiles, respuestas, partidas, Match y lugares del mapa con sus fotos.'),
       el('button', {
         clase: 'boton boton-peligro', type: 'button',
         onclick: (e) => {

@@ -135,8 +135,11 @@ service cloud.firestore {
       // dueño. En match_si solo hay votos positivos ({tarjeta}_{lugar}) y cada uno lee solo los
       // suyos: nadie ve nunca el voto del otro. Que hay match lo decide esta regla al crear
       // match_matches; si se rechaza, el celular solo sabe "no hay match (todavía)".
+      // Borrar: cualquiera de los dos borra todo lo del Match (para «Borrar todo»). Borrar a ciegas no
+      // revela nada: funciona igual exista o no el documento.
       match /match_privado/{quien} {
         allow read, write: if esMiembro(codigo) && quien == miLugar(codigo);
+        allow delete: if esMiembro(codigo) && quien in ['a', 'b'];
       }
       match /match_si/{clave} {
         function partes() { return clave.split('_'); }
@@ -146,7 +149,7 @@ service cloud.firestore {
         allow create, update: if esMiembro(codigo) && partes().size() == 2 && propio()
           && request.resource.data.keys().hasOnly(['voto'])
           && request.resource.data.voto in ['si', 'quizas'];
-        allow delete: if esMiembro(codigo) && partes().size() == 2 && propio();
+        allow delete: if esMiembro(codigo) && partes().size() == 2 && partes()[1] in ['a', 'b'];
       }
       match /match_matches/{tarjeta} {
         function ruta(l) { return /databases/$(db)/documents/parejas/$(codigo)/match_si/$(tarjeta + '_' + l); }
@@ -159,7 +162,7 @@ service cloud.firestore {
         allow update: if esMiembro(codigo)
           && soloCambia(resource.data, request.resource.data, ['hecho'])
           && request.resource.data.hecho is bool;
-        allow delete: if false;
+        allow delete: if esMiembro(codigo);
       }
       // Tarjetas creadas por la pareja: sin autor.
       match /match_tarjetas/{id} {
@@ -169,7 +172,8 @@ service cloud.firestore {
           && request.resource.data.mazo in ['citas', 'viajes', 'finde', 'aprender', 'retos', 'intimidad']
           && request.resource.data.texto is string
           && request.resource.data.texto.size() >= 5 && request.resource.data.texto.size() <= 140;
-        allow update, delete: if false;
+        allow update: if false;
+        allow delete: if esMiembro(codigo);
       }
       // Bandeja de avisos para las notificaciones: cada miembro deja notas de lo que hizo, con un id fijo
       // por evento (no se repite). Solo el servidor (GitHub Actions, sin reglas) las lee y las borra.
