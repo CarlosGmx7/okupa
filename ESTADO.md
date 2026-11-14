@@ -13,12 +13,12 @@ App web instalable (PWA) para parejas: Preguntas, Trivia, ¿Quién es más proba
 ## Estado actual
 - Publicado el 2026-11-14 (`main` = v20, caché `okupa-v20`, reglas pegadas por Carlos): arreglo de «Borrar todo», v19 Fechas especiales y v20 Cápsula del tiempo. Pages verificado (sw.js = okupa-v20).
 - A medias: probar en los dos celulares un aviso de las 8:00 y una carta, y ver Actions → Notificaciones en verde con el código nuevo.
-- Construido y revisado, sin publicar: **v21** (rama `v21-probable`, que ya incluye `main`; carpeta `../okupa-v21`, caché `okupa-v21`). Trae tres cosas:
+- **Publicado el 2026-11-14: v21** (reglas pegadas por Carlos; Pages verificado: sw.js = okupa-v21). Falta probar una ronda en los dos celulares.
+- v21 (rama `v21-probable`, que ya incluye `main`; carpeta `../okupa-v21`, caché `okupa-v21`). Trae tres cosas:
   - «¿Quién es más probable?»: un juego en vivo con votos ocultos por reglas, 155 frases y frases propias.
   - El nuevo inicio en dos interfaces que se cambian en Ajustes → «Interfaz del inicio». **Moderna** (por defecto) tiene 3 tarjetas que abren un panel de mini tarjetas. **Simple** muestra secciones con filas.
   - Preguntas en `#/preguntas` y avisos bajo cada modo solo cuando importan.
   pruebas.html 599 pasan y el emulador 133. Diseño y plan: `docs/superpowers/*/2026-11-14-v21-probable*`.
-- Para publicar v21: Carlos pega `firebase/firestore.rules` de **`okupa-v21`** en Firebase (sin eso el juego nuevo no lee ni escribe nada). Después se hace fast-forward de `main` a `v21-probable` y `git push`, y se prueba una ronda en los dos celulares.
 - Límite conocido (v22): con el código, alguien puede «reclamar» el lugar del otro y leer lo de ese lugar (cartas antes de tiempo, «no» del Match, Diario). Dicho en la política.
 - Vigilar: Firebase gratis = 50k lecturas / 20k escrituras al día, 1 GB; las fotos de lugares lo llenarían primero.
 - Pendientes menores: bienvenida a quien solo cambió tema/foto; recordatorio atrasado tras medianoche usa el día nuevo; `transition: none` de movimiento reducido sin efecto; en Fechas falta timeout al guardar sin conexión.
