@@ -11,9 +11,9 @@ App web instalable (PWA) para parejas: Preguntas, Trivia, Diario, Match, Mapa, F
 - Cada versión en su rama y worktree (`../okupa-vNN`), sin push hasta que Carlos lo apruebe.
 - APK: TWA con Bubblewrap; `assetlinks.json` en repo `carlosgmx7.github.io`; reparto por GitHub Releases.
 ## Estado actual
-- Publicado: v18 (caché `okupa-v18`). `main` también tiene, sin publicar, el arreglo de «Borrar todo» (lugares y Match).
-- Construido y revisado, sin publicar: v19 Fechas especiales (rama `v19-fechas`) y v20 Cápsula del tiempo (rama `v20-capsula`, sale de la v19, carpeta `../okupa-v20`, caché `okupa-v20`). pruebas.html 498 pasan; emulador (reglas + servidor) 101 pasan. Resumen y decisiones que Claude tomó por Carlos: `RESUMEN-NOCHE.md` (sin commit) y la sección «Decisiones que tomé por Carlos» de `docs/superpowers/specs/2026-11-14-v20-capsula-design.md`.
-- Para publicar v19+v20: Carlos pega `firebase/firestore.rules` de `okupa-v20` en Firebase, aprueba unir `v20-capsula` a `main` y `git push`; luego probar en los dos celulares un aviso de las 8:00 y una carta.
+- Publicado el 2026-11-14 (`main` = v20, caché `okupa-v20`, reglas pegadas por Carlos): arreglo de «Borrar todo», v19 Fechas especiales y v20 Cápsula del tiempo. Pages verificado (sw.js = okupa-v20).
+- Construido y revisado: v19 Fechas especiales (rama `v19-fechas`) y v20 Cápsula del tiempo (rama `v20-capsula`, sale de la v19, carpeta `../okupa-v20`, caché `okupa-v20`). pruebas.html 498 pasan; emulador (reglas + servidor) 101 pasan. Resumen y decisiones que Claude tomó por Carlos: `RESUMEN-NOCHE.md` (sin commit) y la sección «Decisiones que tomé por Carlos» de `docs/superpowers/specs/2026-11-14-v20-capsula-design.md`.
+- A medias: probar en los dos celulares un aviso de las 8:00 y una carta, y ver Actions → Notificaciones en verde con el código nuevo.
 - Límite conocido (v22): con el código, alguien puede «reclamar» el lugar del otro y leer lo de ese lugar (cartas antes de tiempo, «no» del Match, Diario). Dicho en la política.
 - Vigilar: Firebase gratis = 50k lecturas / 20k escrituras al día, 1 GB; las fotos de lugares lo llenarían primero.
 - Pendientes menores: bienvenida a quien solo cambió tema/foto; recordatorio atrasado tras medianoche usa el día nuevo; `transition: none` de movimiento reducido sin efecto; en Fechas falta timeout al guardar sin conexión.
