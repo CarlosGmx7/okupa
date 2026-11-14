@@ -39,16 +39,19 @@ service cloud.firestore {
       function registroValido() {
         let d = request.resource.data;
         let previo = resource == null ? {} : resource.data;
-        return d.keys().hasOnly(['uid', 'pareja', 'lugar', 'token', 'avisos', 'hora', 'zona', 'franja', 'actualizado', 'ultimoRecordatorio'])
+        return d.keys().hasOnly(['uid', 'pareja', 'lugar', 'token', 'avisos', 'hora', 'zona', 'franja', 'actualizado', 'ultimoRecordatorio', 'franjaFechas', 'ultimoFechas'])
           && d.get('ultimoRecordatorio', null) == previo.get('ultimoRecordatorio', null)
+          && d.get('ultimoFechas', null) == previo.get('ultimoFechas', null)
           && d.uid == request.auth.uid
           && d.pareja is string && d.pareja.matches('^[A-HJKMNP-Z2-9]{6}$')
           && esMiembro(d.pareja) && d.lugar == miLugar(d.pareja)
           && d.token is string && d.token.size() > 0 && d.token.size() < 500
-          && d.avisos.keys().hasOnly(['diario', 'trivia', 'mapa', 'recordatorio'])
+          && d.avisos.keys().hasOnly(['diario', 'trivia', 'mapa', 'recordatorio', 'fechas'])
           && d.avisos.diario is bool && d.avisos.trivia is bool && d.avisos.mapa is bool && d.avisos.recordatorio is bool
+          && d.avisos.get('fechas', true) is bool
           && horaValida(d.hora)
           && d.franja is string && d.franja.matches('^([01][0-9]|2[0-3]):(00|15|30|45)$')
+          && (!('franjaFechas' in d) || (d.franjaFechas is string && d.franjaFechas.matches('^([01][0-9]|2[0-3]):(00|15|30|45)$')))
           && d.zona is string && d.zona.size() > 0 && d.zona.size() < 60
           && d.actualizado == request.time;
       }
@@ -175,6 +178,22 @@ service cloud.firestore {
         allow update: if false;
         allow delete: if esMiembro(codigo);
       }
+      // Fechas de la pareja: inicio, cumpleaños de cada uno (cumple_a / cumple_b) y otras con nombre
+      // (f-xxxx). Las dos personas leen y escriben; el id fija el tipo y los campos permitidos.
+      match /fechas/{id} {
+        function fechaTexto(f) { return f is string && f.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$'); }
+        function fechaValida(d) {
+          return d.actualizadaMs is number && fechaTexto(d.fecha)
+            && ((id == 'inicio' && d.keys().hasOnly(['tipo', 'fecha', 'actualizadaMs']) && d.tipo == 'inicio')
+              || (id in ['cumple_a', 'cumple_b'] && d.keys().hasOnly(['tipo', 'fecha', 'de', 'actualizadaMs'])
+                && d.tipo == 'cumple' && d.de == id.split('_')[1])
+              || (id.matches('^f-[a-z0-9]{4,30}$') && d.keys().hasOnly(['tipo', 'fecha', 'nombre', 'actualizadaMs'])
+                && d.tipo == 'otra' && d.nombre is string && d.nombre.size() >= 1 && d.nombre.size() <= 40));
+        }
+        allow read, delete: if esMiembro(codigo);
+        allow create, update: if esMiembro(codigo) && fechaValida(request.resource.data);
+      }
+
       // Bandeja de avisos para las notificaciones: cada miembro deja notas de lo que hizo, con un id fijo
       // por evento (no se repite). Solo el servidor (GitHub Actions, sin reglas) las lee y las borra.
       match /avisos/{id} {
