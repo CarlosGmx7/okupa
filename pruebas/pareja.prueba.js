@@ -183,7 +183,8 @@ prueba('pareja: salir olvida la pareja solo en este celular', async () => {
 prueba('pareja: borrarTodo deja la nube sin nada de la pareja', async () => {
   const { mundo, codigo, alm1 } = await parejaCompleta();
   const nube = mundo.nube('u1');
-  const rutas = ['perfiles/a', 'partidas/p1', 'estado/uso', 'dias/2026-11-04', 'dias/2026-11-04/respuestas/gustos_a', 'fechas/inicio']
+  const rutas = ['perfiles/a', 'partidas/p1', 'estado/uso', 'dias/2026-11-04', 'dias/2026-11-04/respuestas/gustos_a', 'fechas/inicio',
+    'capsulas/c-abcd', 'capsulas/c-abcd/contenido/texto']
     .map((r) => `parejas/${codigo}/${r}`);
   for (const r of rutas) await nube.escribir(r, { x: 1 });
   await borrarTodo(nube, alm1, { cargarIdsTarjetas: async () => [] });

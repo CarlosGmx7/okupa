@@ -58,7 +58,7 @@ export const almacen = crearAlmacen();
 
 // Lo que es de este celular no viaja en la copia: el lugar en la pareja (importarlo en otro celular
 // le quitaría el lugar al de verdad), el registro de avisos y la marca de la bienvenida.
-const PREFIJOS_DEL_CELULAR = ['okupa:pareja', 'okupa:dispositivo', 'okupa:notificaciones', 'okupa:bienvenida', 'okupa:fechas'];
+const PREFIJOS_DEL_CELULAR = ['okupa:pareja', 'okupa:dispositivo', 'okupa:notificaciones', 'okupa:bienvenida', 'okupa:fechas', 'okupa:capsulas'];
 export const esDeEsteCelular = (clave) => PREFIJOS_DEL_CELULAR.some((p) => clave === p || clave.startsWith(`${p}:`));
 
 export function exportarRespaldo(alm, prefijo = PREFIJO) {

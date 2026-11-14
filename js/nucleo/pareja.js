@@ -5,7 +5,7 @@ const CLAVE = 'okupa:pareja:actual';
 const LUGARES = ['a', 'b'];
 const MAX_NOMBRE = 30;
 const INTENTOS_CODIGO = 5;
-const SUBCOLECCIONES = ['perfiles', 'partidas', 'estado', 'dias', 'ubicaciones', 'fechas'];
+const SUBCOLECCIONES = ['perfiles', 'partidas', 'estado', 'dias', 'ubicaciones', 'fechas', 'capsulas'];
 export const PARTES_RESPUESTA = ['gustos_a', 'gustos_b', 'ingles_a', 'ingles_b'];
 
 // Sin I, L, O, 0 ni 1 para que no se confundan al dictarlo.
@@ -223,6 +223,8 @@ export async function borrarTodo(nube, almacen, { cargarIdsTarjetas = idsTarjeta
       if (sub === 'dias') {
         for (const parte of PARTES_RESPUESTA) await nube.borrar(`${base}/dias/${id}/respuestas/${parte}`);
       }
+      // El texto de cada carta va aparte y debe borrarse antes que sus metadatos.
+      if (sub === 'capsulas') await nube.borrar(`${base}/capsulas/${id}/contenido/texto`);
       await nube.borrar(`${base}/${sub}/${id}`);
     }
   }
