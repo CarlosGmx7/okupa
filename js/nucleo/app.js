@@ -32,14 +32,16 @@ const ctx = {
   nube: obtenerNube,
   notificaciones,
   ir(ruta) { location.hash = `#/${ruta}`; },
-  refrescar() { pintar(); },
+  // Repinta la misma pantalla sin transición y sin perder dónde iba el scroll.
+  refrescar() { pintar({ mismaPantalla: true }); },
 };
 
 let primeraVez = true;
 
-async function pintar() {
+async function pintar({ mismaPantalla = false } = {}) {
   const r = resolverRuta(location.hash, tabla) || { handler: pantallaInicio, params: {} };
-  const cambiar = primeraVez ? (fn) => fn() : transicion;
+  const cambiar = primeraVez || mismaPantalla ? (fn) => fn() : transicion;
+  const scrollPrevio = mismaPantalla ? window.scrollY : 0;
   primeraVez = false;
   // La transición solo espera lo inmediato: si la pantalla trae datos de internet, se muestra ya
   // (con su "Conectando…") en vez de dejar congelada la anterior hasta que lleguen.
@@ -56,6 +58,7 @@ async function pintar() {
     await Promise.race([terminada, new Promise((res) => setTimeout(res, 60))]);
   });
   await terminada;
+  if (scrollPrevio) window.scrollTo(0, scrollPrevio);
 }
 
 async function arrancar() {

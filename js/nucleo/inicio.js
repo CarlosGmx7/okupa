@@ -66,7 +66,7 @@ globalThis.document?.addEventListener?.('focusin', (e) => {
   foco = b ? { seccion: b.dataset.seccion } : m ? { ruta: m.getAttribute('href') } : null;
 });
 
-const ICONOS_SECCION ={ jugar: '✦', conocernos: '❖', nosotros: '♥' };
+const ICONOS_SECCION = { jugar: '✦', conocernos: '❖', nosotros: '♥' };
 
 // Interfaz «Moderna»: tres tarjetas grandes y, debajo, un panel con las mini tarjetas de la abierta.
 // Solo una sección abierta a la vez; tocar la misma la cierra. Se pinta cerrado en cada render.
