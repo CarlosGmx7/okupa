@@ -9,7 +9,7 @@ prueba('privacidad: la página suelta tiene lo esencial', async () => {
   verdadero(doc.querySelector('main'), 'falta <main>');
   igual(doc.querySelectorAll('script').length, 0);
   igual(CORREO_PRIVACIDAD, 'carlos57garavito00@gmail.com');
-  for (const t of [CORREO_PRIVACIDAD, 'Ley 1581 de 2012', '2026-11-13', 'Firebase', 'Borrar todo']) {
+  for (const t of [CORREO_PRIVACIDAD, 'Ley 1581 de 2012', '2026-11-14', 'Firebase', 'Borrar todo']) {
     verdadero(doc.querySelector('main').textContent.includes(t), `falta "${t}"`);
   }
   verdadero(doc.querySelector('meta[name=viewport]'), 'falta viewport');
@@ -28,10 +28,18 @@ prueba('privacidad: cuenta lo de la cápsula del tiempo', async () => {
   verdadero(main.includes('solo puede leer desde esa fecha'), 'falta que están selladas');
 });
 
+prueba('privacidad: cuenta lo de las rondas de ¿Quién es más probable? y sus frases propias', async () => {
+  const main = new DOMParser().parseFromString(await pagina(), 'text/html').querySelector('main').textContent.replace(/\s+/g, ' ');
+  verdadero(main.includes('Las rondas de ¿Quién es más probable?: las frases, quién votó y su voto'), 'falta qué se guarda de las rondas');
+  verdadero(main.includes('que la otra persona solo puede ver después de votar esa misma frase'), 'falta que el voto del otro se ve solo después de votar');
+  verdadero(main.includes('y sus frases propias'), 'falta decir que se guardan las frases propias');
+  verdadero(main.includes('las rondas de ¿Quién es más probable? con sus frases propias'), 'falta que «Borrar todo» las borra');
+});
+
 prueba('privacidad: cuenta lo de las fechas especiales', async () => {
   const main = new DOMParser().parseFromString(await pagina(), 'text/html').querySelector('main').textContent.replace(/\s+/g, ' ');
   verdadero(main.includes('Las fechas especiales: el día en que empezaron'), 'falta qué fechas se guardan');
-  verdadero(main.includes('las fechas especiales, las cartas de la cápsula y las ubicaciones'), 'falta que «Borrar todo» las borra');
+  verdadero(main.includes('las fechas especiales, las cartas de la cápsula, las rondas de ¿Quién es más probable? con sus frases propias y las ubicaciones'), 'falta que «Borrar todo» las borra');
   verdadero(main.includes('8:00 a. m.'), 'falta la hora de los avisos de fechas');
 });
 
