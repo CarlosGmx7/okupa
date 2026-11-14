@@ -1,41 +1,42 @@
 # Estado de Okupa — 2026-11-13
 ## Objetivo
-App web instalable (PWA) para Carlos y su pareja: preguntas para conocerse, Trivia, Diario, Match de deseos y Mapa con lugares. Publicada en https://carlosgmx7.github.io/okupa/ (repo CarlosGmx7/okupa, rama `main`).
+App web instalable (PWA) para parejas: preguntas para conocerse, Trivia, Diario, Match, Mapa, Ajustes con temas y notificaciones. Publicada en https://carlosgmx7.github.io/okupa/ (repo CarlosGmx7/okupa, rama `main`). Meta: app "de verdad" (APK) que aguante muchas parejas y, más adelante, grupos de 3+.
 ## Decisiones tomadas
 - HTML/CSS/JS con módulos ES, sin compilación; módulos activos en `modulos.json` — simple de mantener y publicar en GitHub Pages.
-- Español colombiano con tuteo; Carlos prefiere que le pregunten con opciones para elegir (y espacio para escribir otra cosa).
-- Firebase (Firestore + acceso anónimo) solo para lo de pareja; lo demás funciona sin internet.
-- La privacidad la garantizan las reglas de Firebase, no la pantalla (Match y versiones del mapa).
-- Mapa: MapLibre 4.7.1 + estilo Liberty de OpenFreeMap con nombres en español — pedido de Carlos.
-- Fotos de lugares comprimidas en Firestore, máx. 6 — sin Firebase Storage (pide tarjeta).
-- Dos temas por celular (`okupa:ajustes`): "Vino y dorado" (predeterminado, el original) y "Grafito y rosa" (limpio, solo Inter, íconos de línea). Grafito redefine las mismas variables CSS (`--dorado`, `--vino`, `*-rgb`…) en `:root[data-tema="grafito"]`.
-- Botones: un solo "resorte" con la propiedad `scale` (no `transform`). Sonidos sintetizados (Web Audio) solo en match, acierto de Trivia y guardados; vibración corta al tocar (en `click`).
-- Notificaciones (v17): GitHub Actions cada 15 min + Firebase Cloud Messaging (gratis, sin plan Blaze); recordatorio del Diario a la hora elegida y avisos de pareja.
+- Español colombiano con tuteo; a Carlos se le pregunta con opciones para elegir (AskUserQuestion) y espacio para "otra cosa".
+- Firebase gratis (Firestore + acceso anónimo + FCM), sin plan Blaze ni Google Cloud (pide método de pago y a Carlos le falla).
+- La privacidad la garantizan las reglas de Firebase, no la pantalla.
+- Temas por celular (`okupa:ajustes`): "Vino y dorado" (predeterminado) y "Grafito y rosa"; Grafito redefine las mismas variables CSS en `:root[data-tema="grafito"]`.
+- Notificaciones: la app deja notas en `parejas/{c}/avisos`, cada celular se registra en `dispositivos/{id}`; GitHub Actions (`servidor/notificaciones/`) las manda cada 15 min con FCM. Avisos dirigidos a "todos menos quien lo hizo" (listos para grupos).
+- APK: TWA con Bubblewrap (carga la web: se actualiza sola al publicar). `assetlinks.json` en un repo nuevo `carlosgmx7.github.io` (`/.well-known/`). Repartir gratis por GitHub Releases; Google Play cuesta 25 USD (no por ahora).
 ## Estado actual
-- Funciona y está verificado: v16 publicada en GitHub Pages con caché `okupa-v16`.
-- v17 (notificaciones) publicada con caché `okupa-v17` y `CLAVE_VAPID` puesta; Carlos guardó el secreto (llave del SDK Admin desde la consola de Firebase, sin Google Cloud) y pegó las reglas. pruebas.html 379 pasan; reglas + servidor 67 pasan (`firebase/`: `node emuladores.mjs exec "node --test pruebas/ ../servidor/notificaciones/pasada.test.mjs ../servidor/notificaciones/logica.test.mjs"`); revisión final hecha y arreglada.
-- El workflow Notificaciones corrió en verde (2026-11-13, manual). A medias: probar un aviso real entre los dos celulares (activar en Ajustes en ambos, responder el Diario en uno, esperar ≤30 min).
-- Pendientes menores v17: recordatorio que se atrasa justo después de la medianoche de Bogotá usa el día nuevo; ids de trivia/mapa no atados a una partida/lugar real (solo la pareja podría abusar); recrear el registro reinicia `ultimoRecordatorio`.
-- Pendientes menores: reglas `transition: none` de movimiento reducido en componentes.css quedaron sin efecto; el `:is(... button)` del resorte gana a transiciones de botones declaradas antes; fotos de lugares se descargan completas la primera vez.
+- Publicado y verificado: v17 con caché `okupa-v17` (pruebas.html 379 pasan; reglas + servidor 67 pasan; workflow Notificaciones en verde).
+- A medias: confirmar con Carlos que llegó un aviso real entre los dos celulares.
+- Límite a vigilar al crecer: Firebase gratis = 50k lecturas y 20k escrituras/día, 1 GB; las fotos de lugares (hasta 380 KB c/u en Firestore) lo llenarían primero.
+- Pendientes menores: recordatorio atrasado tras medianoche de Bogotá usa el día nuevo; ids trivia/mapa no atados a partida/lugar real; reglas `transition: none` de movimiento reducido sin efecto.
+## Hoja de ruta acordada (una versión por chat, cada una con brainstorming → diseño → plan → construir)
+1. v18 – Lo básico de una app real: bienvenida para nuevos (3–4 pantallas: qué es, enlazar pareja, activar avisos), página de política de privacidad, copia de seguridad (exportar/importar, hoy escondida en "Mis preguntas") y tamaño de letra en Ajustes.
+2. v19 – Días juntos y aniversarios: contador en el inicio + avisos en días especiales.
+3. v20 – Cápsula del tiempo: cartas que se abren en una fecha, con aviso.
+4. v21 – ¿Quién es más probable?: votan a la vez, se revela al final (pensado también para grupos).
+5. v22 – Firebase App Check (reCAPTCHA v3, gratis), con pasos de Carlos en la consola.
+6. APK (TWA + Bubblewrap) y repo `carlosgmx7.github.io` con `assetlinks.json`; guardar muy bien la keystore.
 ## Archivos clave
-- `js/nucleo/ajustes.js`, `tema.js`, `iconos.js`, `sonidos.js`, `pantalla-ajustes.js`: lo nuevo de la v16.
-- `js/nucleo/`: navegación (`app.js`), almacenamiento, inicio, portada, pareja/nube (Firebase).
-- `js/modulos/{preguntas,trivia,diario,match,mapa}/` y `data/`: secciones y su contenido.
-- `css/base.css` (variables y temas) y `css/componentes.css` (al final: Grafito, íconos, resorte, Ajustes).
-- `firebase/firestore.rules` y `firebase/pruebas/`: reglas y sus pruebas.
-- `sw.js`: caché sin internet (`CACHE` y `PRECACHE`).
-- `docs/superpowers/specs|plans/2026-11-13-ajustes-temas-animaciones*`: diseño y plan de la v16.
+- `js/nucleo/`: `app.js` (rutas), `almacen.js`, `inicio.js`, `pantalla-ajustes.js`, `ajustes.js`, `tema.js`, `iconos.js`, `sonidos.js`, `notificaciones.js`, `avisos.js`, `pareja.js`, `nube.js`, `nube-config.js` (`CLAVE_VAPID`).
+- `js/modulos/{preguntas,trivia,diario,match,mapa}/` y `data/`: secciones y contenido; `js/modulos/preguntas/editor.js` tiene hoy la copia de seguridad.
+- `css/base.css` (variables y temas) y `css/componentes.css`.
+- `firebase/firestore.rules` y `firebase/pruebas/`; `servidor/notificaciones/` + `.github/workflows/notificaciones.yml`.
+- `sw.js` (`CACHE`, `PRECACHE`, push); `docs/superpowers/specs|plans/`: diseños y planes de cada versión.
 ## Próximo paso
-Revisar con Carlos el primer "Run workflow" y el aviso real entre los dos celulares; si algo falla, mirar el registro del workflow en Actions. Después: proyecto de grupos de 3+ personas (los avisos ya van a "todos menos quien lo hizo").
+Empezar la v18 con brainstorming (preguntas con opciones a Carlos): bienvenida, política de privacidad, copia de seguridad y tamaño de letra en Ajustes.
 ## Cómo verificar
-- App: `python herramientas/servidor.py` y abrir http://127.0.0.1:8080/pruebas.html → debe decir "0 fallaron".
-- Reglas: en `firebase/`, `npm install` (la primera vez) y luego `npm test`; al terminar cerrar el java del puerto 8085.
-- Publicado: `https://carlosgmx7.github.io/okupa/sw.js` debe mostrar la `CACHE` actual.
+- App: abrir http://127.0.0.1:8080/pruebas.html (servidor: preview "okupa" o `python herramientas/servidor.py`) → "0 fallaron". Si el panel está en segundo plano va lento; para una sola prueba: página 404 del servidor + `import('/pruebas/corredor.js')` y el archivo.
+- Reglas y servidor: en `firebase/`, `npm install` (1ª vez) y `node emuladores.mjs exec "node --test pruebas/ ../servidor/notificaciones/pasada.test.mjs ../servidor/notificaciones/logica.test.mjs"`; luego cerrar el java del puerto 8085.
+- Publicado: `https://carlosgmx7.github.io/okupa/sw.js` muestra la `CACHE` actual; Actions → Notificaciones en verde.
 ## Cuidado con
-- Cada cambio: subir `CACHE` en `sw.js` (próxima `okupa-v17`) y agregar archivos nuevos a `PRECACHE` y a `pruebas/pwa.prueba.js`; pruebas nuevas a la lista de `pruebas.html`.
-- `--acento` ya es el color de cada categoría en las cartas: no usarlo para el tema.
-- Probar en local: el service worker sirve la caché vieja; desregistrarlo en el navegador del panel antes de mirar cambios.
-- `append()` nativo convierte listas y `null` en texto: pasar hijos por `el()`.
-- Usar http://127.0.0.1:8080 (no `localhost`); el navegador del panel no pinta mapas si la ventana está oculta.
-- Bash falla con errores de fork: usar PowerShell. En scripts .ps1 con símbolos (✦, ∞) guardar con BOM, y no llamar `R` a una función (es un alias de PowerShell).
-- Si cambian las reglas, Carlos debe pegarlas en Firebase (Firestore → Reglas → Publicar) antes de publicar la app.
+- Cada cambio: subir `CACHE` en `sw.js` (próxima `okupa-v18`), archivos nuevos a `PRECACHE` y `pruebas/pwa.prueba.js`, pruebas nuevas a `pruebas.html`.
+- Si cambian las reglas, Carlos las pega en Firebase (Firestore → Reglas → Publicar) antes de publicar la app.
+- `--acento` ya es el color de cada categoría: no usarlo para el tema. `append()` nativo convierte listas y `null` en texto: usar `el()`.
+- Probar en local: desregistrar el service worker del navegador del panel; usar 127.0.0.1, no localhost.
+- Bash falla con errores de fork: usar PowerShell. Scripts .ps1 con símbolos: guardar con BOM; no llamar `R` a una función.
+- Archivos de prueba de reglas con `projectId` propio (node --test corre en paralelo contra el mismo emulador).
