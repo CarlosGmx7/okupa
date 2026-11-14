@@ -7,7 +7,7 @@ import { PORTADA_ORIGINAL, fuentePortada, abrirEditorPortada } from './portada.j
 import { leerPreferencias } from './notificaciones.js';
 import { descargarCopia, abrirHojaRecuperar, validadoresDe } from './respaldo.js';
 
-const MOTIVOS = {
+export const MOTIVOS = {
   'sin-pareja': () => ['Enlaza tu pareja para recibir avisos', ' · ', el('a', { href: '#/pareja' }, 'Enlazar')],
   'sin-soporte': () => 'Este navegador no puede recibir notificaciones',
   denegado: () => 'Las notificaciones están bloqueadas. En Chrome: toca el candado junto a la dirección → Notificaciones → Permitir.',

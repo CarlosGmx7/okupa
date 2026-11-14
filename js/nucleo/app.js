@@ -7,6 +7,7 @@ import { obtenerNube } from './nube.js';
 import { pantallaPareja } from './pantallas-pareja.js';
 import { pantallaAjustes } from './pantalla-ajustes.js';
 import { pantallaPrivacidad } from './privacidad.js';
+import { pantallaBienvenida, desviarABienvenida } from './bienvenida.js';
 import { precalentar } from './precalentar.js';
 import { crearInstalacion } from './instalacion.js';
 import { leerAjustes, alCambiarAjustes } from './ajustes.js';
@@ -75,6 +76,10 @@ async function arrancar() {
   tabla.pareja = pantallaPareja;
   tabla.ajustes = pantallaAjustes;
   tabla.privacidad = pantallaPrivacidad;
+  tabla.bienvenida = pantallaBienvenida;
+  tabla['bienvenida/:paso'] = pantallaBienvenida;
+  // Primera vez en el inicio: la bienvenida reemplaza la entrada (atrás no vuelve a un inicio vacío).
+  if (desviarABienvenida(location.hash, almacen)) history.replaceState(null, '', '#/bienvenida');
   window.addEventListener('hashchange', pintar);
   // Si el navegador ofrece instalar (o ya se instaló), repinta el inicio para mostrar u ocultar el botón.
   ctx.instalacion.alCambiar(() => { if (!resolverRuta(location.hash, tabla) || location.hash.replace(/[#/]/g, '') === '') pintar(); });

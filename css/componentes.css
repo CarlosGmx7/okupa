@@ -1013,6 +1013,20 @@ ul.chips { padding: 0; margin: 0; list-style: none; }
 .letra-nombre { font-size: 0.8125rem; font-weight: 600; text-align: center; }
 .grupo-ajustes-nota { display: block; margin: 0; padding: 12px 14px 4px; }
 
+/* ---------- Bienvenida ---------- */
+.bienvenida { display: flex; flex-direction: column; min-height: calc(100dvh - 48px); }
+.bienvenida-cabecera { display: flex; align-items: center; justify-content: space-between; min-height: 44px; }
+.bienvenida-puntos { display: flex; gap: 6px; }
+.bienvenida-puntos span { width: 8px; height: 8px; border-radius: 50%; background: var(--dorado-suave); transition: width .25s, background-color .25s; }
+.bienvenida-puntos span.activo { width: 22px; border-radius: 4px; background: var(--dorado); }
+.bienvenida-cuerpo { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 12px; padding: 16px 0; text-align: center; }
+.bienvenida-cuerpo .enlace-acciones, .bienvenida-cuerpo .campo { text-align: left; }
+.bienvenida-portada { width: 112px; height: 112px; border-radius: 50%; object-fit: cover; margin: 0 auto; box-shadow: 0 0 0 3px var(--dorado-suave); }
+.bienvenida-lista { list-style: none; margin: 12px 0; padding: 0; display: grid; gap: 12px; text-align: left; }
+.bienvenida-lista li { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border-radius: var(--radio-chico); background: var(--superficie-alta); line-height: 1.4; }
+.bienvenida-lista li > :first-child { flex: none; color: var(--dorado); margin-top: 2px; }
+.bienvenida-pie { display: flex; justify-content: center; padding-bottom: 8px; }
+
 /* Política de privacidad dentro de la app (viene de privacidad.html). */
 .privacidad { padding-bottom: 32px; }
 .privacidad h1 { font-family: var(--serif); font-size: 2rem; line-height: 1.2; margin: 8px 0; }

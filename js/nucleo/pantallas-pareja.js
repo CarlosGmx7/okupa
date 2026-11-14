@@ -53,13 +53,13 @@ function pintarSinNube(zona, ctx, e) {
 }
 
 // Descargar Firebase e iniciar sesión tarda unos segundos: nunca dejar la pantalla vacía.
-async function conectar(zona, ctx) {
+export async function conectar(zona, ctx) {
   const espera = el('p', { clase: 'subtitulo', role: 'status' }, 'Conectando…');
   zona.append(espera);
   try { return await ctx.nube(); } catch (e) { pintarSinNube(zona, ctx, e); return null; } finally { espera.remove(); }
 }
 
-function pintarEnlace(zona, ctx, nube, alEnlazar) {
+export function pintarEnlace(zona, ctx, nube, alEnlazar) {
   const inicio = () => zona.replaceChildren(
     el('h1', { clase: 'titulo-pantalla' }, 'Enlacen sus celulares'),
     el('p', { clase: 'subtitulo' }, 'Uno crea la pareja y le pasa el código al otro. Solo se hace una vez.'),
