@@ -13,11 +13,12 @@ App web instalable (PWA) para parejas: preguntas para conocerse, Trivia, Diario,
 - Publicado y verificado: v18 con caché `okupa-v18` (sw.js y privacidad.html en línea): bienvenida (#/bienvenida/:paso), política (`privacidad.html` + #/privacidad, contacto carlos57garavito00@gmail.com), copia de seguridad en Ajustes sin pareja/avisos, letra Normal/Grande/Muy grande (CSS en rem). pruebas.html 410 pasan; revisado a 375 px en Muy grande.
 - A medias: confirmar con Carlos que llegó un aviso real entre los dos celulares.
 - Límite a vigilar al crecer: Firebase gratis = 50k lecturas y 20k escrituras/día, 1 GB; las fotos de lugares (hasta 380 KB c/u en Firestore) lo llenarían primero.
-- Pendiente importante: «Borrar todo» (`borrarTodo` en `pareja.js`) no borra `lugares` (con fotos), `match_*` ni `avisos`, y las reglas impiden borrar `match_matches`. La política lo dice y ofrece borrarlo por correo; arreglarlo pide cambiar reglas.
+- Lista sin publicar (rama `v19-fechas`, carpeta `../okupa-v19`): «Borrar todo» ya borra lugares, Match (votos del otro a ciegas) y fechas; avisos los descarta el servidor. v19 Fechas especiales (`js/modulos/fechas/`: `calendario.js` lógica pura que usa también el servidor, `datos.js`, `pantallas.js`; caché `okupa-v19`): lista compartida (inicio, cumpleaños, propias), mensuales e hitos (100…1.000 y cada 500; el día de inicio es el día 1), avisos 7 días antes y el día a las 8:00 locales (mensuales solo el día; la semana antes del cumple no le llega al cumpleañero). pruebas.html 455 pasan; emulador 85 pasan.
+- Para publicar: Carlos pega `firebase/firestore.rules` en Firebase (cambiaron dos veces: Match borrable y `fechas`/`dispositivos`), unir `v19-fechas` a `main` y `git push`; comprobar `sw.js` = `okupa-v19` y Actions verde.
 - Pendientes menores: la bienvenida le sale a quien solo cambió tema/foto o salió de la pareja sin usar Preguntas; recordatorio atrasado tras medianoche de Bogotá usa el día nuevo; ids trivia/mapa no atados a partida/lugar real; reglas `transition: none` de movimiento reducido sin efecto.
 ## Hoja de ruta acordada (una versión por chat, cada una con brainstorming → diseño → plan → construir)
 1. v18 – Publicada (diseño y plan en `docs/superpowers/`).
-2. v19 – Días juntos y aniversarios: contador en el inicio + avisos en días especiales.
+2. v19 – Fechas especiales: construida, falta publicar (diseño y plan `2026-11-13-v19-fechas`).
 3. v20 – Cápsula del tiempo: cartas que se abren en una fecha, con aviso.
 4. v21 – ¿Quién es más probable?: votan a la vez, se revela al final (pensado también para grupos).
 5. v22 – Firebase App Check (reCAPTCHA v3, gratis), con pasos de Carlos en la consola.
@@ -30,13 +31,13 @@ App web instalable (PWA) para parejas: preguntas para conocerse, Trivia, Diario,
 - `firebase/firestore.rules` y `firebase/pruebas/`; `servidor/notificaciones/` + `.github/workflows/notificaciones.yml`.
 - `sw.js` (`CACHE`, `PRECACHE`, push); `docs/superpowers/specs|plans/`: diseños y planes de cada versión.
 ## Próximo paso
-v19 (días juntos y aniversarios) con brainstorming. Antes o en paralelo: que «Borrar todo» borre lugares, Match y avisos (pide cambiar reglas).
+Publicar la v19 (reglas primero) y probar con los dos celulares que llega un aviso de fechas a las 8:00. Luego v20 (cápsula del tiempo) con brainstorming.
 ## Cómo verificar
 - App: abrir http://127.0.0.1:8080/pruebas.html (servidor: preview "okupa" o `python herramientas/servidor.py`) → "0 fallaron". Si el panel está en segundo plano va lento; para una sola prueba: página 404 del servidor + `import('/pruebas/corredor.js')` y el archivo.
 - Reglas y servidor: en `firebase/`, `npm install` (1ª vez) y `node emuladores.mjs exec "node --test pruebas/ ../servidor/notificaciones/pasada.test.mjs ../servidor/notificaciones/logica.test.mjs"`; luego cerrar el java del puerto 8085.
 - Publicado: `https://carlosgmx7.github.io/okupa/sw.js` muestra la `CACHE` actual; Actions → Notificaciones en verde.
 ## Cuidado con
-- Cada cambio: subir `CACHE` en `sw.js` (próxima `okupa-v19`), archivos nuevos a `PRECACHE` y `pruebas/pwa.prueba.js`, pruebas nuevas a `pruebas.html`.
+- Cada cambio: subir `CACHE` en `sw.js` (próxima `okupa-v20`), archivos nuevos a `PRECACHE` y `pruebas/pwa.prueba.js`, pruebas nuevas a `pruebas.html`.
 - Si cambian las reglas, Carlos las pega en Firebase (Firestore → Reglas → Publicar) antes de publicar la app.
 - `--acento` ya es el color de cada categoría: no usarlo para el tema. `append()` nativo convierte listas y `null` en texto: usar `el()`.
 - Probar en local: desregistrar el service worker del navegador del panel; usar 127.0.0.1, no localhost.

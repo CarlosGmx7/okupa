@@ -22,6 +22,13 @@ prueba('privacidad: dice que «Borrar todo» borra también Match, lugares con f
   verdadero(!main.includes('todavía no se borran'), 'quedó el texto viejo');
 });
 
+prueba('privacidad: cuenta lo de las fechas especiales', async () => {
+  const main = new DOMParser().parseFromString(await pagina(), 'text/html').querySelector('main').textContent.replace(/\s+/g, ' ');
+  verdadero(main.includes('Las fechas especiales: el día en que empezaron'), 'falta qué fechas se guardan');
+  verdadero(main.includes('las fechas especiales y las ubicaciones'), 'falta que «Borrar todo» las borra');
+  verdadero(main.includes('8:00 a. m.'), 'falta la hora de los avisos de fechas');
+});
+
 prueba('privacidad: nombra los servicios de mapas que reciben datos', async () => {
   const main = new DOMParser().parseFromString(await pagina(), 'text/html').querySelector('main').textContent;
   for (const s of ['OpenFreeMap', 'Photon', 'OSRM']) verdadero(main.includes(s), `falta ${s}`);
