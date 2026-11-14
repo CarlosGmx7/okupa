@@ -1,6 +1,6 @@
 // Guarda Okupa en el dispositivo para que funcione sin internet.
 // Al cambiar cualquier archivo, sube la versión (okupa-v15 → okupa-v16) para que los celulares la actualicen.
-const CACHE = 'okupa-v17';
+const CACHE = 'okupa-v18';
 
 const PRECACHE = [
   "./",
@@ -36,6 +36,10 @@ const PRECACHE = [
   "js/nucleo/pantalla-ajustes.js",
   "js/nucleo/avisos.js",
   "js/nucleo/notificaciones.js",
+  "js/nucleo/respaldo.js",
+  "js/nucleo/privacidad.js",
+  "js/nucleo/bienvenida.js",
+  "privacidad.html",
   "js/modulos/match/modulo.js",
   "js/modulos/match/logica.js",
   "js/modulos/match/pantallas.js",
