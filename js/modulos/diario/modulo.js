@@ -10,7 +10,7 @@ export default {
   id: 'diario',
   nombre: 'Diario',
   precalentar: () => cargar().catch(() => {}),
-  accesoJuntos: { ruta: 'diario', nombre: 'Diario', icono: '☼', detalle: (ctx) => detalleInicio(ctx.almacen) },
+  accesoJuntos: { ruta: 'diario', nombre: 'Diario', icono: '☼', seccion: 'conocernos', orden: 2, detalle: (ctx) => detalleInicio(ctx.almacen) },
   rutas: {
     '': pantallas.hoy,
     'dia/:fecha': pantallas.dia,

@@ -149,6 +149,36 @@ prueba('pantallas: categoría sin preguntas muestra "No quedan preguntas aquí"'
   verdadero(div.textContent.includes('No quedan preguntas aquí'));
 });
 
+prueba('pantallas: el inicio de Preguntas solo aporta la pregunta de hoy', () => {
+  const { estado } = estadoDePrueba([preguntaX('x-001')]);
+  const tarjetas = crearPantallas(estado).tarjetasInicio();
+  igual(tarjetas.length, 1);
+  verdadero(tarjetas[0].classList.contains('del-dia'), tarjetas[0].outerHTML);
+});
+
+prueba('pantallas: #/preguntas muestra los 4 accesos con sus detalles', () => {
+  const { estado, ctx } = estadoDePrueba([preguntaX('x-001')]);
+  const div = document.createElement('div');
+  crearPantallas(estado).inicio(div, {}, ctx);
+  const volver = div.querySelector('a.volver');
+  igual([volver.textContent, volver.getAttribute('href')], ['← Inicio', '#/']);
+  igual(div.querySelector('h1').textContent, 'Preguntas');
+  igual([...div.querySelectorAll('a.acceso')].map((a) => a.getAttribute('href')),
+    ['#/preguntas/sesiones', '#/preguntas/categorias', '#/preguntas/azar', '#/preguntas/mis']);
+  const t = div.textContent;
+  verdadero(['Sesiones guiadas', '0 recorridos', 'Categorías', '1 temas', 'Al azar', 'Una carta sorpresa', 'Mis preguntas', 'Creen las suyas'].every((x) => t.includes(x)), t);
+});
+
+prueba('pantallas: Categorías, Sesiones y Al azar vuelven a #/preguntas', () => {
+  const { estado, ctx } = estadoDePrueba([preguntaX('x-001')]);
+  const p = crearPantallas(estado);
+  for (const nombre of ['categorias', 'sesiones', 'azar']) {
+    const div = document.createElement('div');
+    p[nombre](div, {}, ctx);
+    igual([nombre, div.querySelector('a.volver').getAttribute('href')], [nombre, '#/preguntas']);
+  }
+});
+
 const preguntas = ['a', 'b', 'c', 'd'].map((id) => ({ id, categoria: id < 'c' ? 'x' : 'y' }));
 
 prueba('pantallas: siguienteAlAzar nunca devuelve vistas', () => {

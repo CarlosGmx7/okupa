@@ -123,7 +123,7 @@ export function crearPantallas(estado, { alOcultar } = {}) {
   function categorias(contenedor) {
     const vistas = progreso.vistas();
     contenedor.append(
-      volverA('', 'Inicio'),
+      volverA('preguntas', 'Preguntas'),
       el('h1', { clase: 'titulo-pantalla' }, 'Categorías'),
       el('p', { clase: 'subtitulo' }, 'Escojan un tema y saquen cartas de ahí.'),
       el('nav', { clase: 'nube' }, estado.contenido.categorias.map((c, i) => {
@@ -176,7 +176,7 @@ export function crearPantallas(estado, { alOcultar } = {}) {
     const max = leerIntensidad(ctx.almacen);
     const niveles = [[1, 'Suave'], [2, 'Profunda'], [3, 'Intensa']];
     contenedor.append(
-      volverA('', 'Inicio'),
+      volverA('preguntas', 'Preguntas'),
       el('h1', { clase: 'titulo-pantalla' }, 'Al azar'),
       el('p', { clase: 'subtitulo' }, 'Hasta qué intensidad quieren llegar hoy:'),
       el('div', { clase: 'segmentado', role: 'group', 'aria-label': 'Intensidad máxima' }, niveles.map(([n, nombre]) =>
@@ -189,17 +189,17 @@ export function crearPantallas(estado, { alOcultar } = {}) {
     if (!pool.length) {
       pantallaVacia(contenedor, 'No quedan preguntas aquí.',
         max < 3 ? el('button', { clase: 'boton boton-principal', type: 'button', onclick: () => cambiarIntensidad(3, ctx) }, 'Subir la intensidad') : null,
-        el('a', { clase: 'boton', href: '#/' }, 'Volver'));
+        el('a', { clase: 'boton', href: '#/preguntas' }, 'Volver'));
       return;
     }
     const zona = el('div');
     contenedor.append(zona);
     const ids = pool.map((q) => q.id);
-    if (!siguienteAlAzar(pool, progreso.vistas())) { todasVistas(zona, ids, ctx, '', 'Volver'); return; }
+    if (!siguienteAlAzar(pool, progreso.vistas())) { todasVistas(zona, ids, ctx, 'preguntas', 'Volver'); return; }
     recorrido(zona, estado, {
       generar: () => siguienteAlAzar(pool, progreso.vistas()),
       alMostrar: (p) => progreso.marcarVista(p.id),
-      alTerminar: () => { zona.replaceChildren(); todasVistas(zona, ids, ctx, '', 'Volver'); },
+      alTerminar: () => { zona.replaceChildren(); todasVistas(zona, ids, ctx, 'preguntas', 'Volver'); },
       alOcultar: alOcultar ? ocultar : null,
     });
   }
@@ -224,7 +224,7 @@ export function crearPantallas(estado, { alOcultar } = {}) {
 
   function sesiones(contenedor) {
     contenedor.append(
-      volverA('', 'Inicio'),
+      volverA('preguntas', 'Preguntas'),
       el('h1', { clase: 'titulo-pantalla' }, 'Sesiones guiadas'),
       el('p', { clase: 'subtitulo' }, 'Recorridos que van de lo suave a lo profundo. La app recuerda dónde se quedaron.'),
       el('ul', { clase: 'lista' }, estado.contenido.sesiones.map((s) => {
@@ -328,12 +328,19 @@ export function crearPantallas(estado, { alOcultar } = {}) {
       hoy ? el('a', { clase: 'del-dia', href: `#/preguntas/carta/${encodeURIComponent(hoy.id)}` },
         el('span', { clase: 'del-dia-etiqueta' }, `Pregunta de hoy${cat ? ` · ${cat.nombre}` : ''}`),
         el('p', { clase: 'del-dia-texto' }, hoy.texto)) : null,
+    ].filter(Boolean);
+  }
+
+  // Pantalla propia de Preguntas (#/preguntas): las cuatro formas de entrar a las cartas.
+  function inicio(contenedor) {
+    contenedor.append(
+      volverA('', 'Inicio'),
+      el('h1', { clase: 'titulo-pantalla' }, 'Preguntas'),
       el('nav', { clase: 'accesos' },
         acceso('preguntas/sesiones', '❖', 'Sesiones guiadas', `${estado.contenido.sesiones.length} recorridos`),
         acceso('preguntas/categorias', '✦', 'Categorías', `${estado.contenido.categorias.length} temas`),
         acceso('preguntas/azar', '✧', 'Al azar', 'Una carta sorpresa'),
-        acceso('preguntas/mis', '✐', 'Mis preguntas', 'Creen las suyas')),
-    ].filter(Boolean);
+        acceso('preguntas/mis', '✐', 'Mis preguntas', 'Creen las suyas')));
   }
 
   function acerca(ctx) {
@@ -360,7 +367,7 @@ export function crearPantallas(estado, { alOcultar } = {}) {
         el('p', {}, 'Si una conversación se pone muy dolorosa, está bien parar y buscar acompañamiento profesional.')));
   }
 
-  return { categorias, categoria, azar, carta, sesiones, sesion, tarjetasInicio, acerca };
+  return { inicio, categorias, categoria, azar, carta, sesiones, sesion, tarjetasInicio, acerca };
 }
 
 function acceso(ruta, glifo, nombre, detalle) {

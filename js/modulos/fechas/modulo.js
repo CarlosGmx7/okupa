@@ -19,7 +19,7 @@ export default {
   id: 'fechas',
   nombre: 'Fechas',
   precalentar,
-  accesoJuntos: { ruta: 'fechas', nombre: 'Fechas', icono: '✦', detalle: (ctx) => detalleInicio(ctx.almacen) },
+  accesoJuntos: { ruta: 'fechas', nombre: 'Fechas', icono: '✦', seccion: 'nosotros', orden: 3, detalle: (ctx) => detalleInicio(ctx.almacen) },
   rutas: {
     '': pantallas.lista,
     'editar/:id': pantallas.editar,

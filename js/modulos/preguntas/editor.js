@@ -48,7 +48,7 @@ export function crearEditor(estado, { alCambiar = () => {}, alImportar = () => {
     const nOcultas = ocultasConTexto().length;
     const nombreCategoria = (id) => estado.contenido.categorias.find((c) => c.id === id)?.nombre || '';
     contenedor.append(
-      volver('', 'Inicio'),
+      volver('preguntas', 'Preguntas'),
       el('h1', { clase: 'titulo-pantalla' }, 'Mis preguntas'),
       el('p', { clase: 'subtitulo' }, 'Lo que ustedes crean vive solo en este celular. Hagan una copia de vez en cuando.'),
       el('div', {}, ctx.almacen.disponible() ? null

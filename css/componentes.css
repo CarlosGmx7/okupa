@@ -94,71 +94,66 @@
   gap: 14px;
   margin-top: 26px;
 }
-.juntos {
+
+/* ---------- Inicio por secciones: una tarjeta por sección, una fila por acceso ---------- */
+.inicio-enlazar {
   display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-top: 22px;
-  padding: 16px 16px 16px 18px;
-  border-radius: 999px 28px 28px 999px;
-  background:
-    radial-gradient(120% 140% at 0% 50%, rgba(var(--dorado-rgb), 0.22), transparent 65%),
-    var(--superficie);
-  border: 1px solid var(--dorado);
-  box-shadow: 0 10px 34px rgba(var(--dorado-rgb), 0.14);
-  text-decoration: none;
-  color: var(--crema);
-  transition: transform .2s var(--suave), box-shadow .2s;
-}
-.juntos:focus-visible { outline: 2px solid var(--dorado); outline-offset: 3px; }
-.juntos-icono {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: var(--dorado);
-  color: var(--sobre-resalte);
-  font-size: 1.625rem;
-  line-height: 1;
-}
-.juntos-cuerpo { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-.juntos-titulo { font-family: var(--serif); font-size: 1.25rem; white-space: nowrap; }
-.juntos-detalle { font-size: 0.8125rem; color: var(--tenue); }
-.juntos-accion {
-  flex: none;
-  padding: 10px 14px;
-  border-radius: 999px;
-  background: var(--vino);
-  color: var(--crema);
-  font-size: 0.875rem;
-  font-weight: 600;
-  white-space: nowrap;
-}
-.juntos.enlazados, .juntos.sin-enlazar {
   flex-direction: column;
-  align-items: stretch;
-  gap: 12px;
-  border-radius: 28px;
-  padding: 14px;
+  gap: 2px;
+  margin-top: 22px;
+  padding: 12px 18px;
+  border-radius: var(--radio-chico);
+  border: 1px dashed var(--dorado);
+  color: var(--crema);
+  text-decoration: none;
 }
-.juntos-principal { display: flex; align-items: center; gap: 14px; color: inherit; text-decoration: none; }
-.juntos.enlazados .juntos-accion { background: none; color: var(--dorado); padding-inline: 4px; }
-.juntos-accesos { display: flex; flex-wrap: wrap; gap: 10px; }
-.juntos-acceso {
-  flex: 1 1 140px;
+.inicio-enlazar-titulo { font-family: var(--serif); font-size: 1.125rem; }
+.inicio-enlazar-detalle { font-size: 0.875rem; color: var(--dorado); }
+.inicio-enlazar:focus-visible, .inicio-fila:focus-visible { outline: 2px solid var(--dorado); outline-offset: 2px; }
+.inicio-secciones { display: flex; flex-direction: column; gap: 22px; margin-top: 26px; }
+.inicio-seccion-titulo {
+  margin: 0 0 8px 6px;
+  font-family: var(--sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--dorado);
+}
+.inicio-filas {
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radio);
+  background: var(--superficie);
+  border: 1px solid rgba(var(--dorado-rgb), 0.18);
+  overflow: hidden;
+}
+.inicio-fila {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-height: 52px;
-  border-radius: 999px;
-  background: var(--dorado);
-  color: var(--sobre-resalte);
-  font-weight: 600;
+  flex-wrap: wrap;
+  column-gap: 12px;
+  row-gap: 0;
+  min-height: 3.25rem;
+  padding: 8px 16px;
+  color: var(--crema);
   text-decoration: none;
-  transition: transform .15s;
+}
+.inicio-fila + .inicio-fila { border-top: 1px solid rgba(var(--dorado-rgb), 0.14); }
+.inicio-fila:hover { background: rgba(var(--dorado-rgb), 0.06); }
+.inicio-fila-icono { flex: none; width: 1.5rem; text-align: center; font-size: 1.25rem; color: var(--dorado); }
+.inicio-fila-nombre { flex: 1 1 0; min-width: 0; font-family: var(--serif); font-size: 1.1875rem; overflow-wrap: anywhere; }
+.inicio-fila-detalle {
+  flex: 0 1 auto;
+  max-width: 55%;
+  text-align: right;
+  font-size: 0.8125rem;
+  color: var(--tenue);
+}
+.inicio-fila-flecha { flex: none; font-size: 1.5rem; line-height: 1; color: var(--dorado); }
+/* Si el detalle no cabe junto al nombre (letra grande), baja debajo de él. */
+@media (max-width: 26rem) {
+  .inicio-fila-detalle { order: 5; flex: 1 0 100%; max-width: none; text-align: left; padding-left: 2.25rem; padding-bottom: 4px; }
 }
 
 /* ---------- Trivia ---------- */
@@ -258,8 +253,6 @@
 }
 
 /* ---------- Diario ---------- */
-.juntos-acceso { flex-direction: column; gap: 2px; padding: 8px 14px; text-align: center; }
-.juntos-acceso-detalle { font-size: 0.75rem; font-weight: 500; opacity: .8; }
 .nav-diario { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: -10px 0 18px; }
 .nav-diario .boton-texto { color: var(--dorado); text-decoration: none; padding: 10px 4px; min-height: 44px; display: inline-flex; align-items: center; }
 .parte-diario { margin-bottom: 28px; }
@@ -914,11 +907,6 @@ ul.chips { padding: 0; margin: 0; list-style: none; }
 @keyframes latido { 0% { transform: scale(.7); opacity: 0; } 60% { transform: scale(1.05); opacity: 1; } 100% { transform: scale(1); } }
 
 /* ---------- Tema Grafito y rosa: menos adorno, el rosa solo para lo principal ---------- */
-:root[data-tema="grafito"] .juntos { background: var(--superficie); border-color: var(--dorado-suave); box-shadow: none; }
-:root[data-tema="grafito"] .juntos-acceso { background: var(--superficie-alta); color: var(--crema); border: 1px solid var(--dorado-suave); }
-:root[data-tema="grafito"] .juntos-acceso-nombre > [aria-hidden] { color: var(--dorado); }
-:root[data-tema="grafito"] .juntos-accion { background: var(--dorado); color: var(--sobre-resalte); }
-:root[data-tema="grafito"] .juntos.enlazados .juntos-accion { background: none; color: var(--dorado); }
 :root[data-tema="grafito"] .del-dia { background: var(--superficie); transform: none; box-shadow: none; }
 :root[data-tema="grafito"] .inicio-portada { border-color: var(--dorado-suave); box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.04); }
 
@@ -927,21 +915,20 @@ ul.chips { padding: 0; margin: 0; list-style: none; }
 .ico-linea { display: none; width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
 :root[data-tema="grafito"] .ico.con-linea .ico-glifo { display: none; }
 :root[data-tema="grafito"] .ico.con-linea .ico-linea { display: block; }
-.juntos-acceso-nombre { white-space: nowrap; }
 
 /* ---------- Resorte suave: se hunde al presionar y vuelve con un pequeño rebote ---------- */
 /* Usa 'scale' (no 'transform') para no pisar los giros y desplazamientos de algunas tarjetas. */
-:is(.boton, .acceso, .juntos-principal, .juntos-acceso, .opcion-juego, .opcion-diario, .punto-escala, .chip, .burbuja, .voto, .engranaje, .fila-ajuste, .tema-opcion, .letra-opcion, button) {
+:is(.boton, .acceso, .inicio-fila, .inicio-enlazar, .opcion-juego, .opcion-diario, .punto-escala, .chip, .burbuja, .voto, .engranaje, .fila-ajuste, .tema-opcion, .letra-opcion, button) {
   transition: scale var(--resorte-tiempo) var(--resorte), background-color .2s, border-color .2s, box-shadow .2s, color .2s;
 }
-:is(.boton, .acceso, .juntos-principal, .juntos-acceso, .opcion-juego, .opcion-diario, .punto-escala, .chip, .burbuja, .voto, .engranaje, .fila-ajuste, .tema-opcion, .letra-opcion, button):not(:disabled):active {
+:is(.boton, .acceso, .inicio-fila, .inicio-enlazar, .opcion-juego, .opcion-diario, .punto-escala, .chip, .burbuja, .voto, .engranaje, .fila-ajuste, .tema-opcion, .letra-opcion, button):not(:disabled):active {
   scale: var(--presion-escala);
   transition: scale var(--presion-tiempo) ease-out, background-color .2s, border-color .2s, box-shadow .2s, color .2s;
 }
 /* MapLibre coloca marcadores y controles con transform: el scale los movería de su sitio. */
 .maplibregl-marker, .maplibregl-marker *, .maplibregl-ctrl button { scale: none !important; }
 @media (prefers-reduced-motion: reduce) {
-  :is(.boton, .acceso, .juntos-principal, .juntos-acceso, .opcion-juego, .opcion-diario, .punto-escala, .chip, .burbuja, .voto, .engranaje, .fila-ajuste, .tema-opcion, .letra-opcion, button):not(:disabled):active { scale: none; opacity: .85; }
+  :is(.boton, .acceso, .inicio-fila, .inicio-enlazar, .opcion-juego, .opcion-diario, .punto-escala, .chip, .burbuja, .voto, .engranaje, .fila-ajuste, .tema-opcion, .letra-opcion, button):not(:disabled):active { scale: none; opacity: .85; }
 }
 
 /* ---------- Ajustes ---------- */

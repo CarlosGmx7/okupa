@@ -7,6 +7,6 @@ export default {
   id: 'mapa',
   nombre: 'Mapa',
   precalentar: () => cargarMapLibre().catch(() => {}),
-  accesoJuntos: { ruta: 'mapa', nombre: 'Mapa', icono: '⌖' },
+  accesoJuntos: { ruta: 'mapa', nombre: 'Mapa', icono: '⌖', seccion: 'nosotros', orden: 2 },
   rutas: { '': pantallas.mapa },
 };

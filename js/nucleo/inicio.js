@@ -4,32 +4,49 @@ import { icono, iconoLinea } from './iconos.js';
 import { miPareja } from './pareja.js';
 import { PORTADA_ORIGINAL, fuentePortada, abrirEditorPortada } from './portada.js';
 
-// Acceso destacado a enlazar los celulares y, ya enlazados, a lo que se juega entre los dos
-// (los módulos que declaran `accesoJuntos`). Se pinta con lo guardado en el celular, sin internet.
-function tarjetaJuntos(almacen, modulos = []) {
+// Las tres secciones del inicio, en este orden. Cada módulo se coloca con `accesoJuntos.seccion`
+// (sin ella cae en «Nosotros») y `accesoJuntos.orden` (sin él va al final, por nombre).
+export const SECCIONES = [
+  { id: 'jugar', titulo: 'Jugar juntos' },
+  { id: 'conocernos', titulo: 'Conocernos' },
+  { id: 'nosotros', titulo: 'Nosotros' },
+];
+
+// Invitación a enlazar los celulares; solo aparece mientras no haya pareja.
+function enlaceEnlazar() {
+  return el('a', { clase: 'inicio-enlazar', href: '#/pareja' },
+    el('span', { clase: 'inicio-enlazar-titulo' }, 'Jueguen juntos'),
+    el('span', { clase: 'inicio-enlazar-detalle' }, 'Enlacen sus celulares →'));
+}
+
+// Una tarjeta por sección con una fila por acceso (los módulos que declaran `accesoJuntos`).
+// Se pinta con lo guardado en el celular, sin internet. Una sección sin filas no se pinta.
+function seccionesInicio(almacen, modulos = []) {
   const enlazados = Boolean(almacen && miPareja(almacen));
-  const cabeza = (titulo, detalle) => [
-    el('span', { clase: 'juntos-icono', 'aria-hidden': 'true' }, icono('∞')),
-    el('span', { clase: 'juntos-cuerpo' },
-      el('span', { clase: 'juntos-titulo' }, titulo),
-      el('span', { clase: 'juntos-detalle' }, detalle))];
   // `detalle` (opcional) da una línea de estado guardada en el celular, p. ej. el del día del diario.
-  // Sin pareja los accesos se ven igual (para que se sepa que existen); cada sección pide enlazar.
+  // Sin pareja los accesos se ven igual (para que se sepa que existen), pero sin estado.
   const detalleDe = (a) => {
     if (!enlazados) return null;
     try { return a.detalle?.({ almacen }) || null; } catch { return null; }
   };
-  const accesos = modulos.filter((m) => m.accesoJuntos).map(({ accesoJuntos: a }) => {
-    const detalle = detalleDe(a);
-    return el('a', { clase: 'juntos-acceso', href: `#/${a.ruta}` },
-      el('span', { clase: 'juntos-acceso-nombre' }, icono(a.icono), ` ${a.nombre}`),
-      detalle ? el('span', { clase: 'juntos-acceso-detalle' }, detalle) : null);
+  const ids = new Set(SECCIONES.map((s) => s.id));
+  const accesos = modulos.filter((m) => m.accesoJuntos).map((m) => m.accesoJuntos);
+  const deSeccion = (id) => accesos
+    .filter((a) => (ids.has(a.seccion) ? a.seccion : 'nosotros') === id)
+    .sort((x, y) => (x.orden ?? Infinity) - (y.orden ?? Infinity) || x.nombre.localeCompare(y.nombre, 'es'));
+  return SECCIONES.map((s) => ({ s, filas: deSeccion(s.id) })).filter(({ filas }) => filas.length).map(({ s, filas }) => {
+    const idTitulo = `inicio-sec-${s.id}`;
+    return el('section', { clase: 'inicio-seccion', 'aria-labelledby': idTitulo },
+      el('h2', { clase: 'inicio-seccion-titulo', id: idTitulo }, s.titulo),
+      el('nav', { clase: 'inicio-filas', 'aria-label': s.titulo }, filas.map((a) => {
+        const detalle = detalleDe(a);
+        return el('a', { clase: 'inicio-fila', href: `#/${a.ruta}` },
+          el('span', { clase: 'inicio-fila-icono', 'aria-hidden': 'true' }, icono(a.icono)),
+          el('span', { clase: 'inicio-fila-nombre' }, a.nombre),
+          detalle ? el('span', { clase: 'inicio-fila-detalle' }, detalle) : null,
+          el('span', { clase: 'inicio-fila-flecha', 'aria-hidden': 'true' }, '›'));
+      })));
   });
-  return el('div', { clase: `juntos${enlazados ? ' enlazados' : ' sin-enlazar'}` },
-    el('a', { clase: 'juntos-principal', href: '#/pareja' },
-      enlazados ? cabeza('Nuestra pareja', 'Celulares enlazados ✓') : cabeza('Jueguen juntos', 'Enlacen sus dos celulares'),
-      el('span', { clase: 'juntos-accion' }, enlazados ? 'Ver' : 'Enlazar →')),
-    accesos.length ? el('nav', { clase: 'juntos-accesos', 'aria-label': 'Jugar juntos' }, accesos) : null);
 }
 
 export function pantallaInicio(contenedor, _params, ctx) {
@@ -46,8 +63,9 @@ export function pantallaInicio(contenedor, _params, ctx) {
       }, el('img', { clase: 'inicio-portada', src: fuentePortada(ctx.almacen), alt: '', onerror: (e) => { if (!e.target.src.endsWith(PORTADA_ORIGINAL)) e.target.src = PORTADA_ORIGINAL; } })),
       el('h1', { clase: 'logo' }, 'Okupa'),
       el('p', { clase: 'lema' }, 'Preguntas para conocerse de verdad')),
-    tarjetaJuntos(ctx.almacen, ctx.modulos),
+    el('div', {}, ctx.almacen && miPareja(ctx.almacen) ? null : enlaceEnlazar()),
     el('div', { clase: 'inicio-tarjetas' }, tarjetas),
+    el('div', { clase: 'inicio-secciones' }, seccionesInicio(ctx.almacen, ctx.modulos)),
     bloqueInstalar(ctx.instalacion),
     el('footer', { clase: 'inicio-pie' },
       el('a', { href: '#/acerca' }, 'Acerca de Okupa')),

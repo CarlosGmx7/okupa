@@ -19,7 +19,7 @@ export default {
   id: 'capsula',
   nombre: 'Cápsula',
   precalentar,
-  accesoJuntos: { ruta: 'capsula', nombre: 'Cápsula', icono: '✉', detalle: (ctx) => detalleInicio(ctx.almacen) },
+  accesoJuntos: { ruta: 'capsula', nombre: 'Cápsula', icono: '✉', seccion: 'nosotros', orden: 4, detalle: (ctx) => detalleInicio(ctx.almacen) },
   rutas: {
     '': pantallas.lista,
     nueva: pantallas.nueva,

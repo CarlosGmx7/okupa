@@ -14,7 +14,7 @@ export default {
   id: 'trivia',
   nombre: 'Trivia',
   precalentar: () => cargar().catch(() => {}),
-  accesoJuntos: { ruta: 'trivia', nombre: 'Trivia en vivo', icono: '✦' },
+  accesoJuntos: { ruta: 'trivia', nombre: 'Trivia en vivo', icono: '✦', seccion: 'jugar', orden: 1 },
   rutas: {
     '': pantallas.sala,
     'jugar/:id': pantallas.juego,

@@ -118,13 +118,13 @@ prueba('trivia pantallas: al terminar muestra el ganador y suma la victoria', as
   salir();
 });
 
-prueba('inicio: con pareja la tarjeta ofrece las secciones para jugar juntos', () => {
+prueba('inicio: con pareja el inicio ofrece las secciones para jugar juntos', () => {
   const almacen = almacenEnMemoria();
   almacen.escribir('okupa:pareja:actual', { codigo: 'K7PQ2M', lugar: 'a' });
   const div = document.createElement('div');
   pantallaInicio(div, {}, { almacen, modulos: [{ id: 'trivia', accesoJuntos: { ruta: 'trivia', nombre: 'Trivia', icono: '✦' } }], ir() {}, refrescar() {} });
-  const enlace = [...div.querySelectorAll('.juntos a')].find((x) => x.textContent.includes('Trivia'));
-  verdadero(enlace, div.querySelector('.juntos')?.outerHTML);
+  const enlace = [...div.querySelectorAll('.inicio-fila')].find((x) => x.textContent.includes('Trivia'));
+  verdadero(enlace, div.outerHTML);
   igual(enlace.getAttribute('href'), '#/trivia');
 });
 

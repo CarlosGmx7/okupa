@@ -35,6 +35,5 @@ prueba('iconos: el inicio usa íconos', () => {
   const div = document.createElement('div');
   pantallaInicio(div, {}, { almacen: almacenEnMemoria(), ir() {}, refrescar() {},
     modulos: [{ id: 'diario', accesoJuntos: { ruta: 'diario', nombre: 'Diario', icono: '☼' } }] });
-  verdadero(div.querySelector('.juntos-acceso .ico svg'), div.querySelector('.juntos')?.outerHTML);
-  verdadero(div.querySelector('.juntos-icono .ico svg'), 'el ∞ de la tarjeta de pareja');
+  verdadero(div.querySelector('.inicio-fila-icono .ico svg'), div.querySelector('.inicio-seccion')?.outerHTML);
 });

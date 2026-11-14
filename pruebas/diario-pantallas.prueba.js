@@ -179,7 +179,7 @@ prueba('inicio: el acceso del diario muestra el último estado de hoy', () => {
   const div = document.createElement('div');
   const pintar = () => { div.replaceChildren(); pantallaInicio(div, {}, { almacen, modulos: [moduloDiario], ir() {}, refrescar() {} }); };
   pintar();
-  const acceso = () => [...div.querySelectorAll('.juntos a')].find((x) => x.textContent.includes('Diario'));
+  const acceso = () => [...div.querySelectorAll('.inicio-fila')].find((x) => x.textContent.includes('Diario'));
   verdadero(acceso()?.textContent.includes('Hoy: 3 preguntas nuevas'), acceso()?.textContent);
   almacen.escribir(CLAVE_ESTADO, { fecha: fechaBogota(), texto: 'Esperando a Sofi' });
   pintar();

@@ -77,7 +77,9 @@ export default {
   iniciar,
   // La copia de seguridad (Ajustes) revisa con esto lo que trae un archivo para esta sección.
   validadoresRespaldo: VALIDADORES_RESPALDO,
+  accesoJuntos: { ruta: 'preguntas', nombre: 'Preguntas', icono: '❖', seccion: 'conocernos', orden: 1 },
   rutas: {
+    '': p('inicio'),
     categorias: p('categorias'),
     'categoria/:id': p('categoria'),
     azar: p('azar'),

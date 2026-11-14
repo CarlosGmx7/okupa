@@ -10,7 +10,7 @@ export default {
   id: 'match',
   nombre: 'Match',
   precalentar: () => cargar().catch(() => {}),
-  accesoJuntos: { ruta: 'match', nombre: 'Match', icono: '♥', detalle: (ctx) => detalleInicio(ctx.almacen) },
+  accesoJuntos: { ruta: 'match', nombre: 'Match', icono: '♥', seccion: 'nosotros', orden: 1, detalle: (ctx) => detalleInicio(ctx.almacen) },
   rutas: {
     '': pantallas.mazo,
     matches: pantallas.matches,
