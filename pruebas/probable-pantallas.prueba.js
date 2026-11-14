@@ -14,7 +14,8 @@ const boton = (div, texto) => [...div.querySelectorAll('button')].find((b) => b.
 const salir = () => window.dispatchEvent(new HashChangeEvent('hashchange'));
 const BANCO = Array.from({ length: 8 }, (_, i) => ({ id: `div-${String(i + 1).padStart(3, '0')}`, tema: 'divertidas', texto: `hace algo raro ${i + 1}` }));
 
-async function parejaProbable({ banco = BANCO } = {}) {
+// `envolver(nube, lugar)` deja a las pruebas cambiar la nube de un celular (por ejemplo para que falle una vez).
+async function parejaProbable({ banco = BANCO, envolver = (n) => n } = {}) {
   const mundo = crearMundoFalso();
   const almA = almacenEnMemoria();
   const almB = almacenEnMemoria();
@@ -26,7 +27,7 @@ async function parejaProbable({ banco = BANCO } = {}) {
     const div = document.createElement('div');
     const rutas = [];
     const pantallas = crearPantallasProbable({ cargar: async () => banco, ahora: reloj.ahora, ms: { sondeo: 30, revisar: 20 } });
-    const ctx = { almacen, nube: async () => mundo.nube(uid), ir: (r) => rutas.push(r), refrescar: () => {} };
+    const ctx = { almacen, nube: async () => envolver(mundo.nube(uid), lugar), ir: (r) => rutas.push(r), refrescar: () => {} };
     return { div, ctx, rutas, pantallas, nube: mundo.nube(uid), pareja: { codigo, lugar } };
   };
   return { reloj, a: celular('u1', almA, 'a'), b: celular('u2', almB, 'b') };
@@ -34,8 +35,8 @@ async function parejaProbable({ banco = BANCO } = {}) {
 const sinFeos = (div) => verdadero(!/null|undefined/.test(div.textContent), div.textContent);
 const radio = (div, tema) => div.querySelector(`input[name="tema"][value="${tema}"]`);
 
-async function enJuego(largo = 5) {
-  const p = await parejaProbable();
+async function enJuego(largo = 5, opciones) {
+  const p = await parejaProbable(opciones);
   await p.a.pantallas.inicio(p.a.div, {}, p.a.ctx);
   await hasta(() => boton(p.a.div, 'Abrir sala'));
   [...p.a.div.querySelectorAll('.chips button')].find((b) => b.textContent === String(largo)).click();
@@ -221,5 +222,127 @@ prueba('probable pantallas: con frases propias el tema «Nuestras frases» se ha
   await hasta(() => a.rutas.length > 0);
   const s = await a.nube.leer(rutaSala(a.pareja.codigo, a.rutas[0].split('/')[2]));
   igual([s.tema, s.frases.length], ['nuestras', 2]);
+  salir();
+});
+
+// ---- Ronda de arreglos: fallos de red, reingreso y cortes a mitad ----
+const fallo = { transaccion: false, leer: false };
+const nubeQueFalla = (nube) => {
+  const w = Object.create(nube);
+  w.transaccion = (fn) => {
+    if (fallo.transaccion) { fallo.transaccion = false; return Promise.reject(new Error('sin red')); }
+    return nube.transaccion(fn);
+  };
+  w.leer = (ruta) => {
+    if (fallo.leer) { fallo.leer = false; return Promise.reject(new Error('sin red')); }
+    return nube.leer(ruta);
+  };
+  return w;
+};
+const votarLosDos = async (a, b, i, ultima = false) => {
+  await hasta(() => boton(a.div, 'Sofi') && boton(b.div, 'Sofi'));
+  boton(a.div, 'Sofi').click();
+  boton(b.div, 'Sofi').click();
+  const sig = ultima ? 'Ver resumen' : 'Siguiente';
+  await hasta(() => boton(a.div, sig) && boton(b.div, sig));
+};
+
+prueba('probable pantallas: si falla avanzar, «Siguiente» vuelve a quedar activo con un aviso y reintenta', async () => {
+  const { a, b } = await enJuego(5, { envolver: (n, l) => (l === 'a' ? nubeQueFalla(n) : n) });
+  await votarLosDos(a, b, 0);
+  fallo.transaccion = true;
+  boton(a.div, 'Siguiente').click();
+  await hasta(() => a.div.textContent.includes('No se pudo avanzar. Revisa tu conexión e intenta otra vez.'));
+  verdadero(!boton(a.div, 'Siguiente').disabled, 'el botón se reactiva');
+  boton(a.div, 'Siguiente').click();
+  await hasta(() => a.div.textContent.includes('Frase 2 de 5') && b.div.textContent.includes('Frase 2 de 5'));
+  salir();
+});
+
+prueba('probable pantallas: si el resumen no carga ofrece «Reintentar» y cierra la sala', async () => {
+  const { a, b, id } = await enJuego(5, { envolver: (n, l) => (l === 'a' ? nubeQueFalla(n) : n) });
+  for (let i = 0; i < 4; i++) {
+    await votarLosDos(a, b, i);
+    boton(a.div, 'Siguiente').click();
+    await hasta(() => a.div.textContent.includes(`Frase ${i + 2} de 5`) && b.div.textContent.includes(`Frase ${i + 2} de 5`));
+  }
+  await votarLosDos(a, b, 4, true);
+  fallo.leer = true;
+  boton(a.div, 'Ver resumen').click();
+  await hasta(() => boton(a.div, 'Reintentar'));
+  verdadero(a.div.textContent.includes('No se pudo cargar el resumen'));
+  boton(a.div, 'Reintentar').click();
+  await hasta(() => a.div.textContent.includes('Coincidieron en 5 de 5'));
+  let vistas;
+  for (let i = 0; i < 50 && !vistas?.divertidas?.length; i++) { vistas = await leerVistas(a.nube, a.pareja); await esperar(20); }
+  igual(vistas.divertidas.length, 5);
+  igual(id.startsWith('q-'), true);
+  salir();
+});
+
+prueba('probable pantallas: doble toque en «Siguiente» avanza una sola frase', async () => {
+  const { a, b, id } = await enJuego(5);
+  await votarLosDos(a, b, 0);
+  const sa = boton(a.div, 'Siguiente');
+  const sb = boton(b.div, 'Siguiente');
+  sa.click(); sa.click(); sb.click(); sb.click();
+  await hasta(() => a.div.textContent.includes('Frase 2 de 5'));
+  await esperar(200);
+  const s = await a.nube.leer(rutaSala(a.pareja.codigo, id));
+  igual([s.indice, s.ronda], [1, 1]);
+  salir();
+});
+
+prueba('probable pantallas: al volver a una sala jugando después de votar muestra la espera', async () => {
+  const { a, id } = await enJuego(5);
+  boton(a.div, 'Sofi').click();
+  await hasta(() => a.div.textContent.includes('Esperando a Sofi…'));
+  await esperar(100); // el voto y el aviso de «votaron» llegan a la nube
+  salir();
+  const otra = document.createElement('div');
+  await a.pantallas.juego(otra, { id }, a.ctx);
+  await hasta(() => otra.textContent.includes('Esperando a Sofi…'));
+  verdadero(!otra.querySelector('.opcion-juego'), 'no vuelve a ofrecer votar');
+  salir();
+});
+
+prueba('probable pantallas: sala cancelada tras 2 frases reveladas resume esas 2', async () => {
+  const { a, b, id } = await enJuego(5);
+  await votarLosDos(a, b, 0);
+  boton(a.div, 'Siguiente').click();
+  await hasta(() => a.div.textContent.includes('Frase 2 de 5') && b.div.textContent.includes('Frase 2 de 5'));
+  await votarLosDos(a, b, 1);
+  await a.nube.escribir(rutaSala(a.pareja.codigo, id), { estado: 'cancelada' }, { combinar: true });
+  await hasta(() => a.div.textContent.includes('Coincidieron en 2 de 2') && b.div.textContent.includes('Coincidieron en 2 de 2'));
+  verdadero(a.div.textContent.includes('La sala se cortó antes del final.'));
+  let vistas;
+  for (let i = 0; i < 50 && !vistas?.divertidas?.length; i++) { vistas = await leerVistas(a.nube, a.pareja); await esperar(20); }
+  igual(vistas.divertidas.length, 2);
+  salir();
+});
+
+prueba('probable pantallas: «Cancelar» del anfitrión no enseña el resumen de cancelada antes de irse', async () => {
+  const p = await parejaProbable();
+  const id = await crearSala(p.a.nube, p.a.pareja, { tema: 'divertidas', frases: BANCO.slice(0, 5) });
+  await p.a.pantallas.juego(p.a.div, { id }, p.a.ctx);
+  await hasta(() => boton(p.a.div, 'Cancelar'));
+  boton(p.a.div, 'Cancelar').click();
+  await hasta(() => p.a.rutas.length > 0);
+  await esperar(100);
+  verdadero(!p.a.div.textContent.includes('se canceló'), p.a.div.textContent);
+  igual(p.a.rutas, ['probable']);
+  salir();
+});
+
+prueba('probable pantallas: si la sala desaparece avisa y oculta «se salió»', async () => {
+  const { a, reloj, id } = await enJuego(5);
+  reloj.adelantar(21000);
+  await hasta(() => a.div.textContent.includes('Sofi se salió'));
+  await a.nube.borrar(rutaSala(a.pareja.codigo, id));
+  await hasta(() => a.div.textContent.includes('Esta sala ya no existe'));
+  verdadero(a.div.querySelector('.banda-aviso').hidden, 'la banda se oculta');
+  reloj.adelantar(30000);
+  await esperar(100);
+  verdadero(a.div.querySelector('.banda-aviso').hidden, 'sigue oculta');
   salir();
 });

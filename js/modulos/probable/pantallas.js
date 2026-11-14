@@ -137,6 +137,7 @@ export function crearPantallasProbable({ cargar, ahora = () => performance.now()
 
     let sala = null;
     let fase = null;
+    let saliendo = false;
     let senalOtro;
     let cambioSenal = ahora();
     const votoMio = {};
@@ -147,7 +148,15 @@ export function crearPantallasProbable({ cargar, ahora = () => performance.now()
     zona.replaceChildren(banda, escena);
 
     const dejarDeEscuchar = escucharSala(nube, pareja, id, (s) => {
-      if (!s) { escena.replaceChildren(vacio('Esta sala ya no existe', el('a', { clase: 'boton', href: '#/probable' }, 'Volver'))); return; }
+      if (saliendo) return;
+      if (!s) {
+        sala = null;
+        fase = 'inexistente';
+        detenerLatido(); detenerLatido = () => {}; clearInterval(tic);
+        banda.hidden = true;
+        escena.replaceChildren(vacio('Esta sala ya no existe', el('a', { clase: 'boton', href: '#/probable' }, 'Volver')));
+        return;
+      }
       sala = s;
       actualizar();
     });
@@ -180,6 +189,7 @@ export function crearPantallasProbable({ cargar, ahora = () => performance.now()
         pintarFase('esperando', () => escena.replaceChildren(vacio(`Esperando a ${nombre(otro)}…`,
           el('button', { clase: 'boton', type: 'button', onclick: (e) => {
             e.currentTarget.disabled = true;
+            saliendo = true;
             cancelarSiAbierta().catch((x) => console.warn('Okupa:', x)).finally(() => ctx.ir('probable'));
           } }, 'Cancelar'))));
         return;
@@ -224,15 +234,24 @@ export function crearPantallasProbable({ cargar, ahora = () => performance.now()
         if (fase !== claveRev) return;
         fase = `${claveRev}:lista`;
         const ultima = i + 1 >= sala.frases.length;
+        const error = el('p', { clase: 'aviso error-formulario', role: 'alert' });
+        const siguiente = el('button', { clase: 'boton boton-principal', type: 'button' }, ultima ? 'Ver resumen' : 'Siguiente');
+        siguiente.addEventListener('click', () => {
+          siguiente.disabled = true;
+          error.textContent = '';
+          intentarAvanzar(nube, pareja, id, { ronda }).catch((x) => {
+            console.warn('Okupa:', x);
+            siguiente.disabled = false;
+            error.textContent = 'No se pudo avanzar. Revisa tu conexión e intenta otra vez.';
+          });
+        });
+        const avance = el('div', { clase: 'pie-juego' }, siguiente);
         const filas = ['a', 'b'].map((l) => el('li', { clase: 'revelado-fila' },
           el('span', { clase: 'revelado-nombre' }, nombre(l)), el('span', { clase: 'revelado-voto' }, textoVoto(votos[l]))));
         escena.replaceChildren(tarjeta(i,
           el('ul', { clase: 'revelado-votos' }, filas),
           el('p', { clase: coincidieron(votos) ? 'coincidencia si' : 'coincidencia no' }, coincidieron(votos) ? '¡Coincidieron!' : 'No coincidieron'),
-          el('div', { clase: 'pie-juego' }, el('button', { clase: 'boton boton-principal', type: 'button', onclick: (e) => {
-            e.currentTarget.disabled = true;
-            intentarAvanzar(nube, pareja, id, { ronda }).catch((x) => { console.warn('Okupa:', x); e.currentTarget.disabled = false; });
-          } }, ultima ? 'Ver resumen' : 'Siguiente'))));
+          error, avance));
       }).catch((e) => {
         console.warn('Okupa: no se pudo revelar', e);
         if (fase === claveRev) fase = null; // se reintenta con la próxima actualización de la sala
@@ -247,7 +266,13 @@ export function crearPantallasProbable({ cargar, ahora = () => performance.now()
       banda.hidden = true;
       (async () => {
         // Se lee la sala justo antes de cerrar: el cierre cuenta las frases reveladas de ese momento.
-        const fresca = { ...(await nube.leer(rutaSala(pareja.codigo, id))), id };
+        const leida = await nube.leer(rutaSala(pareja.codigo, id));
+        if (!leida) {
+          fase = 'inexistente';
+          escena.replaceChildren(vacio('Esta sala ya no existe', el('a', { clase: 'boton', href: '#/probable' }, 'Volver')));
+          return;
+        }
+        const fresca = { ...leida, id };
         const ids = fresca.tema === 'nuestras'
           ? (await listarPropias(nube, pareja)).map((f) => f.id)
           : (await cargar()).filter((f) => f.tema === fresca.tema).map((f) => f.id);
@@ -268,8 +293,10 @@ export function crearPantallasProbable({ cargar, ahora = () => performance.now()
           el('div', { clase: 'enlace-acciones' }, otra, el('a', { clase: 'boton', href: '#/' }, 'Inicio'))));
       })().catch((e) => {
         console.warn('Okupa: no se pudo cerrar la sala', e);
-        fase = null; // se reintenta con la próxima actualización de la sala
-        escena.replaceChildren(vacio('No se pudo cargar el resumen. Revisa la conexión.'));
+        fase = null;
+        // Tras terminar ya no llegan más cambios de la sala: sin este botón el celular se quedaría atascado.
+        escena.replaceChildren(vacio('No se pudo cargar el resumen. Revisa la conexión.',
+          el('button', { clase: 'boton boton-principal', type: 'button', onclick: () => final() }, 'Reintentar')));
       });
     }
   }
