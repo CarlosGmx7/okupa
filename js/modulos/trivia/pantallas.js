@@ -100,6 +100,8 @@ export function crearPantallasTrivia({ cargar, ahora = () => performance.now(), 
 
     async function pintar() {
       const [pendiente, uso] = await Promise.all([partidaPendiente(nube, pareja), leerUso(nube, pareja)]);
+      guardarEsperando(ctx.almacen, pareja.codigo, 'trivia', pendiente?.estado === 'esperando' && pendiente.anfitrion !== yo
+        ? { id: pendiente.id, anfitrion: pendiente.anfitrion, nombre: pareja.nombres[pendiente.anfitrion] ?? null } : null);
       const nuevaFirma = JSON.stringify([pendiente?.id, pendiente?.estado, uso.victorias]);
       if (nuevaFirma === firma) return;
       firma = nuevaFirma;

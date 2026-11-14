@@ -16,8 +16,6 @@ function hoyLocal() {
   return `${d.getFullYear()}-${dos(d.getMonth() + 1)}-${dos(d.getDate())}`;
 }
 
-// Línea corta para la tarjeta "Jugar juntos" del inicio (se pinta sin internet).
-
 function festejar(tarjeta) {
   sonar('match');
   const cerrar = () => capa.remove();

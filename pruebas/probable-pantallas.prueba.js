@@ -3,6 +3,8 @@ import { crearMundoFalso } from './nube-falsa.js';
 import { almacenEnMemoria } from './pareja.prueba.js';
 import { crearPareja, unirse as unirsePareja } from '../js/nucleo/pareja.js';
 import { crearPantallasProbable } from '../js/modulos/probable/pantallas.js';
+import { textoEsperando } from '../js/nucleo/esperando.js';
+import { cancelarSala } from '../js/modulos/probable/sala.js';
 import { crearSala, unirse, votar, rutaSala, leerVistas, crearPropia, listarPropias } from '../js/modulos/probable/sala.js';
 
 const esperar = (ms = 0) => new Promise((r) => setTimeout(r, ms));
@@ -34,6 +36,17 @@ async function parejaProbable({ banco = BANCO, envolver = (n) => n } = {}) {
 }
 const sinFeos = (div) => verdadero(!/null|undefined/.test(div.textContent), div.textContent);
 const radio = (div, tema) => div.querySelector(`input[name="tema"][value="${tema}"]`);
+
+prueba('probable pantallas: el inicio guarda «te está esperando» y lo borra si el otro cancela', async () => {
+  const { a, b } = await parejaProbable();
+  const id = await crearSala(a.nube, a.pareja, { tema: 'divertidas', frases: BANCO.slice(0, 5).map(({ id: i, texto }) => ({ id: i, texto })) });
+  await b.pantallas.inicio(b.div, {}, b.ctx);
+  await hasta(() => boton(b.div, 'Unirme'));
+  igual(textoEsperando(b.ctx.almacen, b.pareja, 'probable'), 'Carlos te está esperando');
+  await cancelarSala(a.nube, a.pareja, id);
+  await hasta(() => textoEsperando(b.ctx.almacen, b.pareja, 'probable') === null);
+  salir();
+});
 
 async function enJuego(largo = 5, opciones) {
   const p = await parejaProbable(opciones);

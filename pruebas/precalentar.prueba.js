@@ -36,3 +36,45 @@ prueba('precalentar: si la nube falla no rompe nada', async () => {
   almacen.escribir('okupa:pareja:actual', { codigo: 'K7PQ2M', lugar: 'a' });
   await precalentar({ almacen, nube: async () => { throw new Error('sin red'); }, modulos: [] });
 });
+
+// Repinta el inicio una sola vez cuando lo que precalentar renueva cambia los textos de las filas.
+const conRuta = async (hash, fn) => {
+  const antes = location.hash;
+  history.replaceState(null, '', hash || location.pathname + location.search);
+  try { await fn(); } finally { history.replaceState(null, '', antes || location.pathname + location.search); }
+};
+function ctxRepinta(cambia) {
+  const almacen = almacenEnMemoria();
+  almacen.escribir('okupa:pareja:actual', { codigo: 'K7PQ2M', lugar: 'a' });
+  const modulo = {
+    id: 'x',
+    accesoJuntos: { detalle: (c) => c.almacen.leer('okupa:x', null) },
+    precalentar: (c) => { if (cambia) c.almacen.escribir('okupa:x', 'Sofi te está esperando'); },
+  };
+  let veces = 0;
+  return { ctx: { almacen, nube: async () => ({ leer: async () => {} }), modulos: [modulo], refrescar: () => { veces++; } }, veces: () => veces };
+}
+
+prueba('precalentar: repinta el inicio una vez si cambian los textos', async () => {
+  await conRuta('#/', async () => {
+    const r = ctxRepinta(true);
+    await precalentar(r.ctx);
+    igual(r.veces(), 1);
+  });
+});
+
+prueba('precalentar: no repinta si los textos no cambian', async () => {
+  await conRuta('#/', async () => {
+    const r = ctxRepinta(false);
+    await precalentar(r.ctx);
+    igual(r.veces(), 0);
+  });
+});
+
+prueba('precalentar: no repinta si ya no está en el inicio', async () => {
+  await conRuta('#/trivia', async () => {
+    const r = ctxRepinta(true);
+    await precalentar(r.ctx);
+    igual(r.veces(), 0);
+  });
+});

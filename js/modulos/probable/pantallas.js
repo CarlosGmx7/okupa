@@ -74,6 +74,8 @@ export function crearPantallasProbable({ cargar, ahora = () => performance.now()
     async function pintar() {
       if (yendo) return;
       const pendiente = await salaPendiente(nube, pareja);
+      guardarEsperando(ctx.almacen, pareja.codigo, 'probable', pendiente?.estado === 'esperando' && pendiente.anfitrion !== yo
+        ? { id: pendiente.id, anfitrion: pendiente.anfitrion, nombre: pareja.nombres[pendiente.anfitrion] ?? null } : null);
       const nuevaFirma = JSON.stringify([pendiente?.id, pendiente?.estado]);
       if (nuevaFirma === firma) return;
       firma = nuevaFirma;

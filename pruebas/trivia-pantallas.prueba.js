@@ -2,7 +2,8 @@ import { prueba, igual, verdadero } from './corredor.js';
 import { crearMundoFalso } from './nube-falsa.js';
 import { almacenEnMemoria } from './pareja.prueba.js';
 import { crearPareja, unirse as unirsePareja } from '../js/nucleo/pareja.js';
-import { crearSala, unirse, enviarRespuesta, leerUso } from '../js/modulos/trivia/sala.js';
+import { textoEsperando } from '../js/nucleo/esperando.js';
+import { crearSala, unirse, enviarRespuesta, leerUso, cancelarSala } from '../js/modulos/trivia/sala.js';
 import { crearPantallasTrivia } from '../js/modulos/trivia/pantallas.js';
 import { pantallaInicio } from '../js/nucleo/inicio.js';
 
@@ -59,6 +60,17 @@ prueba('trivia pantallas: el otro ve la invitación y se une', async () => {
   boton(b.div, 'Unirme').click();
   await hasta(() => b.rutas.length > 0);
   igual(b.rutas, [`trivia/jugar/${id}`]);
+  salir();
+});
+
+prueba('trivia pantallas: la sala guarda «te está esperando» y lo borra si el otro cancela', async () => {
+  const { a, b } = await pareja();
+  const id = await crearSala(a.nube, a.pareja, { preguntas: preguntas() });
+  await b.pantallas.sala(b.div, {}, b.ctx);
+  await hasta(() => boton(b.div, 'Unirme'));
+  igual(textoEsperando(b.ctx.almacen, b.pareja, 'trivia'), 'Carlos te está esperando');
+  await cancelarSala(a.nube, a.pareja, id);
+  await hasta(() => textoEsperando(b.ctx.almacen, b.pareja, 'trivia') === null);
   salir();
 });
 
