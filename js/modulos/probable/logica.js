@@ -22,6 +22,12 @@ export function validarFrase(texto) {
   return null;
 }
 
+export async function cargarFrases(fetchFn = (u) => fetch(u)) {
+  const r = await fetchFn(new URL('../../../data/probable/frases.json', import.meta.url).href);
+  if (!r.ok) throw new Error(`No se pudieron cargar las frases (${r.status})`);
+  return r.json();
+}
+
 function barajar(lista, rnd) {
   const a = [...lista];
   for (let i = a.length - 1; i > 0; i--) {
