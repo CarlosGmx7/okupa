@@ -13,9 +13,12 @@ Carlos dejó que eligiera lo recomendado mientras dormía. Cada una con su alter
 4. **Fecha de apertura:** desde mañana hasta 10 años. *Alternativa:* sin límite.
 5. **Texto de 1 a 2.000 caracteres, sin fotos** (las fotos llenarían Firebase gratis, ver ESTADO). *Alternativa:* una foto comprimida.
 6. **Aviso** al que la recibe el día de apertura a las 8:00 de su celular, junto con los avisos de fechas (mismo interruptor «Fechas especiales»), con título «Hoy puedes abrir la carta de Carlos 💌». Sin aviso al crearla. *Alternativas:* interruptor propio; aviso también al crearla.
-7. **Cualquiera de los dos puede borrar cualquier carta** (también la que aún no se abre), porque «Borrar todo» lo necesita y así funcionó Match. *Alternativa:* solo el autor borra antes de abrir (y «Borrar todo» quedaría incompleto).
+7. **Las reglas dejan a cualquiera de los dos borrar cualquier carta** (también la que aún no se abre), porque «Borrar todo» lo necesita y así funcionó Match. **La pantalla** solo ofrece «Borrar carta» al autor y, a quien la recibe, cuando ya se abrió (o llegó vacía): así nadie borra sin querer una sorpresa. *Alternativa:* solo el autor borra antes de abrir (y «Borrar todo» quedaría incompleto).
 8. **Máximo 50 cartas** por pareja (lo limita la app).
 9. Sección nueva **«Cápsula»** en el inicio, con detalle «Próxima carta en N días» / «Tienes una carta para abrir» / «Escríbanse una carta».
+
+## Límite conocido (revisión final)
+Quien tenga el código de la pareja puede «reclamar» el lugar del otro desde otro navegador (función de cambio de celular) y, desde ese lugar, leer las cartas que el otro escribió antes de la fecha. Ya pasaba con los «no» del Match y las respuestas del Diario; la cápsula lo hace más visible. Se dice en la política («compártelo solo con tu pareja») y se corrige en la v22 (seguridad: confirmar el cambio de celular desde el celular anterior o un secreto por lugar, junto con App Check).
 
 ## No metas
 Fotos, audio, cartas para "los dos" o grupales (el modelo usa `de` = lugar y "para todos menos `de`", listo para grupos más adelante), editar después de enviar, aviso al crearla.
