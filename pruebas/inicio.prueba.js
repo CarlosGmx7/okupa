@@ -197,21 +197,90 @@ prueba('inicio moderno: tres tarjetas en el orden de las secciones, Nosotros al 
   igual(tarjetas.map((b) => b.getAttribute('aria-expanded')), ['false', 'false', 'false']);
 });
 
-prueba('inicio moderno: la tarjeta apunta a un solo panel, región con nombre, cerrado al inicio', () => {
+const ANTES = (x, y) => Boolean(x.compareDocumentPosition(y) & Node.DOCUMENT_POSITION_FOLLOWING);
+const panelDe = (div, id) => div.querySelector('#' + tarjeta(div, id).getAttribute('aria-controls'));
+
+prueba('inicio moderno: dos huecos de panel, regiones con nombre, cerrados al inicio y cada tarjeta apunta al suyo', () => {
   const div = pintarModerna(modulosModerna());
-  const paneles = div.querySelectorAll('.panel-modos');
-  igual(paneles.length, 1);
-  const panel = paneles[0];
-  igual(panel.getAttribute('role'), 'region');
-  verdadero(panel.id, 'el panel necesita id');
-  for (const b of div.querySelectorAll('.tarjeta-seccion')) igual(b.getAttribute('aria-controls'), panel.id);
-  verdadero(div.querySelector('.inicio-tarjetas-seccion').compareDocumentPosition(panel) & Node.DOCUMENT_POSITION_FOLLOWING, 'el panel va debajo de las tarjetas');
-  igual(panel.querySelectorAll('a.mini-modo').length, 0);
-  verdadero(panel.hasAttribute('inert'), 'cerrado desde el inicio: inert');
-  igual(panel.getAttribute('data-abierto'), 'false');
+  const paneles = [...div.querySelectorAll('.panel-modos')];
+  igual(paneles.length, 2);
+  for (const panel of paneles) {
+    igual(panel.getAttribute('role'), 'region');
+    verdadero(panel.id, 'el panel necesita id');
+    verdadero(panel.hasAttribute('inert'), 'cerrado desde el inicio: inert');
+    igual(panel.getAttribute('data-abierto'), 'false');
+    igual(panel.querySelectorAll('a.mini-modo').length, 0);
+  }
+  verdadero(paneles[0].id !== paneles[1].id, 'ids distintos');
+  igual(tarjeta(div, 'jugar').getAttribute('aria-controls'), paneles[0].id);
+  igual(tarjeta(div, 'conocernos').getAttribute('aria-controls'), paneles[0].id);
+  igual(tarjeta(div, 'nosotros').getAttribute('aria-controls'), paneles[1].id);
   igual(div.querySelectorAll('.panel-modos:not([inert]) a.mini-modo').length, 0, 'ninguna mini tarjeta alcanzable');
 });
 
+prueba('inicio moderno: el panel de Jugar y Conocernos va entre las tarjetas de arriba y Nosotros; el de Nosotros, después', () => {
+  const div = pintarModerna(modulosModerna());
+  const [arriba, abajo] = div.querySelectorAll('.panel-modos');
+  const nosotros = tarjeta(div, 'nosotros');
+  for (const id of ['jugar', 'conocernos']) {
+    verdadero(ANTES(tarjeta(div, id), arriba), id + ' va antes del panel de arriba');
+    igual(panelDe(div, id), arriba);
+  }
+  verdadero(ANTES(arriba, nosotros), 'el panel de arriba va antes de Nosotros');
+  verdadero(ANTES(nosotros, abajo), 'el panel de Nosotros va después de su tarjeta');
+  igual(panelDe(div, 'nosotros'), abajo);
+  verdadero(!arriba.contains(nosotros) && !div.querySelector('.inicio-tarjetas-seccion [data-seccion="nosotros"]'), 'Nosotros ya no va en la rejilla de arriba');
+});
+
+prueba('inicio moderno: abrir Jugar o Conocernos llena el panel de arriba y deja cerrado el de abajo', () => {
+  const div = pintarModerna(modulosModerna());
+  const [arriba, abajo] = div.querySelectorAll('.panel-modos');
+  tarjeta(div, 'jugar').click();
+  igual(arriba.getAttribute('data-abierto'), 'true');
+  verdadero(!arriba.hasAttribute('inert'));
+  verdadero(abajo.hasAttribute('inert') && abajo.getAttribute('data-abierto') === 'false');
+  igual(textos(arriba, '.mini-modo-nombre'), ['Trivia en vivo', '¿Quién es más probable?']);
+  tarjeta(div, 'conocernos').click(); // entre las de arriba solo cambia el contenido
+  igual(arriba.getAttribute('data-abierto'), 'true');
+  igual(arriba.getAttribute('aria-label'), 'Conocernos');
+  igual(textos(arriba, '.mini-modo-nombre'), ['Preguntas', 'Diario']);
+  igual(div.querySelectorAll('.panel-modos[data-abierto="true"]').length, 1);
+  igual(['jugar', 'conocernos', 'nosotros'].map((id) => tarjeta(div, id).getAttribute('aria-expanded')), ['false', 'true', 'false']);
+});
+
+prueba('inicio moderno: pasar de una de arriba a Nosotros cierra un hueco y abre el otro, y al revés', () => {
+  const div = pintarModerna(modulosModerna());
+  const [arriba, abajo] = div.querySelectorAll('.panel-modos');
+  tarjeta(div, 'jugar').click();
+  tarjeta(div, 'nosotros').click();
+  igual([arriba.getAttribute('data-abierto'), abajo.getAttribute('data-abierto')], ['false', 'true']);
+  igual([arriba.hasAttribute('inert'), abajo.hasAttribute('inert')], [true, false]);
+  igual(abajo.getAttribute('aria-label'), 'Nosotros');
+  igual(textos(abajo, '.mini-modo-nombre'), ['Match', 'Mapa']);
+  igual(div.querySelectorAll('.panel-modos[data-abierto="true"]').length, 1);
+  igual(div.querySelectorAll('.panel-modos:not([inert])').length, 1);
+  tarjeta(div, 'conocernos').click();
+  igual([arriba.getAttribute('data-abierto'), abajo.getAttribute('data-abierto')], ['true', 'false']);
+  igual([arriba.hasAttribute('inert'), abajo.hasAttribute('inert')], [false, true]);
+  igual(div.querySelectorAll('.panel-modos:not([inert]) a.mini-modo').length, 2);
+  tarjeta(div, 'conocernos').click(); // la misma la cierra
+  igual(div.querySelectorAll('.panel-modos[data-abierto="true"]').length, 0);
+  igual(div.querySelectorAll('.panel-modos:not([inert])').length, 0);
+});
+
+prueba('inicio moderno: un repintado con Nosotros abierto lo deja abierto en su hueco', () => {
+  const almacen = almacenEnMemoria();
+  const modulos = modulosModerna();
+  const div = pintarModerna(modulos, almacen);
+  tarjeta(div, 'nosotros').click();
+  const otra = document.createElement('div');
+  pantallaInicio(otra, {}, ctxModerna(modulos, almacen));
+  const [arriba, abajo] = otra.querySelectorAll('.panel-modos');
+  igual([arriba.getAttribute('data-abierto'), abajo.getAttribute('data-abierto')], ['false', 'true']);
+  verdadero(arriba.hasAttribute('inert') && !abajo.hasAttribute('inert'));
+  igual(textos(abajo, '.mini-modo-nombre'), ['Match', 'Mapa']);
+  navegar();
+});
 prueba('inicio moderno: tocar una tarjeta abre el panel con mini tarjetas que llevan a la ruta', () => {
   const div = pintarModerna(modulosModerna());
   tarjeta(div, 'conocernos').click();
@@ -230,7 +299,7 @@ prueba('inicio moderno: tocar otra tarjeta cambia la sección abierta y tocar la
   tarjeta(div, 'jugar').click();
   tarjeta(div, 'nosotros').click();
   igual(['jugar', 'conocernos', 'nosotros'].map((id) => tarjeta(div, id).getAttribute('aria-expanded')), ['false', 'false', 'true']);
-  const panel = div.querySelector('.panel-modos');
+  const panel = panelDe(div, 'nosotros');
   igual(panel.getAttribute('aria-label'), 'Nosotros');
   igual([...panel.querySelectorAll('a.mini-modo')].map((a) => a.getAttribute('href')), ['#/match', '#/mapa']);
   tarjeta(div, 'nosotros').click();
@@ -339,4 +408,87 @@ prueba('inicio moderno: el repintado devuelve el foco al mismo botón', async ()
     igual(document.activeElement, tarjeta(otra, 'nosotros'));
     otra.remove();
   } finally { div.remove(); navegar(); }
+});
+
+// ---------- Interfaz Clásica (la de antes de la v21) ----------
+const modulosClasica = (detalle = () => 'Te toca responder') => [
+  { id: 'preguntas', ...mod('p', acceso('preguntas', 'Preguntas', { seccion: 'conocernos', orden: 1 })),
+    tarjetasInicio: () => [el('a', { clase: 'del-dia', href: '#/preguntas/carta/x' }, 'Pregunta de hoy')],
+    accesosInicio: () => [el('nav', { clase: 'accesos' }, ['sesiones', 'categorias', 'azar', 'mis'].map((r) => el('a', { clase: 'acceso', href: '#/preguntas/' + r }, r)))] },
+  mod('m', acceso('mapa', 'Mapa', { seccion: 'nosotros', orden: 2 })),
+  mod('d', acceso('diario', 'Diario', { seccion: 'conocernos', orden: 2, detalle })),
+  mod('t', acceso('trivia', 'Trivia en vivo', { seccion: 'jugar', orden: 1 })),
+  mod('c', acceso('capsula', 'Cápsula', { seccion: 'nosotros', orden: 4 })),
+  mod('q', acceso('probable', 'Probable', { seccion: 'jugar', orden: 2 })),
+  mod('x', acceso('match', 'Match', { seccion: 'nosotros', orden: 1 })),
+];
+const pintarClasica = (modulos, almacen = almacenEnMemoria()) => {
+  cambiarAjuste(almacen, 'inicio', 'clasica');
+  navegar();
+  const div = document.createElement('div');
+  pantallaInicio(div, {}, ctxModerna(modulos, almacen));
+  return div;
+};
+
+prueba('inicio clásica: tarjeta Nuestra pareja con las píldoras de todos los accesos menos Preguntas, por sección y orden', () => {
+  const div = pintarClasica(modulosClasica(), conPareja());
+  const juntos = div.querySelector('.juntos.enlazados');
+  verdadero(juntos, 'falta la tarjeta de pareja');
+  const principal = juntos.querySelector('a.juntos-principal');
+  igual(principal.getAttribute('href'), '#/pareja');
+  verdadero(principal.textContent.includes('Nuestra pareja') && principal.textContent.includes('Celulares enlazados ✓'), principal.textContent);
+  igual(principal.querySelector('.juntos-accion').textContent, 'Ver');
+  verdadero(principal.querySelector('.juntos-icono .ico'), 'falta el ∞');
+  igual([...juntos.querySelectorAll('nav.juntos-accesos a.juntos-acceso')].map((a) => a.getAttribute('href')),
+    ['#/trivia', '#/probable', '#/diario', '#/match', '#/mapa', '#/capsula']);
+});
+
+prueba('inicio clásica: Pregunta de hoy y las 4 tarjetas de Preguntas van después de la tarjeta de pareja y antes de instalar', () => {
+  const div = pintarClasica(modulosClasica(), conPareja());
+  const juntos = div.querySelector('.juntos');
+  const dia = div.querySelector('.del-dia');
+  const accesos = div.querySelector('nav.accesos');
+  igual([...accesos.querySelectorAll('a.acceso')].map((a) => a.getAttribute('href')),
+    ['#/preguntas/sesiones', '#/preguntas/categorias', '#/preguntas/azar', '#/preguntas/mis']);
+  verdadero(ANTES(juntos, dia) && ANTES(dia, accesos), 'orden: pareja, pregunta de hoy, tarjetas');
+  verdadero(ANTES(div.querySelector('.inicio-cabecera'), juntos), 'la cabecera va primero');
+  verdadero(ANTES(accesos, div.querySelector('.inicio-pie')), 'el pie va al final');
+});
+
+prueba('inicio clásica: no pinta tarjetas de sección ni secciones simples', () => {
+  const div = pintarClasica(modulosClasica(), conPareja());
+  igual(div.querySelectorAll('.tarjeta-seccion, .inicio-seccion, .inicio-moderno, .panel-modos, .inicio-fila').length, 0);
+});
+
+prueba('inicio clásica: con pareja las píldoras llevan el detalle actual; el que lanza no rompe', () => {
+  const div = pintarClasica(modulosClasica(), conPareja());
+  igual(textos(div, '.juntos-acceso-detalle'), ['Te toca responder']);
+  const roto = pintarClasica(modulosClasica(() => { throw new Error('roto'); }), conPareja());
+  igual(roto.querySelectorAll('.juntos-acceso').length, 6);
+  igual(roto.querySelectorAll('.juntos-acceso-detalle').length, 0);
+});
+
+prueba('inicio clásica: sin pareja invita a Enlazar, muestra las píldoras y ningún detalle', () => {
+  const div = pintarClasica(modulosClasica());
+  const juntos = div.querySelector('.juntos.sin-enlazar');
+  verdadero(juntos, 'falta la tarjeta sin enlazar');
+  const principal = juntos.querySelector('a.juntos-principal');
+  igual(principal.getAttribute('href'), '#/pareja');
+  verdadero(principal.textContent.includes('Jueguen juntos') && principal.textContent.includes('Enlacen sus celulares'), principal.textContent);
+  igual(principal.querySelector('.juntos-accion').textContent, 'Enlazar →');
+  igual(juntos.querySelectorAll('.juntos-acceso').length, 6);
+  igual(div.querySelectorAll('.juntos-acceso-detalle').length, 0);
+  verdadero(!div.textContent.includes('Celulares enlazados'));
+  verdadero(!div.querySelector('.inicio-enlazar'), 'la invitación suelta es de las otras interfaces');
+});
+
+prueba('inicio clásica: Moderna y Simple no pintan la tarjeta Nuestra pareja ni las tarjetas de Preguntas', () => {
+  const almacen = almacenEnMemoria();
+  for (const v of ['moderna', 'simple']) {
+    cambiarAjuste(almacen, 'inicio', v);
+    navegar();
+    const div = document.createElement('div');
+    pantallaInicio(div, {}, ctxModerna(modulosClasica(), almacen));
+    igual(div.querySelectorAll('.juntos, nav.accesos').length, 0, v);
+  }
 });

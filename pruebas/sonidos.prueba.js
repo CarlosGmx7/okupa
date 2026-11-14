@@ -1,7 +1,7 @@
 import { prueba, igual, verdadero } from './corredor.js';
 import { almacenEnMemoria } from './pareja.prueba.js';
 import { cambiarAjuste } from '../js/nucleo/ajustes.js';
-import { crearSonidos } from '../js/nucleo/sonidos.js';
+import { crearSonidos, SELECTOR_TOCABLE } from '../js/nucleo/sonidos.js';
 
 function audioFalso() {
   const c = {
@@ -106,4 +106,9 @@ prueba('estilos: la carta del Match no recibe el resorte y el resorte usa scale'
   verdadero(/\.carta\.arrastrando \{[^}]*transition: none/.test(texto), 'la carta arrastrada sigue sin transición');
   verdadero(!/:active \{ transform: scale\(/.test(texto), 'quedan :active con transform: scale sueltos');
   verdadero(/:active[^{]*\{[^}]*scale: var\(--presion-escala\)/.test(texto), 'falta la regla única del resorte');
+});
+
+prueba('sonidos: el selector tocable incluye las tarjetas del inicio clásico', () => {
+  const sel = SELECTOR_TOCABLE.split(',').map((x) => x.trim());
+  for (const c of ['.juntos-principal', '.juntos-acceso', '.acceso']) verdadero(sel.includes(c), c);
 });

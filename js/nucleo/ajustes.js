@@ -5,7 +5,7 @@ const EVENTO = 'okupa:ajustes';
 
 export const TEMAS = ['vino', 'grafito'];
 export const LETRAS = ['normal', 'grande', 'muy-grande'];
-export const INTERFACES = ['moderna', 'simple'];
+export const INTERFACES = ['moderna', 'simple', 'clasica'];
 export const AJUSTES_DEFECTO = Object.freeze({ tema: 'vino', sonidos: true, vibracion: true, letra: 'normal', inicio: 'moderna' });
 
 const VALIDOS = {

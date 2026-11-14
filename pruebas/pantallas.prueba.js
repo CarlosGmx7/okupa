@@ -206,3 +206,12 @@ prueba('pantallas: avanceCategoria cuenta vistas de esa categoría', () => {
   igual(avanceCategoria(preguntas, new Set(['a', 'c']), 'x'), { vistas: 1, total: 2 });
   igual(avanceCategoria(preguntas, new Set(), 'z'), { vistas: 0, total: 0 });
 });
+
+prueba('pantallas: accesosInicio da el mismo nav de 4 accesos que #/preguntas', () => {
+  const { estado } = estadoDePrueba([preguntaX('x-001')]);
+  const [nav, ...resto] = crearPantallas(estado).accesosInicio();
+  igual(resto.length, 0);
+  verdadero(nav.classList.contains('accesos'), nav.outerHTML);
+  igual([...nav.querySelectorAll('a.acceso')].map((a) => a.getAttribute('href')),
+    ['#/preguntas/sesiones', '#/preguntas/categorias', '#/preguntas/azar', '#/preguntas/mis']);
+});

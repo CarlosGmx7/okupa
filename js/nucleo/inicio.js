@@ -68,22 +68,30 @@ globalThis.document?.addEventListener?.('focusin', (e) => {
 
 const ICONOS_SECCION = { jugar: '✦', conocernos: '❖', nosotros: '♥' };
 
-// Interfaz «Moderna»: tres tarjetas grandes y, debajo, un panel con las mini tarjetas de la abierta.
-// Solo una sección abierta a la vez; tocar la misma la cierra. Se pinta cerrado en cada render.
+// Interfaz «Moderna»: tarjetas por sección y un panel con las mini tarjetas de la abierta.
+// Jugar juntos y Conocernos abren su panel entre la fila de arriba y Nosotros (el mismo hueco para las dos);
+// Nosotros abre el suyo debajo de su tarjeta. Solo una sección abierta a la vez; tocar la misma la cierra.
+// Se pinta cerrado en cada render.
+const HUECO = (id) => (id === 'nosotros' ? 'abajo' : 'arriba');
+
 function inicioModerno(almacen, modulos = []) {
   const grupos = gruposInicio(almacen, modulos);
   if (!grupos.length) return el('div', { clase: 'inicio-moderno' });
-  const idPanel = 'inicio-panel-modos';
-  const panelInterior = el('div', { clase: 'panel-modos-interior' });
-  const panel = el('div', { clase: 'panel-modos', id: idPanel, role: 'region', 'data-abierto': 'false', inert: true },
-    el('div', { clase: 'panel-modos-recorte' }, panelInterior));
+  const huecos = {};
+  for (const nombre of ['arriba', 'abajo']) {
+    if (!grupos.some(({ s }) => HUECO(s.id) === nombre)) continue;
+    const interior = el('div', { clase: 'panel-modos-interior' });
+    const panel = el('div', { clase: 'panel-modos', id: `inicio-panel-${nombre}`, role: 'region', 'data-abierto': 'false', inert: true },
+      el('div', { clase: 'panel-modos-recorte' }, interior));
+    huecos[nombre] = { panel, interior };
+  }
   let abierta = grupos.some(({ s }) => s.id === seccionAbierta) ? seccionAbierta : null;
 
   const botones = grupos.map(({ s, filas }) => {
     const hayAviso = filas.some(({ detalle }) => detalle);
     return el('button', {
       clase: 'tarjeta-seccion', type: 'button', 'data-seccion': s.id,
-      'aria-expanded': 'false', 'aria-controls': idPanel,
+      'aria-expanded': 'false', 'aria-controls': huecos[HUECO(s.id)].panel.id,
       onclick: () => alternar(s.id),
     },
     el('span', { clase: 'tarjeta-seccion-icono', 'aria-hidden': 'true' }, ICONOS_SECCION[s.id] || '✦'),
@@ -93,51 +101,85 @@ function inicioModerno(almacen, modulos = []) {
   });
 
   const pintarPanel = ({ s, filas }) => {
+    const { panel, interior } = huecos[HUECO(s.id)];
     panel.setAttribute('aria-label', s.titulo);
-    panelInterior.replaceChildren(...filas.map(({ a, detalle }) =>
+    interior.replaceChildren(...filas.map(({ a, detalle }) =>
       el('a', { clase: 'mini-modo', href: `#/${a.ruta}` },
         el('span', { clase: 'mini-modo-icono', 'aria-hidden': 'true' }, icono(a.icono)),
         el('span', { clase: 'mini-modo-nombre' }, a.nombre),
         detalle ? el('span', { clase: 'mini-modo-detalle' }, detalle) : null)));
   };
 
+  // Deja cada hueco como toca para la sección abierta (o ninguna). Al cerrar se deja el contenido
+  // para que se vea plegarse; inert lo saca del foco y de los lectores.
+  const mostrar = () => {
+    botones.forEach((b) => b.setAttribute('aria-expanded', String(b.dataset.seccion === abierta)));
+    for (const [nombre, { panel }] of Object.entries(huecos)) {
+      const abre = abierta !== null && HUECO(abierta) === nombre;
+      panel.setAttribute('data-abierto', String(abre));
+      panel.toggleAttribute('inert', !abre);
+    }
+    if (abierta !== null) pintarPanel(grupos.find(({ s }) => s.id === abierta));
+  };
   const alternar = (id) => {
     abierta = abierta === id ? null : id;
     seccionAbierta = abierta;
-    botones.forEach((b) => b.setAttribute('aria-expanded', String(b.dataset.seccion === abierta)));
-    panel.setAttribute('data-abierto', String(abierta !== null));
-    panel.toggleAttribute('inert', abierta === null);
-    // Al cerrar se deja el contenido para que se vea plegarse; inert lo saca del foco y de los lectores.
-    if (abierta !== null) pintarPanel(grupos.find(({ s }) => s.id === abierta));
+    mostrar();
   };
 
   // Repintado con una sección abierta: sale ya abierta (sin animar, porque nace en su estado final).
-  if (abierta !== null) {
-    botones.forEach((b) => b.setAttribute('aria-expanded', String(b.dataset.seccion === abierta)));
-    panel.setAttribute('data-abierto', 'true');
-    panel.removeAttribute('inert');
-    pintarPanel(grupos.find(({ s }) => s.id === abierta));
-  }
+  if (abierta !== null) mostrar();
+  const arriba = botones.filter((b) => HUECO(b.dataset.seccion) === 'arriba');
   const raiz = el('div', { clase: 'inicio-moderno' },
-    el('div', { clase: 'inicio-tarjetas-seccion' }, botones),
-    panel);
+    arriba.length ? el('div', { clase: 'inicio-tarjetas-seccion' }, arriba) : null,
+    huecos.arriba?.panel || null,
+    ...botones.filter((b) => HUECO(b.dataset.seccion) === 'abajo'),
+    huecos.abajo?.panel || null);
   // El repintado quita los nodos y con ellos el foco: se devuelve al mismo botón o mini tarjeta.
   if (foco) {
     queueMicrotask(() => {
       const destino = foco.seccion
         ? botones.find((b) => b.dataset.seccion === foco.seccion)
-        : [...panelInterior.querySelectorAll('.mini-modo')].find((a) => a.getAttribute('href') === foco.ruta);
+        : [...raiz.querySelectorAll('.mini-modo')].find((a) => a.getAttribute('href') === foco.ruta);
       const activo = globalThis.document?.activeElement;
       if (destino?.isConnected && (!activo || activo === globalThis.document.body)) destino.focus({ preventScroll: true });
     });
   }
   return raiz;
 }
+
+// Interfaz «Clásica»: la de antes de la v21. La tarjeta «Nuestra pareja» (o la invitación a enlazar) con una
+// píldora por acceso (menos Preguntas, que tiene sus propias tarjetas). Los detalles son los de hoy: solo con pareja.
+function tarjetaJuntos(almacen, modulos = []) {
+  const enlazados = Boolean(almacen && miPareja(almacen));
+  const pildoras = gruposInicio(almacen, modulos)
+    .flatMap(({ filas }) => filas)
+    .filter(({ a }) => a.ruta !== 'preguntas')
+    .map(({ a, detalle }) => el('a', { clase: 'juntos-acceso', href: `#/${a.ruta}` },
+      el('span', { clase: 'juntos-acceso-nombre' }, icono(a.icono), ` ${a.nombre}`),
+      detalle ? el('span', { clase: 'juntos-acceso-detalle' }, detalle) : null));
+  return el('div', { clase: `juntos${enlazados ? ' enlazados' : ' sin-enlazar'}` },
+    el('a', { clase: 'juntos-principal', href: '#/pareja' },
+      el('span', { clase: 'juntos-icono', 'aria-hidden': 'true' }, icono('∞')),
+      el('span', { clase: 'juntos-cuerpo' },
+        el('span', { clase: 'juntos-titulo' }, enlazados ? 'Nuestra pareja' : 'Jueguen juntos'),
+        el('span', { clase: 'juntos-detalle' }, enlazados ? 'Celulares enlazados ✓' : 'Enlacen sus celulares')),
+      el('span', { clase: 'juntos-accion' }, enlazados ? 'Ver' : 'Enlazar →')),
+    pildoras.length ? el('nav', { clase: 'juntos-accesos', 'aria-label': 'Jugar juntos' }, pildoras) : null);
+}
+
 export function pantallaInicio(contenedor, _params, ctx) {
   const tarjetas = ctx.modulos.flatMap((m) => {
     try { return m.tarjetasInicio?.(ctx) || []; }
     catch (e) { console.warn(`Okupa: el módulo "${m.id}" falló al pintar el inicio`, e); return []; }
   });
+  const interfaz = leerAjustes(ctx.almacen).inicio;
+  const clasica = interfaz === 'clasica';
+  // Las cuatro tarjetas de Preguntas (y lo que otro módulo quiera sumar) bajo la pregunta de hoy; solo en la Clásica.
+  const accesos = clasica ? el('div', { clase: 'inicio-tarjetas' }, ctx.modulos.flatMap((m) => {
+    try { return m.accesosInicio?.(ctx) || []; }
+    catch (e) { console.warn(`Okupa: el módulo "${m.id}" falló al pintar el inicio`, e); return []; }
+  })) : null;
   contenedor.append(
     el('header', { clase: 'inicio-cabecera' },
       el('a', { clase: 'engranaje', href: '#/ajustes', 'aria-label': 'Ajustes' }, iconoLinea('ajustes', 'engranaje-icono')),
@@ -147,11 +189,13 @@ export function pantallaInicio(contenedor, _params, ctx) {
       }, el('img', { clase: 'inicio-portada', src: fuentePortada(ctx.almacen), alt: '', onerror: (e) => { if (!e.target.src.endsWith(PORTADA_ORIGINAL)) e.target.src = PORTADA_ORIGINAL; } })),
       el('h1', { clase: 'logo' }, 'Okupa'),
       el('p', { clase: 'lema' }, 'Preguntas para conocerse de verdad')),
-    el('div', {}, ctx.almacen && miPareja(ctx.almacen) ? null : enlaceEnlazar()),
+    clasica ? tarjetaJuntos(ctx.almacen, ctx.modulos) : el('div', {}, ctx.almacen && miPareja(ctx.almacen) ? null : enlaceEnlazar()),
     el('div', { clase: 'inicio-tarjetas' }, tarjetas),
-    leerAjustes(ctx.almacen).inicio === 'simple'
-      ? el('div', { clase: 'inicio-secciones' }, seccionesInicio(ctx.almacen, ctx.modulos))
-      : inicioModerno(ctx.almacen, ctx.modulos),
+    clasica
+      ? accesos
+      : interfaz === 'simple'
+        ? el('div', { clase: 'inicio-secciones' }, seccionesInicio(ctx.almacen, ctx.modulos))
+        : inicioModerno(ctx.almacen, ctx.modulos),
     bloqueInstalar(ctx.instalacion),
     el('footer', { clase: 'inicio-pie' },
       el('a', { href: '#/acerca' }, 'Acerca de Okupa')),

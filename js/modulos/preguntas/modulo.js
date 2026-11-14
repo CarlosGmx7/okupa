@@ -99,6 +99,10 @@ export default {
   tarjetasInicio(ctx) {
     return estado.listo ? pantallas.tarjetasInicio(ctx) : [errorDeCarga(ctx)];
   },
+  // Solo lo pide el inicio Clásico: las cuatro tarjetas de Preguntas bajo la pregunta de hoy.
+  accesosInicio() {
+    return estado.listo ? pantallas.accesosInicio() : [];
+  },
   acerca(ctx) {
     return estado.listo ? pantallas.acerca(ctx) : null;
   },

@@ -128,6 +128,7 @@ function selectorLetra(almacen) {
 const INTERFACES_VISTA = [
   { id: 'moderna', nombre: 'Moderna', nota: 'Tarjetas por sección' },
   { id: 'simple', nombre: 'Simple', nota: 'Lista por secciones' },
+  { id: 'clasica', nombre: 'Clásica', nota: 'Pareja y píldoras' },
 ];
 
 function selectorInterfaz(almacen) {

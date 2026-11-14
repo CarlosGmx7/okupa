@@ -191,15 +191,18 @@ prueba('acerca: ya no trae "Reiniciar todo"', () => {
   verdadero(!div.textContent.includes('Reiniciar todo') && !div.textContent.includes('Empezar de cero'), div.textContent);
 });
 
-prueba('ajustes: interfaz del inicio con Moderna y Simple, Moderna marcada y se guarda', () => {
+prueba('ajustes: interfaz del inicio con Moderna, Simple y Clásica, Moderna marcada y se guarda', () => {
   const { div, almacen } = pintar();
   const grupo = div.querySelector('[role="radiogroup"][aria-label="Interfaz del inicio"]');
   verdadero(grupo, 'falta el selector de interfaz');
-  igual([...grupo.querySelectorAll('[data-inicio]')].map((b) => [b.dataset.inicio, b.textContent.includes(b.dataset.inicio === 'moderna' ? 'Moderna' : 'Simple')]), [['moderna', true], ['simple', true]]);
+  igual([...grupo.querySelectorAll('[data-inicio]')].map((b) => [b.dataset.inicio, b.textContent.includes({ moderna: 'Moderna', simple: 'Simple', clasica: 'Clásica' }[b.dataset.inicio])]), [['moderna', true], ['simple', true], ['clasica', true]]);
   igual(grupo.querySelector('[data-inicio="moderna"]').getAttribute('aria-checked'), 'true');
   grupo.querySelector('[data-inicio="simple"]').click();
   igual(leerAjustes(almacen).inicio, 'simple');
   igual([...grupo.querySelectorAll('[aria-checked="true"]')].map((b) => b.dataset.inicio), ['simple']);
+  grupo.querySelector('[data-inicio="clasica"]').click();
+  igual(leerAjustes(almacen).inicio, 'clasica');
+  igual([...grupo.querySelectorAll('[aria-checked="true"]')].map((b) => b.dataset.inicio), ['clasica']);
   grupo.querySelector('[data-inicio="moderna"]').click();
   igual(leerAjustes(almacen).inicio, 'moderna');
 });

@@ -170,7 +170,8 @@
   box-shadow: 0 0.625rem 1.875rem rgba(0, 0, 0, 0.35);
   color: var(--crema); font: inherit; text-align: left; cursor: pointer;
 }
-.tarjeta-seccion[data-seccion="nosotros"] { grid-column: 1 / -1; min-height: 5.5rem; }
+.tarjeta-seccion[data-seccion="nosotros"] { width: 100%; box-sizing: border-box; min-height: 5.5rem; margin-top: 0.75rem; }
+.inicio-moderno > .tarjeta-seccion:first-child { margin-top: 0; }
 .tarjeta-seccion[aria-expanded="true"] { border-color: var(--dorado); box-shadow: 0 0 0 0.0625rem var(--dorado), 0 0.625rem 1.875rem rgba(0, 0, 0, 0.35); }
 .tarjeta-seccion:focus-visible, .mini-modo:focus-visible { outline: 2px solid var(--dorado); outline-offset: 2px; }
 .tarjeta-seccion-icono { font-size: 1.75rem; line-height: 1; color: var(--dorado); }
@@ -203,7 +204,48 @@
 }
 :root[data-tema="grafito"] .tarjeta-seccion { background: var(--superficie); box-shadow: none; }
 :root[data-tema="grafito"] .tarjeta-seccion[aria-expanded="true"] { box-shadow: 0 0 0 0.0625rem var(--dorado); }
-/* ---------- Trivia ---------- */
+
+/* ---------- Inicio clásico: la tarjeta «Nuestra pareja» con una píldora por acceso ---------- */
+.inicio-tarjetas + .inicio-tarjetas { margin-top: 1.125rem; }
+.juntos {
+  display: flex; flex-direction: column; align-items: stretch; gap: 0.75rem;
+  margin-top: 1.375rem; padding: 0.875rem;
+  border-radius: var(--radio);
+  background:
+    radial-gradient(120% 140% at 0% 50%, rgba(var(--dorado-rgb), 0.22), transparent 65%),
+    var(--superficie);
+  border: 1px solid var(--dorado);
+  box-shadow: 0 0.625rem 2.125rem rgba(var(--dorado-rgb), 0.14);
+  color: var(--crema);
+}
+.juntos-principal { display: flex; align-items: center; gap: 0.625rem; color: inherit; text-decoration: none; }
+.juntos-principal:focus-visible, .juntos-acceso:focus-visible { outline: 2px solid var(--dorado); outline-offset: 2px; }
+.juntos-icono {
+  flex: none; display: grid; place-items: center; width: 2.75rem; height: 2.75rem; border-radius: 50%;
+  background: var(--dorado); color: var(--sobre-resalte); font-size: 1.5rem; line-height: 1;
+}
+.juntos-cuerpo { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.125rem; }
+.juntos-titulo { font-family: var(--serif); font-size: 1.125rem; overflow-wrap: anywhere; }
+.juntos-detalle { font-size: 0.8125rem; color: var(--tenue); }
+.juntos-accion {
+  flex: none; padding: 0.625rem 0.875rem; border-radius: 999px;
+  background: var(--vino); color: var(--crema); font-size: 0.875rem; font-weight: 600; white-space: nowrap;
+}
+.juntos.enlazados .juntos-accion { background: none; color: var(--dorado); padding-inline: 0.25rem; }
+.juntos-accesos { display: flex; flex-wrap: wrap; gap: 0.625rem; }
+.juntos-acceso {
+  flex: 1 1 8.75rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.125rem;
+  min-height: 3.25rem; padding: 0.5rem 0.875rem; border-radius: 999px;
+  background: var(--dorado); color: var(--sobre-resalte);
+  font-weight: 600; text-align: center; text-decoration: none;
+}
+.juntos-acceso-nombre { white-space: nowrap; }
+.juntos-acceso-detalle { font-size: 0.75rem; font-weight: 500; opacity: 0.8; }
+:root[data-tema="grafito"] .juntos { background: var(--superficie); border-color: var(--dorado-suave); box-shadow: none; }
+:root[data-tema="grafito"] .juntos-acceso { background: var(--superficie-alta); color: var(--crema); border: 1px solid var(--dorado-suave); }
+:root[data-tema="grafito"] .juntos-acceso-nombre > [aria-hidden] { color: var(--dorado); }
+:root[data-tema="grafito"] .juntos-accion { background: var(--dorado); color: var(--sobre-resalte); }
+:root[data-tema="grafito"] .juntos.enlazados .juntos-accion { background: none; color: var(--dorado); }/* ---------- Trivia ---------- */
 .boton-grande { min-height: 58px; padding: 0 32px; font-size: 1.125rem; }
 .sala-accion { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; margin: 8px 0 18px; }
 .sala-invitacion { font-family: var(--serif); font-size: 1.375rem; margin: 0; }
@@ -965,17 +1007,17 @@ ul.chips { padding: 0; margin: 0; list-style: none; }
 
 /* ---------- Resorte suave: se hunde al presionar y vuelve con un pequeño rebote ---------- */
 /* Usa 'scale' (no 'transform') para no pisar los giros y desplazamientos de algunas tarjetas. */
-:is(.boton, .acceso, .inicio-fila, .inicio-enlazar, .opcion-juego, .opcion-diario, .punto-escala, .chip, .burbuja, .voto, .engranaje, .fila-ajuste, .tema-opcion, .letra-opcion, .tarjeta-seccion, .mini-modo, button) {
+:is(.boton, .acceso, .juntos-principal, .juntos-acceso, .inicio-fila, .inicio-enlazar, .opcion-juego, .opcion-diario, .punto-escala, .chip, .burbuja, .voto, .engranaje, .fila-ajuste, .tema-opcion, .letra-opcion, .tarjeta-seccion, .mini-modo, button) {
   transition: scale var(--resorte-tiempo) var(--resorte), background-color .2s, border-color .2s, box-shadow .2s, color .2s;
 }
-:is(.boton, .acceso, .inicio-fila, .inicio-enlazar, .opcion-juego, .opcion-diario, .punto-escala, .chip, .burbuja, .voto, .engranaje, .fila-ajuste, .tema-opcion, .letra-opcion, .tarjeta-seccion, .mini-modo, button):not(:disabled):active {
+:is(.boton, .acceso, .juntos-principal, .juntos-acceso, .inicio-fila, .inicio-enlazar, .opcion-juego, .opcion-diario, .punto-escala, .chip, .burbuja, .voto, .engranaje, .fila-ajuste, .tema-opcion, .letra-opcion, .tarjeta-seccion, .mini-modo, button):not(:disabled):active {
   scale: var(--presion-escala);
   transition: scale var(--presion-tiempo) ease-out, background-color .2s, border-color .2s, box-shadow .2s, color .2s;
 }
 /* MapLibre coloca marcadores y controles con transform: el scale los movería de su sitio. */
 .maplibregl-marker, .maplibregl-marker *, .maplibregl-ctrl button { scale: none !important; }
 @media (prefers-reduced-motion: reduce) {
-  :is(.boton, .acceso, .inicio-fila, .inicio-enlazar, .opcion-juego, .opcion-diario, .punto-escala, .chip, .burbuja, .voto, .engranaje, .fila-ajuste, .tema-opcion, .letra-opcion, .tarjeta-seccion, .mini-modo, button):not(:disabled):active { scale: none; opacity: .85; }
+  :is(.boton, .acceso, .juntos-principal, .juntos-acceso, .inicio-fila, .inicio-enlazar, .opcion-juego, .opcion-diario, .punto-escala, .chip, .burbuja, .voto, .engranaje, .fila-ajuste, .tema-opcion, .letra-opcion, .tarjeta-seccion, .mini-modo, button):not(:disabled):active { scale: none; opacity: .85; }
 }
 
 /* ---------- Ajustes ---------- */
@@ -1022,6 +1064,7 @@ ul.chips { padding: 0; margin: 0; list-style: none; }
 .interruptor[aria-checked="true"] .interruptor-perilla { translate: 20px 0; background: var(--sobre-resalte); }
 
 .tema-opciones { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 12px; }
+.inicio-opcion:last-child:nth-child(odd) { grid-column: 1 / -1; }
 .tema-opcion {
   display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 10px;
   border-radius: var(--radio-chico); border: 1.5px solid var(--dorado-suave); background: var(--superficie-alta);

@@ -4,7 +4,7 @@ import { leerAjustes } from './ajustes.js';
 import { almacen as almacenReal } from './almacen.js';
 
 // Lo que recibe el resorte (css/componentes.css) y vibra al tocar.
-export const SELECTOR_TOCABLE = '.boton, .acceso, .inicio-fila, .inicio-enlazar,.opcion-juego, .opcion-diario, .punto-escala, .chip, .burbuja, .voto, .engranaje, .fila-ajuste, .tema-opcion, .tarjeta-seccion, .mini-modo, button';
+export const SELECTOR_TOCABLE = '.boton, .acceso, .inicio-fila, .inicio-enlazar, .juntos-principal, .juntos-acceso, .opcion-juego, .opcion-diario, .punto-escala, .chip, .burbuja, .voto, .engranaje, .fila-ajuste, .tema-opcion, .tarjeta-seccion, .mini-modo, button';
 
 // [frecuencia (Hz), inicio (s), duración (s)]
 const NOTAS = {

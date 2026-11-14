@@ -47,13 +47,15 @@ prueba('ajustes: cambiarAjuste ignora valores inválidos', () => {
   igual(leerAjustes(a), AJUSTES_DEFECTO);
 });
 
-prueba('ajustes: la interfaz del inicio es moderna por defecto y solo acepta moderna o simple', () => {
-  igual(INTERFACES, ['moderna', 'simple']);
+prueba('ajustes: la interfaz del inicio es moderna por defecto y solo acepta moderna, simple o clasica', () => {
+  igual(INTERFACES, ['moderna', 'simple', 'clasica']);
   const a = almacenEnMemoria();
   igual(leerAjustes(a).inicio, 'moderna');
   a.escribir('okupa:ajustes', { inicio: 'rara' });
   igual(leerAjustes(a).inicio, 'moderna');
   igual(cambiarAjuste(a, 'inicio', 'simple').inicio, 'simple');
   igual(leerAjustes(a).inicio, 'simple');
-  igual(cambiarAjuste(a, 'inicio', 'otra').inicio, 'simple');
+  igual(cambiarAjuste(a, 'inicio', 'clasica').inicio, 'clasica');
+  igual(leerAjustes(a).inicio, 'clasica');
+  igual(cambiarAjuste(a, 'inicio', 'otra').inicio, 'clasica');
 });

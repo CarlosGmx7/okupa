@@ -331,16 +331,21 @@ export function crearPantallas(estado, { alOcultar } = {}) {
     ].filter(Boolean);
   }
 
-  // Pantalla propia de Preguntas (#/preguntas): las cuatro formas de entrar a las cartas.
+  // Las cuatro formas de entrar a las cartas. Las usan #/preguntas y el inicio Clásico.
+  function accesosInicio() {
+    return [el('nav', { clase: 'accesos' },
+      acceso('preguntas/sesiones', '❖', 'Sesiones guiadas', `${estado.contenido.sesiones.length} recorridos`),
+      acceso('preguntas/categorias', '✦', 'Categorías', `${estado.contenido.categorias.length} temas`),
+      acceso('preguntas/azar', '✧', 'Al azar', 'Una carta sorpresa'),
+      acceso('preguntas/mis', '✐', 'Mis preguntas', 'Creen las suyas'))];
+  }
+
+  // Pantalla propia de Preguntas (#/preguntas).
   function inicio(contenedor) {
     contenedor.append(
       volverA('', 'Inicio'),
       el('h1', { clase: 'titulo-pantalla' }, 'Preguntas'),
-      el('nav', { clase: 'accesos' },
-        acceso('preguntas/sesiones', '❖', 'Sesiones guiadas', `${estado.contenido.sesiones.length} recorridos`),
-        acceso('preguntas/categorias', '✦', 'Categorías', `${estado.contenido.categorias.length} temas`),
-        acceso('preguntas/azar', '✧', 'Al azar', 'Una carta sorpresa'),
-        acceso('preguntas/mis', '✐', 'Mis preguntas', 'Creen las suyas')));
+      ...accesosInicio());
   }
 
   function acerca(ctx) {
@@ -367,7 +372,7 @@ export function crearPantallas(estado, { alOcultar } = {}) {
         el('p', {}, 'Si una conversación se pone muy dolorosa, está bien parar y buscar acompañamiento profesional.')));
   }
 
-  return { inicio, categorias, categoria, azar, carta, sesiones, sesion, tarjetasInicio, acerca };
+  return { inicio, categorias, categoria, azar, carta, sesiones, sesion, tarjetasInicio, accesosInicio, acerca };
 }
 
 function acceso(ruta, glifo, nombre, detalle) {
