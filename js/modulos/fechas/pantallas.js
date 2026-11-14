@@ -1,5 +1,6 @@
 // Pantallas de «Fechas»: la lista con los días juntos y las próximas, y el formulario para agregar o editar.
 import { el } from '../../nucleo/ui.js';
+import { miPareja } from '../../nucleo/pareja.js';
 import { exigirPareja } from '../../nucleo/pantallas-pareja.js';
 import { diasJuntos, proximas, miles, plural, duracionMeses } from './calendario.js';
 import {
@@ -27,19 +28,19 @@ const cuandoFalta = (n) => (n === 0 ? 'hoy' : n === 1 ? 'mañana' : `en ${n} dí
 
 // Línea corta para la tarjeta «Jugar juntos» del inicio (se pinta sin internet).
 export function detalleInicio(almacen, hoy = hoyLocal()) {
-  const copia = leerCopia(almacen);
+  const pareja = miPareja(almacen);
+  const copia = pareja && leerCopia(almacen, pareja.codigo);
   if (!copia || !copia.fechas.length) return 'Agreguen sus fechas';
   const inicio = copia.fechas.find((f) => f.tipo === 'inicio');
   const n = inicio ? diasJuntos(inicio.fecha, hoy) : null;
   const [prox] = proximas(copia.fechas, hoy, 1);
   const proxTexto = prox
-    ? `${tituloEvento(prox, copia.nombres)} ${prox.faltan === 0 ? 'hoy' : `en ${prox.faltan} d`}`
+    ? `${prox.clase === 'cumple' && prox.de === pareja.lugar ? 'Tu cumpleaños' : tituloEvento(prox, copia.nombres)} ${prox.faltan === 0 ? 'hoy' : `en ${prox.faltan} d`}`
     : null;
   if (n === null) return proxTexto || 'Agreguen sus fechas';
   const dias = `${miles(n)} ${n === 1 ? 'día' : 'días'}`;
   return proxTexto ? `${dias} · ${proxTexto}` : dias;
 }
-
 
 function fechaLegible(dia) {
   const [a, m, d] = dia.split('-').map(Number);
@@ -52,7 +53,7 @@ export function crearPantallasFechas({ hoy = hoyLocal } = {}) {
     try {
       return await refrescarCopia(r.nube, r.pareja, ctx.almacen);
     } catch {
-      return leerCopia(ctx.almacen)?.fechas || [];
+      return leerCopia(ctx.almacen, r.pareja.codigo)?.fechas || [];
     }
   }
 
@@ -117,7 +118,7 @@ export function crearPantallasFechas({ hoy = hoyLocal } = {}) {
     const de = esCumple ? id.slice(-1) : undefined;
     let actual = null;
     if (id) {
-      const todas = await listarFechas(r.nube, r.pareja).catch(() => leerCopia(ctx.almacen)?.fechas || []);
+      const todas = await listarFechas(r.nube, r.pareja).catch(() => leerCopia(ctx.almacen, r.pareja.codigo)?.fechas || []);
       actual = todas.find((f) => f.id === id) || null;
       if (!actual && tipo === 'otra') {
         zona.replaceChildren(el('div', { clase: 'vacio' }, el('p', {}, 'No encontramos esa fecha.'),
@@ -129,7 +130,7 @@ export function crearPantallasFechas({ hoy = hoyLocal } = {}) {
       : tipo === 'cumple' ? tituloCumple(nombres, de, r.pareja.lugar)
         : id ? 'Editar fecha' : 'Nueva fecha';
     const idFecha = `c-${Math.random().toString(36).slice(2, 8)}`;
-    const entradaFecha = el('input', { type: 'date', id: idFecha, max: tipo === 'inicio' ? hoy() : null });
+    const entradaFecha = el('input', { type: 'date', id: idFecha, max: tipo === 'inicio' || tipo === 'cumple' ? hoy() : null });
     entradaFecha.value = actual?.fecha || '';
     const idNombre = `c-${Math.random().toString(36).slice(2, 8)}`;
     const entradaNombre = el('input', { type: 'text', id: idNombre, maxlength: '40', placeholder: 'Ej: Primer viaje' });

@@ -90,28 +90,45 @@ prueba('fechas datos: el otro celular ve lo que guardó el primero', async () =>
 });
 
 prueba('fechas datos: refrescarCopia deja copia con fechas y nombres', async () => {
-  const { a, almA, pareja } = await dosCelulares();
-  igual(leerCopia(almA), null);
+  const { a, almA, pareja, codigo } = await dosCelulares();
+  igual(leerCopia(almA, codigo), null);
   await guardarFecha(a, pareja, { tipo: 'inicio', fecha: '2024-02-14' }, HOY);
   const fechas = await refrescarCopia(a, pareja, almA);
   igual(fechas.length, 1);
-  const copia = leerCopia(almA);
+  const copia = leerCopia(almA, codigo);
   igual(copia.fechas, fechas);
   igual(copia.nombres, { a: 'Carlos', b: 'Yuli' });
   igual(almA.leer(CLAVE_COPIA).nombres.a, 'Carlos');
+  igual(almA.leer(CLAVE_COPIA).codigo, codigo);
 });
 
 prueba('fechas datos: leerCopia con datos dañados da null', () => {
   const alm = almacenEnMemoria();
-  alm.escribir(CLAVE_COPIA, { fechas: 'no' });
+  alm.escribir(CLAVE_COPIA, { fechas: 'no', codigo: 'K7PQ2M' });
+  igual(leerCopia(alm, 'K7PQ2M'), null);
+  guardarCopia(alm, [], { a: null, b: null }, 'K7PQ2M');
+  igual(leerCopia(alm, 'K7PQ2M'), { fechas: [], nombres: { a: null, b: null } });
+});
+
+prueba('fechas datos: la copia solo vale para la pareja que la guardó', () => {
+  const alm = almacenEnMemoria();
+  guardarCopia(alm, [], { a: null, b: null }, 'K7PQ2M');
+  igual(leerCopia(alm, 'ZZZZZZ'), null);
   igual(leerCopia(alm), null);
-  guardarCopia(alm, [], { a: null, b: null });
-  igual(leerCopia(alm), { fechas: [], nombres: { a: null, b: null } });
+  const vieja = almacenEnMemoria();
+  vieja.escribir(CLAVE_COPIA, { fechas: [], nombres: {} });
+  igual(leerCopia(vieja, 'K7PQ2M'), null, 'una copia sin código no sirve');
+});
+
+prueba('fechas datos: validarFecha rechaza cumpleaños futuros', () => {
+  igual(validarFecha({ tipo: 'cumple', de: 'a', fecha: '2026-11-14' }, HOY), 'La fecha de cumpleaños no puede ser futura.');
+  igual(validarFecha({ tipo: 'cumple', de: 'a', fecha: HOY }, HOY), null);
+  igual(validarFecha({ tipo: 'otra', nombre: 'Viaje', fecha: '2027-01-01' }, HOY), null);
 });
 
 prueba('fechas datos: okupa:fechas no viaja en la copia de seguridad', () => {
   const alm = almacenEnMemoria();
-  guardarCopia(alm, [{ id: 'inicio', tipo: 'inicio', fecha: '2024-02-14' }], { a: 'C', b: 'Y' });
+  guardarCopia(alm, [{ id: 'inicio', tipo: 'inicio', fecha: '2024-02-14' }], { a: 'C', b: 'Y' }, 'K7PQ2M');
   alm.escribir('okupa:preguntas:vistas', { x: 1 });
   const datos = exportarRespaldo(alm).datos;
   verdadero(!('okupa:fechas' in datos), Object.keys(datos).join());

@@ -56,7 +56,8 @@ prueba('calendario: textos', () => {
 prueba('calendario: la semana antes del cumple no le llega al cumpleañero', () => {
   igual(notificacionDelDia(SIN_INICIO, '2026-03-03', 'a', N), null);
   igual(notificacionDelDia(SIN_INICIO, '2026-03-03', 'b', N), { titulo: 'En una semana: cumpleaños de Carlos', texto: 'Entra a ver sus fechas.' });
-  igual(notificacionDelDia(SIN_INICIO, '2026-03-10', 'a', N).titulo, 'Hoy es el cumpleaños de Carlos 🎂');
+  igual(notificacionDelDia(SIN_INICIO, '2026-03-10', 'a', N).titulo, '¡Feliz cumpleaños! 🎂');
+  igual(notificacionDelDia(SIN_INICIO, '2026-03-10', 'b', N).titulo, 'Hoy es el cumpleaños de Carlos 🎂');
   // Con inicio, a 'a' le llega solo el hito de la semana siguiente, no su propio cumple.
   igual(notificacionDelDia(F, '2026-03-03', 'a', N), { titulo: 'En una semana cumplen 800 días juntos', texto: 'Entra a ver sus fechas.' });
 });
@@ -80,4 +81,46 @@ prueba('calendario: proximas ordena por días que faltan', () => {
   // cumple_a y el hito 800 caen el 10 (empate: gana la prioridad); la mensual, el 1 de abril.
   igual(p.slice(0, 3).map((e) => [e.id, e.clase, e.faltan]), [['cumple_a', 'cumple', 5], ['inicio', 'hito', 5], ['inicio', 'mensual', 27]]);
   verdadero(p.every((e, i) => i === 0 || p[i - 1].faltan <= e.faltan));
+});
+
+const OTRA_FIN = [{ id: 'f-9', tipo: 'otra', fecha: '2026-12-20', nombre: 'Fin de año' }];
+prueba('calendario: una otra de este año cuenta en su propio año', () => {
+  igual(eventosDelDia(OTRA_FIN, '2026-12-20').map((e) => [e.clase, e.nombre, e.anios]), [['otra', 'Fin de año', 0]]);
+  igual(eventosDelDia(OTRA_FIN, '2027-12-20').map((e) => e.anios), [1]);
+  igual(eventosDelDia(OTRA_FIN, '2025-12-20'), [], 'antes del año original no cuenta');
+});
+prueba('calendario: el día de nacimiento no es un cumpleaños', () => {
+  const c = [{ id: 'cumple_a', tipo: 'cumple', fecha: '2000-05-05', de: 'a' }];
+  igual(eventosDelDia(c, '2000-05-05'), []);
+  igual(eventosDelDia(c, '2001-05-05').map((e) => e.anios), [1]);
+});
+prueba('calendario: proximas muestra la otra que cae más tarde este año', () => {
+  const [p] = proximas(OTRA_FIN, '2026-11-13');
+  igual([p.clase, p.dia, p.faltan], ['otra', '2026-12-20', 37]);
+});
+prueba('calendario: notificacionDelDia avisa de una otra de este año', () => {
+  igual(notificacionDelDia(OTRA_FIN, '2026-12-13', 'a', N).titulo, 'En una semana: Fin de año');
+  igual(notificacionDelDia(OTRA_FIN, '2026-12-20', 'a', N).titulo, 'Hoy: Fin de año');
+});
+prueba('calendario: proximas cruza el año', () => {
+  const f = [{ id: 'f-8', tipo: 'otra', fecha: '2020-01-01', nombre: 'Año nuevo' }];
+  igual(proximas(f, '2026-12-31').map((e) => [e.dia, e.faltan]), [['2027-01-01', 1]]);
+  igual(proximas(f, '2027-01-01').map((e) => [e.dia, e.faltan]), [['2027-01-01', 0]]);
+  igual(proximas(f, '2027-01-02').map((e) => [e.dia, e.faltan]), [['2028-01-01', 364]]);
+});
+prueba('calendario: proximas con cumple del 29 de febrero', () => {
+  const c = [{ id: 'cumple_b', tipo: 'cumple', fecha: '1996-02-29', de: 'b' }];
+  igual(proximas(c, '2026-11-13').map((e) => [e.dia, e.anios, e.faltan]), [['2027-02-28', 31, 107]]);
+  igual(proximas(c, '2027-11-13').map((e) => [e.dia, e.anios]), [['2028-02-29', 32]]);
+});
+prueba('calendario: proximas con un hito mayor a 1000', () => {
+  const f = [{ id: 'inicio', tipo: 'inicio', fecha: '2023-01-01' }];
+  // 2026-01-05 es el día 1101: el siguiente hito es 1500.
+  const h = proximas(f, '2026-01-05').find((e) => e.clase === 'hito');
+  igual([h.dias, h.dia, h.faltan], [1500, '2027-02-08', 399]);
+});
+prueba('calendario: el día de su cumpleaños la persona recibe un saludo', () => {
+  igual(notificacionDelDia(SIN_INICIO, '2026-03-10', 'a', N).titulo, '¡Feliz cumpleaños! 🎂');
+  igual(notificacionDelDia(SIN_INICIO, '2026-03-10', 'b', N).titulo, 'Hoy es el cumpleaños de Carlos 🎂');
+  igual(textoEvento({ clase: 'cumple', de: 'a' }, N, 'hoy', 'a'), '¡Feliz cumpleaños! 🎂');
 });

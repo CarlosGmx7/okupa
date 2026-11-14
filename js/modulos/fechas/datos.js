@@ -25,6 +25,7 @@ export function validarFecha({ tipo, fecha, nombre, de }, hoy) {
   if (!diaValido(fecha)) return 'Escoge una fecha válida.';
   if (tipo === 'inicio' && fecha > hoy) return 'La fecha de inicio no puede ser futura.';
   if (tipo === 'cumple' && de !== 'a' && de !== 'b') return 'Escoge de quién es el cumpleaños.';
+  if (tipo === 'cumple' && fecha > hoy) return 'La fecha de cumpleaños no puede ser futura.';
   if (tipo === 'otra') {
     const n = typeof nombre === 'string' ? nombre.trim() : '';
     if (n.length < 1 || n.length > 40) return ERROR_NOMBRE;
@@ -74,13 +75,14 @@ export async function borrarFecha(nube, pareja, id) {
   await nube.borrar(`${ruta(pareja)}/${id}`);
 }
 
-export function guardarCopia(almacen, fechas, nombres) {
-  almacen.escribir(CLAVE_COPIA, { fechas, nombres });
+// La copia se ata al código de la pareja para no mostrar fechas de una pareja anterior.
+export function guardarCopia(almacen, fechas, nombres, codigo) {
+  almacen.escribir(CLAVE_COPIA, { codigo, fechas, nombres });
 }
 
-export function leerCopia(almacen) {
+export function leerCopia(almacen, codigo) {
   const c = almacen.leer(CLAVE_COPIA, null);
-  if (!c || !Array.isArray(c.fechas)) return null;
+  if (!c || !codigo || c.codigo !== codigo || !Array.isArray(c.fechas)) return null;
   const n = c.nombres || {};
   return { fechas: c.fechas, nombres: { a: n.a ?? null, b: n.b ?? null } };
 }
@@ -89,6 +91,6 @@ export async function refrescarCopia(nube, pareja, almacen) {
   const fechas = await listarFechas(nube, pareja);
   const doc = await nube.leer(`parejas/${pareja.codigo}`);
   const nombres = { a: doc?.nombres?.a ?? null, b: doc?.nombres?.b ?? null };
-  guardarCopia(almacen, fechas, nombres);
+  guardarCopia(almacen, fechas, nombres, pareja.codigo);
   return fechas;
 }

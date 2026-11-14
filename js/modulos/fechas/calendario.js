@@ -43,6 +43,8 @@ const siguienteHito = (desde) => {
 
 // Fechas que se repiten cada año (cumple, otra); el inicio aporta su aniversario aparte.
 const esAnual = (f) => f.tipo === 'cumple' || f.tipo === 'otra';
+// Primer año que cuenta: el día de nacimiento no es un cumpleaños; una «otra» sí cuenta en su propio año.
+const primerAnio = (f, af) => (f.tipo === 'cumple' ? af + 1 : af);
 
 function eventoAnual(f, dia, anios) {
   const e = { clase: f.tipo, id: f.id, dia, anios };
@@ -74,7 +76,7 @@ export function eventosDelDia(fechas, dia) {
       if (n !== null && esHito(n)) lista.push({ clase: 'hito', id: f.id, dia, dias: n });
     } else if (esAnual(f)) {
       const [af, mf, df] = partes(f.fecha);
-      if (a > af && m === mf && d === diaAjustado(a, mf, df)) lista.push(eventoAnual(f, dia, a - af));
+      if (a >= primerAnio(f, af) && m === mf && d === diaAjustado(a, mf, df)) lista.push(eventoAnual(f, dia, a - af));
     }
   }
   // sort es estable: a igual prioridad se conserva el orden de las fechas.
@@ -109,7 +111,8 @@ export function proximas(fechas, hoy, limite = 20) {
       agregar({ clase: 'hito', id: f.id, dia: sumarDias(f.fecha, h - 1), dias: h });
     } else if (esAnual(f)) {
       const [af, mf, df] = partes(f.fecha);
-      for (let a = Math.max(ah, af + 1); a <= Math.max(ah, af + 1) + 1; a++) {
+      const desde = Math.max(ah, primerAnio(f, af));
+      for (let a = desde; a <= desde + 1; a++) {
         const dia = armar(a, mf, diaAjustado(a, mf, df));
         if (dia >= hoy) { agregar(eventoAnual(f, dia, a - af)); break; }
       }
@@ -132,12 +135,13 @@ export function duracionMeses(meses) {
   return partesTexto.join(' y ');
 }
 
-export function textoEvento(e, nombres, cuando) {
+export function textoEvento(e, nombres, cuando, lugar) {
   const nom = (nombres || {})[e.de] || 'tu pareja';
   const hoy = cuando === 'hoy';
   const cumplen = hoy ? 'Hoy cumplen' : 'En una semana cumplen';
   switch (e.clase) {
     case 'cumple':
+      if (hoy && lugar && e.de === lugar) return '¡Feliz cumpleaños! 🎂';
       return hoy ? `Hoy es el cumpleaños de ${nom} 🎂` : `En una semana: cumpleaños de ${nom}`;
     case 'aniversario':
       return `${cumplen} ${plural(e.anios, 'año', 'años')} juntos`;
@@ -162,7 +166,7 @@ export function notificacionDelDia(fechas, hoy, lugar, nombres) {
   }
   if (!items.length) return null;
   items.sort((x, y) => PRIORIDAD[x.e.clase] - PRIORIDAD[y.e.clase] || x.orden - y.orden);
-  const textos = items.map(({ e, cuando }) => textoEvento(e, nombres, cuando));
+  const textos = items.map(({ e, cuando }) => textoEvento(e, nombres, cuando, lugar));
   return {
     titulo: textos[0],
     texto: textos.length > 1 ? textos.slice(1).join(' · ') : 'Entra a ver sus fechas.',
