@@ -15,11 +15,12 @@ App web instalable (PWA) para parejas: preguntas para conocerse, Trivia, Diario,
 - Límite a vigilar al crecer: Firebase gratis = 50k lecturas y 20k escrituras/día, 1 GB; las fotos de lugares (hasta 380 KB c/u en Firestore) lo llenarían primero.
 - Lista sin publicar (rama `v19-fechas`, carpeta `../okupa-v19`): «Borrar todo» ya borra lugares, Match (votos del otro a ciegas) y fechas; avisos los descarta el servidor. v19 Fechas especiales (`js/modulos/fechas/`: `calendario.js` lógica pura que usa también el servidor, `datos.js`, `pantallas.js`; caché `okupa-v19`): lista compartida (inicio, cumpleaños, propias), mensuales e hitos (100…1.000 y cada 500; el día de inicio es el día 1), avisos 7 días antes y el día a las 8:00 locales (mensuales solo el día; la semana antes del cumple no le llega al cumpleañero). Revisión final hecha y corregida (fechas de este año avisan, copia atada a la pareja, «¡Feliz cumpleaños!» al cumpleañero). pruebas.html 468 pasan; emulador 85 pasan.
 - Para publicar: Carlos pega `firebase/firestore.rules` en Firebase (cambiaron dos veces: Match borrable y `fechas`/`dispositivos`), unir `v19-fechas` a `main` y `git push`; comprobar `sw.js` = `okupa-v19` y Actions verde.
+- Lista sin publicar (rama `v20-capsula`, sale de `v19-fechas`, carpeta `../okupa-v20`): v20 Cápsula del tiempo (`js/modulos/capsula/`, caché `okupa-v20`): cartas de uno al otro con fecha de apertura (mañana a 10 años), texto sellado por reglas en `capsulas/{id}/contenido/texto` (los metadatos no se pueden borrar mientras exista el texto, para que nadie recree la carta y la lea antes), aviso a las 8:00 del día de apertura junto con las fechas. Decisiones tomadas por Claude con permiso de Carlos: ver «Decisiones que tomé por Carlos» en `docs/superpowers/specs/2026-11-14-v20-capsula-design.md`. pruebas.html 497 pasan; emulador 101 pasan.
 - Pendientes menores: la bienvenida le sale a quien solo cambió tema/foto o salió de la pareja sin usar Preguntas; recordatorio atrasado tras medianoche de Bogotá usa el día nuevo; ids trivia/mapa no atados a partida/lugar real; reglas `transition: none` de movimiento reducido sin efecto.
 ## Hoja de ruta acordada (una versión por chat, cada una con brainstorming → diseño → plan → construir)
 1. v18 – Publicada (diseño y plan en `docs/superpowers/`).
 2. v19 – Fechas especiales: construida, falta publicar (diseño y plan `2026-11-13-v19-fechas`).
-3. v20 – Cápsula del tiempo: cartas que se abren en una fecha, con aviso.
+3. v20 – Cápsula del tiempo: construida en `v20-capsula`, falta que Carlos revise las decisiones y publicar.
 4. v21 – ¿Quién es más probable?: votan a la vez, se revela al final (pensado también para grupos).
 5. v22 – Firebase App Check (reCAPTCHA v3, gratis), con pasos de Carlos en la consola.
 6. APK (TWA + Bubblewrap) y repo `carlosgmx7.github.io` con `assetlinks.json`; guardar muy bien la keystore.
@@ -31,7 +32,7 @@ App web instalable (PWA) para parejas: preguntas para conocerse, Trivia, Diario,
 - `firebase/firestore.rules` y `firebase/pruebas/`; `servidor/notificaciones/` + `.github/workflows/notificaciones.yml`.
 - `sw.js` (`CACHE`, `PRECACHE`, push); `docs/superpowers/specs|plans/`: diseños y planes de cada versión.
 ## Próximo paso
-Publicar la v19 (reglas primero) y probar con los dos celulares que llega un aviso de fechas a las 8:00. Luego v20 (cápsula del tiempo) con brainstorming.
+Carlos revisa las decisiones de la v20. Publicar v19 y v20 juntas: pegar `firebase/firestore.rules` de `okupa-v20` (incluye todo), unir `v20-capsula` a `main` (trae v19) y `git push`; probar con los dos celulares un aviso a las 8:00 y una carta. Luego v21 (¿Quién es más probable?).
 ## Cómo verificar
 - App: abrir http://127.0.0.1:8080/pruebas.html (servidor: preview "okupa" o `python herramientas/servidor.py`) → "0 fallaron". Si el panel está en segundo plano va lento; para una sola prueba: página 404 del servidor + `import('/pruebas/corredor.js')` y el archivo.
 - Reglas y servidor: en `firebase/`, `npm install` (1ª vez) y `node emuladores.mjs exec "node --test pruebas/ ../servidor/notificaciones/pasada.test.mjs ../servidor/notificaciones/logica.test.mjs"`; luego cerrar el java del puerto 8085.
