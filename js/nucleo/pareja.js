@@ -5,7 +5,7 @@ const CLAVE = 'okupa:pareja:actual';
 const LUGARES = ['a', 'b'];
 const MAX_NOMBRE = 30;
 const INTENTOS_CODIGO = 5;
-const SUBCOLECCIONES = ['perfiles', 'partidas', 'estado', 'dias', 'ubicaciones'];
+const SUBCOLECCIONES = ['perfiles', 'partidas', 'estado', 'dias', 'ubicaciones', 'fechas'];
 export const PARTES_RESPUESTA = ['gustos_a', 'gustos_b', 'ingles_a', 'ingles_b'];
 
 // Sin I, L, O, 0 ni 1 para que no se confundan al dictarlo.
