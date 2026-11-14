@@ -4,6 +4,7 @@
 const ARMAR = {
   diario: ({ fecha, lugar }) => `diario_${fecha}_${lugar}`,
   trivia: ({ idPartida }) => `trivia_${idPartida}`,
+  probable: ({ idSala }) => `probable_${idSala}`,
   mapa: ({ idLugar, lugar, clase }) => `mapa_${idLugar}_${lugar}_${clase}`,
 };
 

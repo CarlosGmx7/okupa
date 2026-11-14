@@ -2,6 +2,7 @@ import { prueba, igual, verdadero } from './corredor.js';
 import { crearMundoFalso } from './nube-falsa.js';
 import { idAviso, avisar } from '../js/nucleo/avisos.js';
 import { crearSala } from '../js/modulos/trivia/sala.js';
+import { crearSala as crearSalaProbable } from '../js/modulos/probable/sala.js';
 import { crearLugar, guardarVersion } from '../js/modulos/mapa/lugares.js';
 import { enviar } from '../js/modulos/diario/dia.js';
 
@@ -17,6 +18,7 @@ function sinBandeja(nube) {
 prueba('avisos: ids con el formato de las reglas', () => {
   igual(idAviso('diario', { fecha: '2026-11-13', lugar: 'a' }), 'diario_2026-11-13_a');
   igual(idAviso('trivia', { idPartida: 'p-abc1' }), 'trivia_p-abc1');
+  igual(idAviso('probable', { idSala: 'q-abcd' }), 'probable_q-abcd');
   igual(idAviso('mapa', { idLugar: 'l-x9', lugar: 'b', clase: 'version' }), 'mapa_l-x9_b_version');
   igual(idAviso('match', { idPartida: 'x' }), null);
 });
@@ -39,6 +41,14 @@ prueba('avisos: crear sala deja nota de trivia', async () => {
   const id = await crearSala(mundo.nube('u1'), PAREJA, { preguntas: [], id: 'p-abc1' });
   igual(id, 'p-abc1');
   igual(notas(mundo), ['trivia_p-abc1']);
+});
+
+prueba('avisos: crear sala de probable deja nota de probable', async () => {
+  const mundo = crearMundoFalso();
+  const id = await crearSalaProbable(mundo.nube('u1'), PAREJA, { tema: 'divertidas', frases: [], id: 'q-abcd' });
+  igual(id, 'q-abcd');
+  igual(notas(mundo), ['probable_q-abcd']);
+  igual(mundo.datos.get(`${BANDEJA}probable_q-abcd`).valor.tipo, 'probable');
 });
 
 prueba('avisos: crear lugar y guardar versión dejan notas de mapa', async () => {

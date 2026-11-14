@@ -208,6 +208,22 @@ async function borrarMatch(nube, base, cargarIdsTarjetas) {
   ]);
 }
 
+// Las reglas solo dejan borrar una sala cerrada y sus votos mientras la sala exista: primero se
+// cierra, luego van los votos y al final la sala. Después, las frases propias.
+async function borrarProbable(nube, base) {
+  for (const { id, datos } of await nube.listar(`${base}/probable`)) {
+    if (datos?.estado !== 'terminada' && datos?.estado !== 'cancelada') {
+      await nube.escribir(`${base}/probable/${id}`, { estado: 'cancelada' }, { combinar: true });
+    }
+    const total = datos?.frases?.length || 0;
+    for (let i = 0; i < total; i++) {
+      for (const l of LUGARES) await nube.borrar(`${base}/probable/${id}/votos/${i}_${l}`);
+    }
+    await nube.borrar(`${base}/probable/${id}`);
+  }
+  for (const { id } of await nube.listar(`${base}/probable_frases`)) await nube.borrar(`${base}/probable_frases/${id}`);
+}
+
 // Borra para los dos todo lo que la pareja tiene en la nube. Los avisos pendientes no se pueden
 // leer desde el celular: el servidor descarta los de parejas que ya no existen.
 export async function borrarTodo(nube, almacen, { cargarIdsTarjetas = idsTarjetasBase } = {}) {
@@ -217,6 +233,7 @@ export async function borrarTodo(nube, almacen, { cargarIdsTarjetas = idsTarjeta
   // Primero lo que necesita que la pareja exista (las reglas miran quién es miembro).
   await borrarLugares(nube, base);
   await borrarMatch(nube, base, cargarIdsTarjetas);
+  await borrarProbable(nube, base);
   for (const sub of SUBCOLECCIONES) {
     for (const { id } of await nube.listar(`${base}/${sub}`)) {
       // Las respuestas no se pueden listar (protegen lo del otro): se borran por su nombre fijo.

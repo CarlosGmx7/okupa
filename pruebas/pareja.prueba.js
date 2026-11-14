@@ -206,6 +206,27 @@ prueba('pareja: borrarTodo también borra lugares con fotos, Match y votos del o
   for (const r of [...rutas, `parejas/${codigo}`]) igual(await nube.leer(r), null, r);
 });
 
+prueba('pareja: borrarTodo cierra y borra las salas de probable, sus votos y las frases propias', async () => {
+  const { mundo, codigo, alm1 } = await parejaCompleta();
+  const nube = mundo.nube('u1');
+  const b = `parejas/${codigo}/probable`;
+  const frases = [{ id: 'x1' }, { id: 'x2' }, { id: 'x3' }];
+  await nube.escribir(`${b}/q-abierta`, { estado: 'jugando', frases });
+  await nube.escribir(`${b}/q-cerrada`, { estado: 'terminada', frases });
+  const rutas = ['q-abierta', 'q-cerrada'].flatMap((s) => [0, 1, 2].flatMap((i) => ['a', 'b'].map((l) => `${b}/${s}/votos/${i}_${l}`)));
+  for (const r of rutas) await nube.escribir(r, { voto: 'a' });
+  await nube.escribir(`parejas/${codigo}/probable_frases/f-1`, { texto: 'hola mundo', creadaMs: 1 });
+  // Registro de orden: la sala debe estar cerrada cuando se borran sus votos y ella misma.
+  const estados = [];
+  const espia = { ...nube, borrar: async (r) => {
+    if (r.startsWith(`${b}/q-abierta`)) estados.push(mundo.datos.get(`${b}/q-abierta`)?.valor?.estado);
+    return nube.borrar(r);
+  } };
+  await borrarTodo(espia, alm1, { cargarIdsTarjetas: async () => [] });
+  verdadero(estados.length === 7 && estados.every((e) => e === 'cancelada'), JSON.stringify(estados));
+  for (const r of [...rutas, `${b}/q-abierta`, `${b}/q-cerrada`, `parejas/${codigo}/probable_frases/f-1`]) igual(await nube.leer(r), null, r);
+});
+
 prueba('pareja: sin conexión se propaga sin-conexion', async () => {
   const mundo = crearMundoFalso();
   mundo.desconectar();
