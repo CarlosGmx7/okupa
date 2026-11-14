@@ -149,6 +149,26 @@ prueba('capsula: carta abierta con error de red no dice que está cerrada', asyn
   salir();
 });
 
+prueba('capsula: carta abierta por fecha pero con permiso denegado dice a qué hora abre', async () => {
+  const { a, b, pantallas } = await dosCelulares();
+  const r = await crearCarta(a.nube, a.pareja, { abreEl: '2026-11-10', texto: 'x' }, '2026-11-01');
+  const carta = (await listarCartas(a.nube, a.pareja)).find((c) => c.id === r.id);
+  const hora = new Date(carta.abreMs).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+  for (const falla of [{ codigo: 'permiso' }, { codigo: 'permiso-denegado' }, { code: 'permission-denied' }]) {
+    const sinPermiso = new Proxy(b.nube, {
+      get: (t, k) => (k === 'leer' ? async (ruta) => {
+        if (ruta.includes('contenido')) throw Object.assign(new Error('denegado'), falla);
+        return t.leer(ruta);
+      } : t[k]),
+    });
+    const ver = document.createElement('div');
+    await pantallas.ver(ver, { id: r.id }, { ...b.ctx, nube: async () => sinPermiso });
+    await hasta(() => textoDe(ver).includes(`Esta carta se abre hoy a las ${hora}.`));
+    verdadero(!textoDe(ver).includes('Revisa la conexión'), textoDe(ver));
+  }
+  salir();
+});
+
 prueba('capsula: escribir una carta desde la pantalla', async () => {
   const { a, pantallas } = await dosCelulares();
   const div = document.createElement('div');

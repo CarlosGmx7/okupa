@@ -12,7 +12,10 @@ import {
 const otroLugar = (lugar) => (lugar === 'a' ? 'b' : 'a');
 const nombreDe = (nombres, lugar) => (nombres || {})[lugar] || 'tu pareja';
 
-const cuandoAbre = (n) => (n === 1 ? 'mañana' : `en ${n} días`);
+const esPermiso = (e) => ['permiso', 'permiso-denegado', 'permission-denied'].includes(e?.codigo ?? e?.code)
+  || /permission-denied/.test(e?.message || '');
+
+const cuandoAbre =(n) => (n === 1 ? 'mañana' : `en ${n} días`);
 
 // Línea corta para la tarjeta «Jugar juntos» del inicio (se pinta sin internet).
 export function detalleInicio(almacen, hoy = hoyLocal()) {
@@ -175,9 +178,13 @@ export function crearPantallasCapsula({ hoy = hoyLocal } = {}) {
     let texto;
     try {
       texto = await leerTexto(r.nube, r.pareja, id);
-    } catch {
-      if (abierta) mensaje('No se pudo cargar la carta. Revisa la conexión.');
-      else cerrada();
+    } catch (e) {
+      if (!abierta) cerrada();
+      else if (esPermiso(e)) {
+        // abreMs es medianoche en el celular de quien la escribió: en otra zona puede faltar unas horas.
+        const hora = new Date(carta.abreMs).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+        mensaje(`Esta carta se abre hoy a las ${hora}.`);
+      } else mensaje('No se pudo cargar la carta. Revisa la conexión.');
       return;
     }
     // Sin texto (falló la segunda escritura): se puede borrar para no dejarla huérfana.
