@@ -3,7 +3,16 @@ import { almacenEnMemoria } from './pareja.prueba.js';
 import { AJUSTES_DEFECTO, leerAjustes, cambiarAjuste, alCambiarAjustes } from '../js/nucleo/ajustes.js';
 
 prueba('ajustes: sin nada guardado da los valores por defecto', () => {
-  igual(leerAjustes(almacenEnMemoria()), { tema: 'vino', sonidos: true, vibracion: true });
+  igual(leerAjustes(almacenEnMemoria()), { tema: 'vino', sonidos: true, vibracion: true, letra: 'normal' });
+});
+
+prueba('ajustes: letra inválida vuelve a normal y una válida se conserva', () => {
+  const a = almacenEnMemoria();
+  a.escribir('okupa:ajustes', { letra: 'enorme' });
+  igual(leerAjustes(a).letra, 'normal');
+  a.escribir('okupa:ajustes', { letra: 'grande' });
+  igual(leerAjustes(a).letra, 'grande');
+  igual(cambiarAjuste(a, 'letra', 'muy-grande').letra, 'muy-grande');
 });
 
 prueba('ajustes: datos dañados vuelven al defecto', () => {
@@ -17,7 +26,7 @@ prueba('ajustes: datos dañados vuelven al defecto', () => {
 prueba('ajustes: conserva los campos válidos', () => {
   const a = almacenEnMemoria();
   a.escribir('okupa:ajustes', { tema: 'grafito', sonidos: 7 });
-  igual(leerAjustes(a), { tema: 'grafito', sonidos: true, vibracion: true });
+  igual(leerAjustes(a), { tema: 'grafito', sonidos: true, vibracion: true, letra: 'normal' });
 });
 
 prueba('ajustes: cambiarAjuste guarda y avisa', () => {

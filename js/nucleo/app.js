@@ -9,12 +9,13 @@ import { pantallaAjustes } from './pantalla-ajustes.js';
 import { precalentar } from './precalentar.js';
 import { crearInstalacion } from './instalacion.js';
 import { leerAjustes, alCambiarAjustes } from './ajustes.js';
-import { aplicarTema } from './tema.js';
+import { aplicarTema, aplicarLetra } from './tema.js';
 import { sonidos } from './sonidos.js';
 import { notificacionesDeLaApp, conectarConPareja, escucharRutasDelServiceWorker } from './notificaciones.js';
 
-aplicarTema(leerAjustes(almacen).tema);
-alCambiarAjustes((a) => aplicarTema(a.tema));
+const aplicarAjustes = (a) => { aplicarTema(a.tema); aplicarLetra(a.letra); };
+aplicarAjustes(leerAjustes(almacen));
+alCambiarAjustes(aplicarAjustes);
 sonidos.instalarToque();
 const notificaciones = notificacionesDeLaApp(almacen);
 conectarConPareja(notificaciones);

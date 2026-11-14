@@ -105,6 +105,24 @@ function selectorTema(almacen) {
   return el('div', { clase: 'tema-opciones', role: 'radiogroup', 'aria-label': 'Tema' }, opciones);
 }
 
+const LETRAS_VISTA = [
+  { id: 'normal', nombre: 'Normal' },
+  { id: 'grande', nombre: 'Grande' },
+  { id: 'muy-grande', nombre: 'Muy grande' },
+];
+
+function selectorLetra(almacen) {
+  const opciones = LETRAS_VISTA.map((l) => el('button', {
+    clase: 'letra-opcion', type: 'button', role: 'radio', 'data-letra': l.id,
+    onclick: () => marcar(cambiarAjuste(almacen, 'letra', l.id).letra),
+  },
+  el('span', { clase: 'letra-muestra', 'aria-hidden': 'true' }, 'Aa'),
+  el('span', { clase: 'letra-nombre' }, l.nombre)));
+  const marcar = (actual) => opciones.forEach((b) => b.setAttribute('aria-checked', String(b.dataset.letra === actual)));
+  marcar(leerAjustes(almacen).letra);
+  return el('div', { clase: 'letra-opciones', role: 'radiogroup', 'aria-label': 'Tamaño de letra' }, opciones);
+}
+
 function interruptor(almacen, clave, titulo, nota = null) {
   const boton = el('button', {
     clase: 'interruptor', type: 'button', role: 'switch', 'data-ajuste': clave,
@@ -138,6 +156,7 @@ export function pantallaAjustes(contenedor, _params, ctx) {
     el('a', { clase: 'volver', href: '#/' }, '← Inicio'),
     el('h1', { clase: 'titulo-pantalla' }, 'Ajustes'),
     grupo('Tema', selectorTema(almacen)),
+    grupo('Letra', selectorLetra(almacen)),
     grupo('Foto',
       el('button', { clase: 'fila-ajuste fila-ajuste-enlace', type: 'button',
         onclick: () => abrirEditorPortada(almacen, () => { foto.src = fuentePortada(almacen); ctx.refrescar?.(); }) },

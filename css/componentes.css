@@ -931,17 +931,17 @@ ul.chips { padding: 0; margin: 0; list-style: none; }
 
 /* ---------- Resorte suave: se hunde al presionar y vuelve con un pequeño rebote ---------- */
 /* Usa 'scale' (no 'transform') para no pisar los giros y desplazamientos de algunas tarjetas. */
-:is(.boton, .acceso, .juntos-principal, .juntos-acceso, .opcion-juego, .opcion-diario, .punto-escala, .chip, .burbuja, .voto, .engranaje, .fila-ajuste, .tema-opcion, button) {
+:is(.boton, .acceso, .juntos-principal, .juntos-acceso, .opcion-juego, .opcion-diario, .punto-escala, .chip, .burbuja, .voto, .engranaje, .fila-ajuste, .tema-opcion, .letra-opcion, button) {
   transition: scale var(--resorte-tiempo) var(--resorte), background-color .2s, border-color .2s, box-shadow .2s, color .2s;
 }
-:is(.boton, .acceso, .juntos-principal, .juntos-acceso, .opcion-juego, .opcion-diario, .punto-escala, .chip, .burbuja, .voto, .engranaje, .fila-ajuste, .tema-opcion, button):not(:disabled):active {
+:is(.boton, .acceso, .juntos-principal, .juntos-acceso, .opcion-juego, .opcion-diario, .punto-escala, .chip, .burbuja, .voto, .engranaje, .fila-ajuste, .tema-opcion, .letra-opcion, button):not(:disabled):active {
   scale: var(--presion-escala);
   transition: scale var(--presion-tiempo) ease-out, background-color .2s, border-color .2s, box-shadow .2s, color .2s;
 }
 /* MapLibre coloca marcadores y controles con transform: el scale los movería de su sitio. */
 .maplibregl-marker, .maplibregl-marker *, .maplibregl-ctrl button { scale: none !important; }
 @media (prefers-reduced-motion: reduce) {
-  :is(.boton, .acceso, .juntos-principal, .juntos-acceso, .opcion-juego, .opcion-diario, .punto-escala, .chip, .burbuja, .voto, .engranaje, .fila-ajuste, .tema-opcion, button):not(:disabled):active { scale: none; opacity: .85; }
+  :is(.boton, .acceso, .juntos-principal, .juntos-acceso, .opcion-juego, .opcion-diario, .punto-escala, .chip, .burbuja, .voto, .engranaje, .fila-ajuste, .tema-opcion, .letra-opcion, button):not(:disabled):active { scale: none; opacity: .85; }
 }
 
 /* ---------- Ajustes ---------- */
@@ -999,6 +999,18 @@ ul.chips { padding: 0; margin: 0; list-style: none; }
 .tema-muestra span:last-child { flex: .45; }
 .tema-nombre { font-weight: 600; font-size: 0.9375rem; }
 .tema-nota { font-size: 0.75rem; color: var(--tenue); }
+.letra-opciones { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 12px; }
+.letra-opcion {
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 2px; padding: 10px 4px; min-height: 76px;
+  border-radius: var(--radio-chico); border: 1.5px solid var(--dorado-suave); background: var(--superficie-alta);
+  color: var(--crema); font: inherit; cursor: pointer;
+}
+.letra-opcion[aria-checked="true"] { border-color: var(--dorado); box-shadow: 0 0 0 1px var(--dorado); }
+.letra-muestra { font-family: var(--serif); line-height: 1; }
+.letra-opcion[data-letra="normal"] .letra-muestra { font-size: 1.125rem; }
+.letra-opcion[data-letra="grande"] .letra-muestra { font-size: 1.4375rem; }
+.letra-opcion[data-letra="muy-grande"] .letra-muestra { font-size: 1.75rem; }
+.letra-nombre { font-size: 0.8125rem; font-weight: 600; text-align: center; }
 .ajustes-estado { margin: 8px 6px 0; font-size: 0.875rem; color: var(--tenue); }
 .ajustes-estado:empty { display: none; }
 .ajustes-estado a { color: var(--dorado); }

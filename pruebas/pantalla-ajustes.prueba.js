@@ -25,11 +25,22 @@ prueba('inicio: el engranaje lleva a Ajustes', () => {
 prueba('ajustes: se pinta con los grupos y filas', () => {
   const { div } = pintar();
   igual(div.querySelector('h1')?.textContent, 'Ajustes');
-  igual([...div.querySelectorAll('.grupo-ajustes-titulo')].map((h) => h.textContent), ['Tema', 'Foto', 'Sonidos y vibración', 'Datos']);
+  igual([...div.querySelectorAll('.grupo-ajustes-titulo')].map((h) => h.textContent), ['Tema', 'Letra', 'Foto', 'Sonidos y vibración', 'Datos']);
   for (const t of ['Vino y dorado', 'Grafito y rosa', 'Foto de inicio', 'Sonidos', 'Vibración al tocar', 'Datos de la pareja', 'Borrar datos de este celular', 'Acerca de Okupa']) {
     verdadero(texto(div).includes(t), `falta "${t}"`);
   }
   igual(div.querySelector('a[href="#/pareja"]')?.textContent.includes('Datos de la pareja'), true);
+});
+
+prueba('ajustes: tamaño de letra con tres opciones que se guardan', () => {
+  const { div, almacen } = pintar();
+  const grupo = div.querySelector('[role="radiogroup"][aria-label="Tamaño de letra"]');
+  verdadero(grupo, 'falta el selector de letra');
+  igual([...grupo.querySelectorAll('[data-letra]')].map((b) => b.dataset.letra), ['normal', 'grande', 'muy-grande']);
+  igual(grupo.querySelector('[data-letra="normal"]').getAttribute('aria-checked'), 'true');
+  grupo.querySelector('[data-letra="muy-grande"]').click();
+  igual(leerAjustes(almacen).letra, 'muy-grande');
+  igual([...grupo.querySelectorAll('[aria-checked="true"]')].map((b) => b.dataset.letra), ['muy-grande']);
 });
 
 prueba('ajustes: sin nada guardado está marcado Vino y dorado (Predeterminado)', () => {
@@ -100,7 +111,7 @@ const filaDe = (div, texto) => [...div.querySelectorAll('.fila-ajuste')].find((f
 prueba('ajustes: notificaciones apagadas muestran solo el interruptor general', () => {
   const almacen = almacenEnMemoria();
   const { div } = pintar({ almacen, notificaciones: notifFalsa(almacen) });
-  igual([...div.querySelectorAll('.grupo-ajustes-titulo')].map((h) => h.textContent), ['Tema', 'Foto', 'Sonidos y vibración', 'Notificaciones', 'Datos']);
+  igual([...div.querySelectorAll('.grupo-ajustes-titulo')].map((h) => h.textContent), ['Tema', 'Letra', 'Foto', 'Sonidos y vibración', 'Notificaciones', 'Datos']);
   verdadero(filaDe(div, 'Notificaciones'));
   verdadero(!filaDe(div, 'Recordatorio del Diario') && !div.querySelector('input[type="time"]'));
 });

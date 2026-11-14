@@ -22,6 +22,7 @@
       try {
         var a = JSON.parse(localStorage.getItem('okupa:ajustes'));
         if (a && a.tema === 'grafito') tema = 'grafito';
+        if (a && (a.letra === 'grande' || a.letra === 'muy-grande')) document.documentElement.setAttribute('data-letra', a.letra);
       } catch (e) { /* ajustes dañados o sin almacenamiento: tema por defecto */ }
       document.documentElement.setAttribute('data-tema', tema);
       var meta = document.querySelector('meta[name="theme-color"]');

@@ -1,5 +1,15 @@
 import { prueba, igual, verdadero } from './corredor.js';
-import { aplicarTema, COLOR_BARRA } from '../js/nucleo/tema.js';
+import { aplicarTema, aplicarLetra, COLOR_BARRA } from '../js/nucleo/tema.js';
+
+prueba('tema: aplicarLetra pone data-letra y normal lo quita', () => {
+  const d = document.implementation.createHTMLDocument('t');
+  aplicarLetra('grande', d);
+  igual(d.documentElement.dataset.letra, 'grande');
+  aplicarLetra('normal', d);
+  igual(d.documentElement.hasAttribute('data-letra'), false);
+  aplicarLetra('enorme', d);
+  igual(d.documentElement.hasAttribute('data-letra'), false);
+});
 
 function documentoDePrueba() {
   const d = document.implementation.createHTMLDocument('t');
@@ -61,5 +71,5 @@ prueba('tema: el lápiz de la portada mide 20px', async () => {
   const h = await hoja('css/componentes.css');
   const regla = [...h.cssRules].find((r) => r instanceof CSSStyleRule && r.selectorText === '.inicio-portada-boton::after');
   verdadero(regla, 'falta la regla del lápiz');
-  igual([regla.style.width, regla.style.height, regla.style.fontSize], ['20px', '20px', '10px']);
+  igual([regla.style.width, regla.style.height, regla.style.fontSize], ['20px', '20px', '0.625rem']);
 });
