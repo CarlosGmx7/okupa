@@ -1,49 +1,42 @@
-# Estado de Okupa — 2026-11-13
+# Estado de Okupa — 2026-11-14
 ## Objetivo
-App web instalable (PWA) para parejas: preguntas para conocerse, Trivia, Diario, Match, Mapa, Ajustes con temas y notificaciones. Publicada en https://carlosgmx7.github.io/okupa/ (repo CarlosGmx7/okupa, rama `main`). Meta: app "de verdad" (APK) que aguante muchas parejas y, más adelante, grupos de 3+.
+App web instalable (PWA) para parejas: Preguntas, Trivia, Diario, Match, Mapa, Fechas, Cápsula, Ajustes con temas y notificaciones. Publicada en https://carlosgmx7.github.io/okupa/ (repo CarlosGmx7/okupa, rama `main`). Meta: APK que aguante muchas parejas y, más adelante, grupos de 3+.
 ## Decisiones tomadas
-- HTML/CSS/JS con módulos ES, sin compilación; módulos activos en `modulos.json` — simple de mantener y publicar en GitHub Pages.
-- Español colombiano con tuteo; a Carlos se le pregunta con opciones para elegir (AskUserQuestion) y espacio para "otra cosa".
-- Firebase gratis (Firestore + acceso anónimo + FCM), sin plan Blaze ni Google Cloud (pide método de pago y a Carlos le falla).
+- HTML/CSS/JS con módulos ES, sin compilación; módulos activos en `modulos.json` — simple de publicar en GitHub Pages.
+- Español colombiano con tuteo; a Carlos se le pregunta con opciones (AskUserQuestion) y espacio para "otra cosa".
+- Firebase gratis (Firestore + acceso anónimo + FCM), sin Blaze ni Google Cloud — a Carlos le falla el método de pago.
 - La privacidad la garantizan las reglas de Firebase, no la pantalla.
-- Temas por celular (`okupa:ajustes`): "Vino y dorado" (predeterminado) y "Grafito y rosa"; Grafito redefine las mismas variables CSS en `:root[data-tema="grafito"]`.
-- Notificaciones: la app deja notas en `parejas/{c}/avisos`, cada celular se registra en `dispositivos/{id}`; GitHub Actions (`servidor/notificaciones/`) las manda cada 15 min con FCM. Avisos dirigidos a "todos menos quien lo hizo" (listos para grupos).
-- APK: TWA con Bubblewrap (carga la web: se actualiza sola al publicar). `assetlinks.json` en un repo nuevo `carlosgmx7.github.io` (`/.well-known/`). Repartir gratis por GitHub Releases; Google Play cuesta 25 USD (no por ahora).
+- Notificaciones: notas en `parejas/{c}/avisos` + registro en `dispositivos/{id}`; GitHub Actions (`servidor/notificaciones/`) manda cada 15 min. A las 8:00 locales (`franjaFechas`) manda fechas y cartas en un solo aviso. Avisos "a todos menos quien lo hizo" (listo para grupos).
+- Lógica pura compartida app/servidor en `js/modulos/{fechas,capsula}/` (con `package.json` `type: module` para Node 20).
+- Cada versión en su rama y worktree (`../okupa-vNN`), sin push hasta que Carlos lo apruebe.
+- APK: TWA con Bubblewrap; `assetlinks.json` en repo `carlosgmx7.github.io`; reparto por GitHub Releases.
 ## Estado actual
-- Publicado y verificado: v18 con caché `okupa-v18` (sw.js y privacidad.html en línea): bienvenida (#/bienvenida/:paso), política (`privacidad.html` + #/privacidad, contacto carlos57garavito00@gmail.com), copia de seguridad en Ajustes sin pareja/avisos, letra Normal/Grande/Muy grande (CSS en rem). pruebas.html 410 pasan; revisado a 375 px en Muy grande.
-- A medias: confirmar con Carlos que llegó un aviso real entre los dos celulares.
-- Límite a vigilar al crecer: Firebase gratis = 50k lecturas y 20k escrituras/día, 1 GB; las fotos de lugares (hasta 380 KB c/u en Firestore) lo llenarían primero.
-- Lista sin publicar (rama `v19-fechas`, carpeta `../okupa-v19`): «Borrar todo» ya borra lugares, Match (votos del otro a ciegas) y fechas; avisos los descarta el servidor. v19 Fechas especiales (`js/modulos/fechas/`: `calendario.js` lógica pura que usa también el servidor, `datos.js`, `pantallas.js`; caché `okupa-v19`): lista compartida (inicio, cumpleaños, propias), mensuales e hitos (100…1.000 y cada 500; el día de inicio es el día 1), avisos 7 días antes y el día a las 8:00 locales (mensuales solo el día; la semana antes del cumple no le llega al cumpleañero). Revisión final hecha y corregida (fechas de este año avisan, copia atada a la pareja, «¡Feliz cumpleaños!» al cumpleañero). pruebas.html 468 pasan; emulador 85 pasan.
-- Para publicar: Carlos pega `firebase/firestore.rules` en Firebase (cambiaron dos veces: Match borrable y `fechas`/`dispositivos`), unir `v19-fechas` a `main` y `git push`; comprobar `sw.js` = `okupa-v19` y Actions verde.
-- Lista sin publicar (rama `v20-capsula`, sale de `v19-fechas`, carpeta `../okupa-v20`): v20 Cápsula del tiempo (`js/modulos/capsula/`, caché `okupa-v20`): cartas de uno al otro con fecha de apertura (mañana a 10 años), texto sellado por reglas en `capsulas/{id}/contenido/texto` (los metadatos no se pueden borrar mientras exista el texto, para que nadie recree la carta y la lea antes), aviso a las 8:00 del día de apertura junto con las fechas. Decisiones tomadas por Claude con permiso de Carlos: ver «Decisiones que tomé por Carlos» en `docs/superpowers/specs/2026-11-14-v20-capsula-design.md`. pruebas.html 497 pasan; emulador 101 pasan.
-- Límite conocido (para la v22): con el código, alguien puede «reclamar» el lugar del otro desde otro navegador y leer lo de ese lugar (cartas antes de la fecha, «no» del Match, Diario). Arreglo previsto: confirmar el cambio de celular desde el anterior o un secreto por lugar. Además, un celular aún en v19 que use «Borrar todo» no borra las cartas (ventana corta hasta que se actualiza).
-- Pendientes menores: la bienvenida le sale a quien solo cambió tema/foto o salió de la pareja sin usar Preguntas; recordatorio atrasado tras medianoche de Bogotá usa el día nuevo; ids trivia/mapa no atados a partida/lugar real; reglas `transition: none` de movimiento reducido sin efecto.
-## Hoja de ruta acordada (una versión por chat, cada una con brainstorming → diseño → plan → construir)
-1. v18 – Publicada (diseño y plan en `docs/superpowers/`).
-2. v19 – Fechas especiales: construida, falta publicar (diseño y plan `2026-11-13-v19-fechas`).
-3. v20 – Cápsula del tiempo: construida en `v20-capsula`, falta que Carlos revise las decisiones y publicar.
-4. v21 – ¿Quién es más probable?: votan a la vez, se revela al final (pensado también para grupos).
-5. v22 – Seguridad: Firebase App Check (reCAPTCHA v3, gratis, con pasos de Carlos en la consola) y cambio de celular que no deje leer lo del otro.
-6. APK (TWA + Bubblewrap) y repo `carlosgmx7.github.io` con `assetlinks.json`; guardar muy bien la keystore.
+- Publicado: v18 (caché `okupa-v18`). `main` también tiene, sin publicar, el arreglo de «Borrar todo» (lugares y Match).
+- Construido y revisado, sin publicar: v19 Fechas especiales (rama `v19-fechas`) y v20 Cápsula del tiempo (rama `v20-capsula`, sale de la v19, carpeta `../okupa-v20`, caché `okupa-v20`). pruebas.html 498 pasan; emulador (reglas + servidor) 101 pasan. Resumen y decisiones que Claude tomó por Carlos: `RESUMEN-NOCHE.md` (sin commit) y la sección «Decisiones que tomé por Carlos» de `docs/superpowers/specs/2026-11-14-v20-capsula-design.md`.
+- Para publicar v19+v20: Carlos pega `firebase/firestore.rules` de `okupa-v20` en Firebase, aprueba unir `v20-capsula` a `main` y `git push`; luego probar en los dos celulares un aviso de las 8:00 y una carta.
+- Límite conocido (v22): con el código, alguien puede «reclamar» el lugar del otro y leer lo de ese lugar (cartas antes de tiempo, «no» del Match, Diario). Dicho en la política.
+- Vigilar: Firebase gratis = 50k lecturas / 20k escrituras al día, 1 GB; las fotos de lugares lo llenarían primero.
+- Pendientes menores: bienvenida a quien solo cambió tema/foto; recordatorio atrasado tras medianoche usa el día nuevo; `transition: none` de movimiento reducido sin efecto; en Fechas falta timeout al guardar sin conexión.
+## Hoja de ruta (cada versión: brainstorming → diseño → plan → construir con agentes + revisión)
+1. v21 ¿Quién es más probable?: votan a la vez, se revela al final (pensado también para grupos).
+2. v22 Seguridad: App Check (reCAPTCHA v3, pasos de Carlos en la consola) y cambio de celular que no deje leer lo del otro.
+3. APK (TWA + Bubblewrap) y `assetlinks.json`; guardar muy bien la keystore.
 ## Archivos clave
-- `js/nucleo/`: `app.js` (rutas), `almacen.js`, `inicio.js`, `pantalla-ajustes.js`, `ajustes.js`, `tema.js`, `iconos.js`, `sonidos.js`, `notificaciones.js`, `avisos.js`, `pareja.js`, `nube.js`, `nube-config.js` (`CLAVE_VAPID`).
-- `js/modulos/{preguntas,trivia,diario,match,mapa}/` y `data/`: secciones y contenido.
-- `js/nucleo/bienvenida.js`, `respaldo.js` (copia; qué no viaja: `esDeEsteCelular` en `almacen.js`), `privacidad.js` + `privacidad.html`.
-- `css/base.css` (variables y temas) y `css/componentes.css`.
-- `firebase/firestore.rules` y `firebase/pruebas/`; `servidor/notificaciones/` + `.github/workflows/notificaciones.yml`.
-- `sw.js` (`CACHE`, `PRECACHE`, push); `docs/superpowers/specs|plans/`: diseños y planes de cada versión.
+- `js/nucleo/`: `app.js` (rutas), `almacen.js` (`esDeEsteCelular`), `pareja.js` (`borrarTodo`), `notificaciones.js`, `pantalla-ajustes.js`, `nube.js`, `ui.js` (`el()`).
+- `js/modulos/{preguntas,trivia,diario,match,mapa,fechas,capsula}/` y `data/`.
+- `firebase/firestore.rules` + `firebase/pruebas/`; `servidor/notificaciones/pasada.mjs` + `.github/workflows/notificaciones.yml`.
+- `sw.js` (`CACHE`, `PRECACHE`); `privacidad.html`; `docs/superpowers/specs|plans/` (diseño y plan de cada versión).
 ## Próximo paso
-Carlos revisa las decisiones de la v20. Publicar v19 y v20 juntas: pegar `firebase/firestore.rules` de `okupa-v20` (incluye todo), unir `v20-capsula` a `main` (trae v19) y `git push`; probar con los dos celulares un aviso a las 8:00 y una carta. Luego v21 (¿Quién es más probable?).
+v21 «¿Quién es más probable?» con brainstorming junto a Carlos (preguntas con opciones): rama `v21-probable` creada desde `v20-capsula` en un worktree `../okupa-v21` (uniones de `node_modules` de `firebase/` y `servidor/notificaciones/` hacia `okupa-app`, y copiar `correr-una.html`).
 ## Cómo verificar
-- App: abrir http://127.0.0.1:8080/pruebas.html (servidor: preview "okupa" o `python herramientas/servidor.py`) → "0 fallaron". Si el panel está en segundo plano va lento; para una sola prueba: página 404 del servidor + `import('/pruebas/corredor.js')` y el archivo.
-- Reglas y servidor: en `firebase/`, `npm install` (1ª vez) y `node emuladores.mjs exec "node --test pruebas/ ../servidor/notificaciones/pasada.test.mjs ../servidor/notificaciones/logica.test.mjs"`; luego cerrar el java del puerto 8085.
+- App: `python herramientas/servidor.py <puerto libre>` desde la carpeta de la rama → http://127.0.0.1:<puerto>/pruebas.html → "0 fallaron"; pocas pruebas: `correr-una.html?f=a,b` (no se sube).
+- Reglas y servidor: en `firebase/`, `node emuladores.mjs exec "node --test pruebas/ ../servidor/notificaciones/pasada.test.mjs ../servidor/notificaciones/logica.test.mjs"`; luego cerrar el java del puerto 8085.
 - Publicado: `https://carlosgmx7.github.io/okupa/sw.js` muestra la `CACHE` actual; Actions → Notificaciones en verde.
 ## Cuidado con
-- Cada cambio: subir `CACHE` en `sw.js` (próxima `okupa-v20`), archivos nuevos a `PRECACHE` y `pruebas/pwa.prueba.js`, pruebas nuevas a `pruebas.html`.
-- Si cambian las reglas, Carlos las pega en Firebase (Firestore → Reglas → Publicar) antes de publicar la app.
-- `--acento` ya es el color de cada categoría: no usarlo para el tema. `append()` nativo convierte listas y `null` en texto: usar `el()`.
-- Probar en local: desregistrar el service worker del navegador del panel; usar 127.0.0.1, no localhost.
-- Bash falla con errores de fork: usar PowerShell. Scripts .ps1 con símbolos: guardar con BOM; no llamar `R` a una función.
-- Archivos de prueba de reglas con `projectId` propio (node --test corre en paralelo contra el mismo emulador).
-- Tamaños de letra siempre en rem; los vw de títulos van como calc(Nvw * var(--escala-letra)) (lo vigila estilos.prueba.js). En PowerShell no escribir "$nl:root" en cadenas: lo toma como variable.
-- Para correr pocas pruebas: `correr-una.html?f=nombre1,nombre2` en la raíz (excluido en .git/info/exclude, no se sube).
+- Cada cambio: subir `CACHE` (próxima `okupa-v21`), archivos nuevos a `PRECACHE` y `pruebas/pwa.prueba.js`, pruebas nuevas a `pruebas.html`. Si cambian las reglas, Carlos las pega antes de publicar.
+- `append`/`replaceChildren` nativos con `null` muestran «null»: envolver en `el('div', {}, …)`. No usar `--acento` para el tema. Letra en rem.
+- Reglas: probar ataques (borrar y recrear, reclamar lugar); pruebas negativas con todos los demás campos válidos; `projectId` propio por archivo.
+- Bash falla (fork): PowerShell. Escribir archivos sin BOM (Set-Content/-Encoding utf8 de PS 5.1 pone BOM y daña tildes al releer); commits con `git commit -F` de un archivo sin BOM.
+- Worktrees: los `node_modules` son uniones a `okupa-app`: nunca `git clean -fdx`. Puertos 8080/8090 suelen estar ocupados.
+- Tareas programadas nocturnas se detienen pidiendo permisos: ponerlas en modo automático antes de dejarlas.
+- Probar en local con el service worker desregistrado y 127.0.0.1, no localhost.
