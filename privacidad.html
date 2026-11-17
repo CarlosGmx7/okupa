@@ -42,7 +42,7 @@
   <p>Nada de esto sale del celular, salvo que tú guardes una copia de seguridad en un archivo.</p>
 
   <h2>Lo que se guarda en la nube, solo para los dos</h2>
-  <p>Cuando enlazan sus celulares, esto se guarda en Firebase (Firestore). Las reglas de la base de datos hacen que solo los dos celulares de la pareja puedan leer el contenido. La excepción es el código de la pareja y sus nombres: los puede ver quien tenga el código, porque así es como el otro celular se une. Con el código también se puede pasar un lugar a otro celular (por si cambias de teléfono), y desde ese lugar se ve lo de esa persona, incluidas las cartas que escribió. Por eso, compártelo solo con tu pareja.</p>
+  <p>Cuando enlazan sus celulares, esto se guarda en Firebase (Firestore). Las reglas de la base de datos hacen que solo los dos celulares de la pareja puedan leer el contenido. La excepción es el código de la pareja y sus nombres: los puede ver quien tenga el código, porque así es como el otro celular se une. Aun así, el código por sí solo no deja entrar al lugar de nadie: un lugar de la pareja solo cambia de celular con una solicitud. Mira «Si cambias de celular» más abajo.</p>
   <ul>
     <li>El código de la pareja y los nombres que escriban.</li>
     <li>Las respuestas de la Trivia y del Diario.</li>
@@ -53,6 +53,17 @@
     <li>Las rondas de ¿Quién es más probable?: las frases, quién votó y su voto, que la otra persona solo puede ver después de votar esa misma frase; y sus frases propias.</li>
     <li>Tu última ubicación: se guarda cada vez que abres el mapa y le das permiso de ubicación al navegador. Puedes elegir compartirla aproximada (unos 500 m). Si le quitas el permiso, deja de actualizarse. La última guardada se borra con «Borrar todo».</li>
   </ul>
+
+  <h2>Si cambias de celular</h2>
+  <p>Cada persona de la pareja tiene su lugar (el A o el B) y ese lugar está atado a su celular. Para pasarlo a otro celular hay que hacer una solicitud, que queda guardada en la nube con la hora en que se pidió:</p>
+  <ul>
+    <li>El celular de antes puede aprobarla y el nuevo entra enseguida.</li>
+    <li>Si nadie responde, el celular nuevo entra solo cuando pasan 7 días, siempre que nadie la haya rechazado.</li>
+    <li>Cualquiera de los dos puede rechazarla. Después de un rechazo, ese mismo celular tiene que esperar 24 horas para volver a pedirla.</li>
+    <li>Los dos reciben un aviso de la solicitud, aunque tengan las notificaciones apagadas, y un recordatorio el día 6.</li>
+    <li>Las solicitudes rechazadas se borran a los 8 días; las aprobadas se borran cuando el celular nuevo entra.</li>
+  </ul>
+  <p>Así, tener el código de la pareja no basta para quedarse con el lugar de otra persona ni para leer sus cartas.</p>
 
   <h2>Para los avisos</h2>
   <p>Si activas las notificaciones, se guarda un registro de tu celular con el código que da el navegador para recibir avisos (Firebase Cloud Messaging), los avisos que quieres recibir, la hora del recordatorio y tu zona horaria. Con la zona horaria, los avisos de fechas especiales te llegan a las 8:00 a. m. de tu celular. Si las apagas, el registro se borra.</p>
@@ -66,10 +77,13 @@
   </ul>
   <p>Estos servicios no reciben sus nombres ni el código de la pareja.</p>
 
+  <h2>Verificar que la app es la real</h2>
+  <p>Para que la base de datos solo responda a la app de verdad y no a programas ajenos, usamos App Check de Firebase con reCAPTCHA v3 de Google. Cuando abres la app, reCAPTCHA analiza señales de tu navegador y de cómo se usa para decidir si es la app real y no un programa automático. No te pide resolver nada. Google recibe esas señales y las trata según su propia política de privacidad y condiciones de servicio. Nosotros no usamos reCAPTCHA para seguirte ni para hacer analítica.</p>
+
   <h2>Lo que no hacemos</h2>
   <ul>
     <li>No hay publicidad.</li>
-    <li>No hay analítica ni seguimiento.</li>
+    <li>No hay analítica ni seguimiento propios.</li>
     <li>No vendemos tus datos. Google los guarda como proveedor de Firebase, según sus propias condiciones, y los servicios de mapas de arriba reciben solo lo que se cuenta ahí.</li>
   </ul>
 

@@ -70,7 +70,7 @@ Firebase, un servicio gratis de Google. Lo demás de Okupa funciona sin él y si
 7. Sube la versión de `CACHE` en `sw.js` y publica con `git push`.
 
 > La configuración de Firebase no es secreta: lo que protege sus datos son las reglas del
-> paso 6. **No compartan el código de pareja**: quien lo tenga puede entrar en su lugar.
+> paso 6. **No compartan el código de pareja**: con él se puede ver el nombre de la pareja y pedir un celular nuevo, pero un lugar solo cambia de celular con una solicitud (la aprueba el celular de antes, o entra a los 7 días si nadie la rechaza).
 
 Para probar las reglas en el computador (necesita Node y Java), desde `firebase/`:
 `npm run emuladores` en una terminal y `npm run pruebas` en otra.

@@ -141,7 +141,7 @@ prueba('pwa: manifest con nombre, colores e íconos', async () => {
   verdadero(m.icons.some((i) => i.sizes === '192x192'), 'falta 192');
 });
 
-prueba('pwa: la caché de esta versión es okupa-v21c', async () => {
+prueba('pwa: la caché de esta versión es okupa-v22', async () => {
   const texto = await (await fetch('sw.js')).text();
-  verdadero(texto.includes("const CACHE = 'okupa-v21c';"), texto.split('\n').find((l) => l.startsWith('const CACHE')));
+  verdadero(texto.includes("const CACHE = 'okupa-v22';"), texto.split('\n').find((l) => l.startsWith('const CACHE')));
 });
