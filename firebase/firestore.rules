@@ -14,16 +14,41 @@ service cloud.firestore {
       let l = datosPareja(codigo).lugares;
       return l.a == request.auth.uid ? 'a' : (l.b == request.auth.uid ? 'b' : '');
     }
-    // Ocupar un lugar vacío o reclamarlo (cambio de celular): solo ese lugar y su nombre.
-    function tomaLugar(x) {
+    // Unirse: ocupar un lugar que estaba vacío, con su nombre. Un lugar ocupado ya no se reclama:
+    // solo cambia de celular con una solicitud (entrega o tomaVencida).
+    function ocupaVacio(x) {
       let antes = resource.data;
       let despues = request.resource.data;
-      return soloCambia(antes, despues, ['lugares', 'nombres'])
+      return antes.lugares[x] == null
+        && soloCambia(antes, despues, ['lugares', 'nombres'])
         && soloCambia(antes.lugares, despues.lugares, [x])
         && soloCambia(antes.nombres, despues.nombres, [x])
         && despues.lugares[x] == request.auth.uid
         && despues.lugares.a != despues.lugares.b
         && nombreValido(despues.nombres[x]);
+    }
+    function rutaSolicitud(codigo, x) { return /databases/$(db)/documents/parejas/$(codigo)/solicitudes/$(x); }
+    function soloCambiaLugar(x) {
+      return soloCambia(resource.data, request.resource.data, ['lugares'])
+        && soloCambia(resource.data.lugares, request.resource.data.lugares, [x])
+        && request.resource.data.lugares.a != request.resource.data.lugares.b;
+    }
+    // Aprobar: quien hoy tiene el lugar x se lo entrega al uid de la solicitud pendiente de ese lugar.
+    function entrega(codigo, x) {
+      return resource.data.lugares[x] == request.auth.uid
+        && soloCambiaLugar(x)
+        && exists(rutaSolicitud(codigo, x))
+        && !('rechazada' in get(rutaSolicitud(codigo, x)).data)
+        && request.resource.data.lugares[x] == get(rutaSolicitud(codigo, x)).data.uid;
+    }
+    // Sin el celular viejo: quien pidió el lugar x lo toma a los 7 días si nadie rechazó la solicitud.
+    function tomaVencida(codigo, x) {
+      return soloCambiaLugar(x)
+        && request.resource.data.lugares[x] == request.auth.uid
+        && exists(rutaSolicitud(codigo, x))
+        && get(rutaSolicitud(codigo, x)).data.uid == request.auth.uid
+        && !('rechazada' in get(rutaSolicitud(codigo, x)).data)
+        && request.time >= get(rutaSolicitud(codigo, x)).data.creada + duration.value(7, 'd');
     }
     function cambiaSuNombre(x) {
       return resource.data.lugares[x] == request.auth.uid
@@ -72,8 +97,40 @@ service cloud.firestore {
         && nombreValido(request.resource.data.nombres.a)
         && request.resource.data.nombres.b == null;
       allow update: if autenticado()
-        && (tomaLugar('a') || tomaLugar('b') || cambiaSuNombre('a') || cambiaSuNombre('b'));
+        && (ocupaVacio('a') || ocupaVacio('b')
+          || entrega(codigo, 'a') || entrega(codigo, 'b')
+          || tomaVencida(codigo, 'a') || tomaVencida(codigo, 'b')
+          || cambiaSuNombre('a') || cambiaSuNombre('b'));
       allow delete: if esMiembro(codigo);
+
+      // Cambio de celular: a lo sumo una solicitud por lugar. La crea el celular nuevo (que no es
+      // miembro) con la hora del servidor; los miembros la ven y pueden rechazarla o borrarla. Las
+      // marcas avisada y recordada las pone solo el servidor.
+      match /solicitudes/{lugar} {
+        function esMia() { return resource.data.uid == request.auth.uid; }
+        function pendiente() { return !('rechazada' in resource.data); }
+        // Quien pidió también puede ver que su solicitud ya no existe (la borraron).
+        allow get: if autenticado() && (resource == null || esMia() || esMiembro(codigo));
+        allow list: if false;
+        allow create: if autenticado()
+          && lugar in ['a', 'b']
+          && !esMiembro(codigo)
+          && datosPareja(codigo).lugares[lugar] != null
+          && request.resource.data.keys().hasAll(['uid', 'creada'])
+          && request.resource.data.keys().hasOnly(['uid', 'creada'])
+          && request.resource.data.uid == request.auth.uid
+          && request.resource.data.creada == request.time;
+        // Rechazar: un miembro agrega la hora del servidor, una sola vez, sin tocar nada más.
+        allow update: if esMiembro(codigo)
+          && pendiente()
+          && soloCambia(resource.data, request.resource.data, ['rechazada'])
+          && request.resource.data.rechazada == request.time;
+        // Borrar: un miembro siempre; quien pidió, si está pendiente (cancelar) o 24 h después del
+        // rechazo (freno para que no insista).
+        allow delete: if esMiembro(codigo)
+          || (autenticado() && esMia()
+            && (pendiente() || request.time >= resource.data.rechazada + duration.value(24, 'h')));
+      }
 
       match /perfiles/{lugar} { allow read, write: if esMiembro(codigo); }
       match /partidas/{id} { allow read, write: if esMiembro(codigo); }

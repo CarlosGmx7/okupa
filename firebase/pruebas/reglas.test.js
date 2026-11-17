@@ -83,12 +83,13 @@ describe('unirse y reclamar', () => {
     await sembrar({ [RUTA]: soloA });
     await assertFails(combinar('u1', { lugares: { b: 'u1' }, nombres: { b: 'Carlos 2' } }));
   });
-  it('u3 reclama a y desde ahí u1 ya no lee perfiles', async () => {
+  // Desde la v22 un lugar ocupado no se reclama: el cambio de celular va en solicitudes.test.js.
+  it('u3 ya no puede reclamar a: u1 sigue leyendo perfiles y u3 no', async () => {
     await sembrar({ [RUTA]: completa, [`${RUTA}/perfiles/a`]: { x: 1 } });
+    await assertFails(combinar('u3', { lugares: { a: 'u3' } }));
+    await assertFails(combinar('u3', { lugares: { a: 'u3' }, nombres: { a: 'Carlos' } }));
     await assertSucceeds(getDoc(doc(db('u1'), `${RUTA}/perfiles/a`)));
-    await assertSucceeds(combinar('u3', { lugares: { a: 'u3' } }));
-    await assertFails(getDoc(doc(db('u1'), `${RUTA}/perfiles/a`)));
-    await assertSucceeds(getDoc(doc(db('u3'), `${RUTA}/perfiles/a`)));
+    await assertFails(getDoc(doc(db('u3'), `${RUTA}/perfiles/a`)));
   });
 });
 
