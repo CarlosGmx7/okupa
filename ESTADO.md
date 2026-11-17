@@ -12,13 +12,9 @@ App para parejas (PWA y APK Android): Preguntas, Trivia, ¿Quién es más probab
 - Inicio con 3 interfaces (Moderna por defecto, Simple, Clásica); avisos bajo cada modo solo cuando importan.
 - APK: TWA con Bubblewrap, gratis por GitHub Releases. `io.github.carlosgmx7.okupa`, minSdk 24.
 ## Estado actual
-- Publicado: v21b (`sw.js` = `okupa-v21b`) con las reglas de v21.
-- v22 lista en la rama `v22-seguridad` (worktree `../okupa-v22`), sin publicar. Verificado el 2026-11-17: `pruebas.html` 690 pasaron, 0 fallaron; reglas+servidor 209 pass, 0 fail; prueba a mano con emuladores (pedir, franja, rechazar, aprobar). Revisión final de toda la rama hecha y arreglada.
-- Pasos de Carlos para publicar, en orden:
-  1. Aprobar el merge de `v22-seguridad` a `main` y el push (publica en Pages).
-  2. Pegar en Firebase las reglas de `firebase/firestore.rules` justo después (si no, el celular nuevo ve «Ya hay una solicitud de otro celular»).
-  3. Abrir la app en los dos celulares y en la APK; en Firebase → App Check mirar que casi todas las solicitudes salgan «verificadas».
-  4. Registrar el token de depuración del computador (sale en la consola del navegador en 127.0.0.1) y luego tocar «Exigir» en Firestore. Si algo falla: «Dejar de exigir». Guía: `docs/guia-app-check.md`.
+- Publicado y funcionando (2026-11-17): v22 (`sw.js` = `okupa-v22`, `main` = `13ecda2`). Carlos pegó las reglas de v22, los dos celulares quedaron en v22 (ven el aviso bajo el código en «Nuestra pareja») y App Check está **exigido** en Cloud Firestore. Verificado: `pruebas.html` 690/0, reglas+servidor 209/0, y en la app publicada `exchangeRecaptchaEnterpriseToken` responde 200. Si algo falla con App Check: Firebase → App Check → APIs → Cloud Firestore → «Dejar de exigir».
+- No hace falta token de depuración: el computador usa la app publicada; las pruebas locales usan emuladores (App Check apagado).
+- En construcción: «Ruleta de citas» (rama `v23-ruleta`).
 - Pendiente de Carlos de antes: subir la APK 1.0.0 a Releases (tag `v1.0.0`), guardar `android.keystore` en Drive, probar en los dos celulares una ronda de Probable, un aviso de las 8:00 y una carta.
 - Menores aparcados para la próxima versión: «Cancelar solicitud» tras el aviso no explica que sigue hasta 24 h; el aviso inicial puede repetirse si falla un envío; Rechazar sobre una solicitud que ya no existe dice «Revisa la conexión»; la espera repinta solo por sondeo de 60 s; spec de v22 aún dice v3 y 8 días.
 ## Archivos clave
@@ -33,7 +29,7 @@ App para parejas (PWA y APK Android): Preguntas, Trivia, ¿Quién es más probab
 - `docs/superpowers/specs|plans/`: diseño y plan de cada versión.
 - `../okupa-apk/` y `C:\bubblewrap\`: APK (`android.keystore` nunca a git).
 ## Próximo paso
-Con el visto bueno de Carlos: merge de `v22-seguridad` a `main`, push (publica) y guiarlo en pegar reglas → verificar → Exigir. Después, cada uno con su brainstorming: resumen de una ronda guardado en el celular; aviso «ya aceptaron tu juego»; 200 frases por tema en Probable; «Ruleta de citas» con presupuesto; aviso «hay una APK nueva».
+Terminar la «Ruleta de citas» con presupuesto (nulo, medio, grande) en la rama `v23-ruleta`, worktree `../okupa-v23`; diseño y plan en `docs/superpowers/specs|plans/`. Después, cada uno con su brainstorming: resumen de una ronda guardado en el celular; aviso «ya aceptaron tu juego»; 200 frases por tema en Probable; aviso «hay una APK nueva».
 ## Cómo verificar
 - App: en la carpeta de la rama, `python herramientas/servidor.py 8122`; abrir http://127.0.0.1:8122/pruebas.html → «0 fallaron» (690).
 - Reglas: en `firebase/`, `node emuladores.mjs exec "node --test pruebas/ ../servidor/notificaciones/pasada.test.mjs ../servidor/notificaciones/logica.test.mjs"` (209) y cerrar el java del puerto 8085.
