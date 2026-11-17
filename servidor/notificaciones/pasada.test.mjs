@@ -286,6 +286,22 @@ test('solicitud: aprobada, rechazada hace 9 días o de pareja inexistente se bor
   for (const r of [RUTA_S, 'parejas/K7PQ2M/solicitudes/b', 'parejas/ZZZZZZ/solicitudes/a']) assert.equal(await existe(r), false);
 });
 
+test('solicitud: una que falla no corta la pasada (la otra pareja se avisa y el resto sigue)', async () => {
+  await sembrar({ 'parejas/K7PQ2M': pareja, 'dispositivos/da': disp('u1', 'a', { token: 't-malo', franja: '05:00' }), [RUTA_S]: solicitud(0),
+    'parejas/K8AAAA': pareja, 'dispositivos/ea': disp('u1', 'a', { pareja: 'K8AAAA', token: 't-bueno', franja: '05:00' }), 'parejas/K8AAAA/solicitudes/a': solicitud(0),
+    'sistema/notificaciones': { ultimaFranja: '2026-11-14T00:45:00.000Z' } });
+  const enviados = [];
+  const mandar = async (mensajes) => mensajes.map((m) => {
+    if (m.token === 't-malo') throw new Error('falla de red');
+    enviados.push(m.token);
+    return { ok: true };
+  });
+  await pasada({ db, mandar, ahora: AHORA });
+  assert.deepEqual(enviados.filter((t) => t === 't-bueno'), ['t-bueno']);
+  assert.equal((await db.doc('parejas/K8AAAA/solicitudes/a').get()).data().avisada, true);
+  assert.equal((await db.doc('sistema/notificaciones').get()).data().ultimaFranja, '2026-11-14T01:00:00.000Z');
+});
+
 test('solicitud: rechazada reciente se conserva sin avisar; token inválido y registro viejo se olvidan', async () => {
   await sembrar({ 'parejas/K7PQ2M': pareja, 'dispositivos/db': disp('u2', 'b'), 'dispositivos/viejo': disp('u9', 'b'),
     [RUTA_S]: solicitud(3, { rechazada: Timestamp.fromMillis(AHORA.getTime() - 2 * DIA) }),

@@ -90,17 +90,22 @@ export async function pasada({ db, mandar, ahora = new Date() }) {
   // 1b. Solicitudes de celular nuevo: aviso, recordatorio del día 6 y limpieza. Llegan a los dos celulares sin mirar interruptores.
   const solicitudes = await db.collectionGroup('solicitudes').limit(MAX_SOLICITUDES).get();
   for (const s of solicitudes.docs) {
-    const codigo = s.ref.parent.parent?.id;
-    const solicitud = s.data();
-    const parejaDoc = codigo ? await leerPareja(codigo) : null;
-    const accion = accionSolicitud(solicitud, parejaDoc, s.id, ahora.getTime());
-    if (accion === 'borrar') { await s.ref.delete(); continue; }
-    if (!accion) continue;
-    const tipo = accion === 'avisar' ? 'solicitud' : 'solicitud-recordatorio';
-    const { enviar, invalidos } = miembrosDe(await dispositivosDe(codigo), parejaDoc);
-    for (const id of invalidos) await olvidar(id);
-    const llegaron = await enviarA(enviar, { ...textoDe(tipo, parejaDoc.nombres?.[s.id]), tipo });
-    if (llegaron) await s.ref.update(accion === 'avisar' ? { avisada: true } : { recordada: true });
+    // Una solicitud que falla (red, o cancelada justo ahora) no corta el resto de la pasada.
+    try {
+      const codigo = s.ref.parent.parent?.id;
+      const solicitud = s.data();
+      const parejaDoc = codigo ? await leerPareja(codigo) : null;
+      const accion = accionSolicitud(solicitud, parejaDoc, s.id, ahora.getTime());
+      if (accion === 'borrar') { await s.ref.delete(); continue; }
+      if (!accion) continue;
+      const tipo = accion === 'avisar' ? 'solicitud' : 'solicitud-recordatorio';
+      const { enviar, invalidos } = miembrosDe(await dispositivosDe(codigo), parejaDoc);
+      for (const id of invalidos) await olvidar(id);
+      const llegaron = await enviarA(enviar, { ...textoDe(tipo, parejaDoc.nombres?.[s.id]), tipo });
+      if (llegaron) await s.ref.update(accion === 'avisar' ? { avisada: true } : { recordada: true });
+    } catch (e) {
+      console.warn(`Solicitud ${s.ref.path} no se pudo procesar: ${e?.code ?? e?.message ?? e}`);
+    }
   }
 
   // 2. Recordatorios del Diario de las franjas que tocan (y las que GitHub se saltó).
