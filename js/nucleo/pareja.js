@@ -128,6 +128,158 @@ export async function reclamar(nube, almacen, { codigo, lugar }) {
   return recordar(almacen, limpio, lugar);
 }
 
+// ── Cambio de celular con aprobación ────────────────────────────────────────────────────────────
+// El celular nuevo deja una solicitud en parejas/{codigo}/solicitudes/{lugar}. La aprueba el celular
+// que hoy tiene ese lugar; sin él, el nuevo entra a los 7 días si nadie la rechazó. Quién puede hacer
+// cada cosa lo deciden las reglas de Firestore: aquí solo se lee y se escribe.
+
+const CLAVE_SOLICITUD = 'okupa:solicitud';
+export const ESPERA_SOLICITUD_MS = 7 * 86400000;
+export const FRENO_RECHAZO_MS = 86400000;
+
+const rutaSolicitud = (codigo, lugar) => `${ruta(codigo)}/solicitudes/${lugar}`;
+// Las fechas llegan como Timestamp de Firestore o como número (nube falsa); null si aún no hay.
+const aMs = (v) => {
+  const ms = v?.toMillis?.() ?? v;
+  return typeof ms === 'number' ? ms : null;
+};
+const esPermiso = (e) => e?.codigo === 'permiso';
+
+function solicitudApuntada(almacen) {
+  const s = almacen.leer(CLAVE_SOLICITUD, null);
+  return s && normalizarCodigo(s.codigo) === s.codigo && LUGARES.includes(s.lugar) ? { codigo: s.codigo, lugar: s.lugar } : null;
+}
+function exigirApuntada(almacen) {
+  const apuntada = solicitudApuntada(almacen);
+  if (!apuntada) throw new ErrorPareja('sin-solicitud');
+  return apuntada;
+}
+
+// 'aprobada' | 'pendiente' | 'vencida' | 'rechazada' | 'borrada', vista desde el celular `uid` que pidió `lugar`.
+export function estadoSolicitud(solicitud, parejaDoc, lugar, uid, ahoraMs) {
+  if (parejaDoc?.lugares?.[lugar] === uid) return 'aprobada';
+  if (!solicitud || solicitud.uid !== uid) return 'borrada';
+  if (solicitud.rechazada != null) return 'rechazada';
+  const creada = aMs(solicitud.creada);
+  return creada !== null && ahoraMs >= creada + ESPERA_SOLICITUD_MS ? 'vencida' : 'pendiente';
+}
+
+// Deja la solicitud para entrar a un lugar ocupado y la apunta en este celular para retomar la espera.
+// Si ya hay una mía se conserva (con su fecha); una rechazada solo se renueva pasado el freno.
+export async function pedirLugar(nube, almacen, { codigo, lugar, ahoraMs = Date.now() }) {
+  const limpio = exigirCodigo(codigo);
+  if (!LUGARES.includes(lugar)) throw new ErrorPareja('no-existe');
+  const { uid } = await nube.iniciar();
+  if (!(await nube.leer(ruta(limpio)))) throw new ErrorPareja('no-existe');
+  const r = rutaSolicitud(limpio, lugar);
+  const ajena = (e) => { if (esPermiso(e)) throw new ErrorPareja('solicitud-ajena'); throw e; };
+  let actual = await nube.leer(r).catch(ajena);
+  if (actual && actual.uid !== uid) throw new ErrorPareja('solicitud-ajena');
+  const rechazada = aMs(actual?.rechazada);
+  if (actual && rechazada !== null && ahoraMs >= rechazada + FRENO_RECHAZO_MS) {
+    await nube.borrar(r);
+    actual = null;
+  }
+  if (!actual) {
+    await nube.escribir(r, { uid, creada: nube.horaServidor() }).catch(ajena);
+    actual = await nube.leer(r);
+  }
+  almacen.escribir(CLAVE_SOLICITUD, { codigo: limpio, lugar });
+  return { codigo: limpio, lugar, entraMs: (aMs(actual?.creada) ?? ahoraMs) + ESPERA_SOLICITUD_MS };
+}
+
+// La solicitud que este celular dejó, con su estado al día. null si no dejó ninguna (no toca la nube).
+export async function miSolicitud(nube, almacen, ahoraMs = Date.now()) {
+  const apuntada = solicitudApuntada(almacen);
+  if (!apuntada) return null;
+  const { codigo, lugar } = apuntada;
+  const { uid } = await nube.iniciar();
+  const parejaDoc = await nube.leer(ruta(codigo));
+  // Si ahora hay una de otro celular, las reglas no dejan leerla: para este es como si no existiera.
+  const solicitud = await nube.leer(rutaSolicitud(codigo, lugar)).catch((e) => { if (esPermiso(e)) return null; throw e; });
+  const estado = estadoSolicitud(solicitud, parejaDoc, lugar, uid, ahoraMs);
+  const propia = solicitud?.uid === uid ? solicitud : null;
+  const creada = aMs(propia?.creada);
+  const rechazada = aMs(propia?.rechazada);
+  return {
+    codigo, lugar,
+    nombre: parejaDoc?.nombres?.[lugar] ?? null,
+    estado,
+    entraMs: creada === null ? null : creada + ESPERA_SOLICITUD_MS,
+    reintentoMs: rechazada === null ? null : rechazada + FRENO_RECHAZO_MS,
+  };
+}
+
+// El lugar ya es de este celular (lo aprobaron o tomó la vencida): queda enlazado y limpia la solicitud.
+export async function completarEntrada(nube, almacen) {
+  const { codigo, lugar } = exigirApuntada(almacen);
+  const { uid } = await nube.iniciar();
+  const parejaDoc = await nube.leer(ruta(codigo));
+  if (parejaDoc?.lugares?.[lugar] !== uid) throw new ErrorPareja('sin-aprobar');
+  // Si no se logra borrar (sin red), el servidor limpia después las solicitudes ya cumplidas.
+  await nube.borrar(rutaSolicitud(codigo, lugar)).catch(() => {});
+  almacen.borrar(CLAVE_SOLICITUD);
+  return recordar(almacen, codigo, lugar);
+}
+
+// Pasados los 7 días sin rechazo, el celular nuevo toma el lugar. Las reglas comprueban la fecha.
+export async function entrarVencida(nube, almacen) {
+  const { codigo, lugar } = exigirApuntada(almacen);
+  const { uid } = await nube.iniciar();
+  await nube.transaccion(async (tx) => {
+    const doc = await tx.leer(ruta(codigo));
+    if (!doc) throw new ErrorPareja('no-existe');
+    if (doc.lugares?.[lugar] !== uid) tx.escribir(ruta(codigo), { lugares: { [lugar]: uid } }, { combinar: true });
+  });
+  return completarEntrada(nube, almacen);
+}
+
+// Deja de esperar. Si las reglas no dejan borrarla (rechazada hace menos de 24 h, o ya no existe),
+// igual se olvida en este celular; sin conexión no, para poder reintentar.
+export async function cancelarSolicitud(nube, almacen) {
+  const apuntada = solicitudApuntada(almacen);
+  if (!apuntada) return;
+  await nube.borrar(rutaSolicitud(apuntada.codigo, apuntada.lugar)).catch((e) => { if (!esPermiso(e)) throw e; });
+  almacen.borrar(CLAVE_SOLICITUD);
+}
+
+// Para los miembros: las solicitudes pendientes de su pareja. `mia` = piden mi propio lugar.
+export async function solicitudesDe(nube, pareja, ahoraMs = Date.now()) {
+  if (!pareja) return [];
+  const [parejaDoc, ...solicitudes] = await Promise.all([
+    nube.leer(ruta(pareja.codigo)),
+    ...LUGARES.map((l) => nube.leer(rutaSolicitud(pareja.codigo, l))),
+  ]);
+  return LUGARES.flatMap((lugar, i) => {
+    const s = solicitudes[i];
+    if (!s || s.rechazada != null || s.uid === parejaDoc?.lugares?.[lugar]) return [];
+    return [{
+      lugar,
+      mia: lugar === pareja.lugar,
+      entraMs: (aMs(s.creada) ?? ahoraMs) + ESPERA_SOLICITUD_MS,
+      nombre: parejaDoc?.nombres?.[lugar] ?? null,
+    }];
+  });
+}
+
+// Solo el celular que tiene el lugar lo entrega al que lo pidió. Después este celular queda por fuera.
+export async function aprobarSolicitud(nube, almacen, lugar) {
+  const pareja = miPareja(almacen);
+  if (!pareja) throw new ErrorPareja('sin-pareja');
+  if (lugar !== pareja.lugar) throw new ErrorPareja('no-es-tu-lugar');
+  const solicitud = await nube.leer(rutaSolicitud(pareja.codigo, lugar));
+  if (!solicitud || solicitud.rechazada != null || typeof solicitud.uid !== 'string') throw new ErrorPareja('sin-solicitud');
+  await nube.escribir(ruta(pareja.codigo), { lugares: { [lugar]: solicitud.uid } }, { combinar: true });
+  salir(almacen);
+}
+
+// Cualquiera de los dos miembros rechaza: el celular nuevo no entra y debe esperar 24 h para volver a pedir.
+export async function rechazarSolicitud(nube, pareja, lugar) {
+  if (!pareja) throw new ErrorPareja('sin-pareja');
+  if (!LUGARES.includes(lugar)) throw new ErrorPareja('no-existe');
+  await nube.escribir(rutaSolicitud(pareja.codigo, lugar), { rechazada: nube.horaServidor() }, { combinar: true });
+}
+
 // Avisa una sola vez si este celular pierde su lugar ('reclamado') o la pareja se borra ('borrada').
 export function vigilarLugar(nube, almacen, alPerder) {
   const pareja = miPareja(almacen);
