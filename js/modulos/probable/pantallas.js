@@ -317,14 +317,20 @@ export function crearPantallasProbable({ cargar, ahora = () => performance.now()
         const ultima = i + 1 >= sala.frases.length;
         const error = el('p', { clase: 'aviso error-formulario', role: 'alert' });
         const siguiente = el('button', { clase: 'boton boton-principal', type: 'button' }, ultima ? 'Ver resumen' : 'Siguiente');
-        siguiente.addEventListener('click', () => {
+        siguiente.addEventListener('click', async () => {
           siguiente.disabled = true;
           error.textContent = '';
-          intentarAvanzar(nube, pareja, id, { ronda }).catch((x) => {
+          try {
+            await intentarAvanzar(nube, pareja, id, { ronda });
+            // No se espera a la escucha: si se cayó (pasa con la red del celular), el botón parecía no hacer nada.
+            const leida = await nube.leer(rutaSala(pareja.codigo, id));
+            if (leida && !saliendo) { sala = { ...leida, id }; actualizar(); }
+            if (fase === `${claveRev}:lista`) siguiente.disabled = false; // la sala no cambió: se puede volver a tocar
+          } catch (x) {
             console.warn('Okupa:', x);
             siguiente.disabled = false;
             error.textContent = 'No se pudo avanzar. Revisa tu conexión e intenta otra vez.';
-          });
+          }
         });
         const avance = el('div', { clase: 'pie-juego' }, siguiente);
         const filas = ['a', 'b'].map((l) => el('li', { clase: 'revelado-fila' },
@@ -345,6 +351,7 @@ export function crearPantallasProbable({ cargar, ahora = () => performance.now()
       detenerLatido();
       detenerLatido = () => {};
       banda.hidden = true;
+      escena.replaceChildren(esperando('Cargando el resumen…'));
       (async () => {
         // Se lee la sala justo antes de cerrar: el cierre cuenta las frases reveladas de ese momento.
         const leida = await nube.leer(rutaSala(pareja.codigo, id));
@@ -358,8 +365,9 @@ export function crearPantallasProbable({ cargar, ahora = () => performance.now()
           ? (await listarPropias(nube, pareja)).map((f) => f.id)
           : (await cargar()).filter((f) => f.tema === fresca.tema).map((f) => f.id);
         await cerrarSala(nube, pareja, fresca, ids);
-        const votos = [];
-        for (let i = 0; i < fresca.frases.length; i++) if (votaronTodos(fresca, i)) votos.push(await leerVotos(nube, pareja, id, i));
+        // Todos los votos a la vez: en fila, una ronda de 20 eran 40 viajes a la nube sin nada en pantalla.
+        const votos = await Promise.all(fresca.frases.map((_, i) => i).filter((i) => votaronTodos(fresca, i))
+          .map((i) => leerVotos(nube, pareja, id, i)));
         fase = 'final:lista';
         const res = resumen(votos, ['a', 'b']);
         const otra = el('a', { clase: 'boton boton-principal', href: '#/probable' }, 'Otra ronda');

@@ -239,7 +239,7 @@ prueba('probable pantallas: con frases propias el tema «Nuestras frases» se ha
 });
 
 // ---- Ronda de arreglos: fallos de red, reingreso y cortes a mitad ----
-const fallo = { transaccion: false, leer: false };
+const fallo = { transaccion: false, leer: 0 }; // leer: cuántas lecturas seguidas fallan
 const nubeQueFalla = (nube) => {
   const w = Object.create(nube);
   w.transaccion = (fn) => {
@@ -247,7 +247,7 @@ const nubeQueFalla = (nube) => {
     return nube.transaccion(fn);
   };
   w.leer = (ruta) => {
-    if (fallo.leer) { fallo.leer = false; return Promise.reject(new Error('sin red')); }
+    if (fallo.leer > 0) { fallo.leer--; return Promise.reject(new Error('sin red')); }
     return nube.leer(ruta);
   };
   return w;
@@ -280,7 +280,7 @@ prueba('probable pantallas: si el resumen no carga ofrece «Reintentar» y cierr
     await hasta(() => a.div.textContent.includes(`Frase ${i + 2} de 5`) && b.div.textContent.includes(`Frase ${i + 2} de 5`));
   }
   await votarLosDos(a, b, 4, true);
-  fallo.leer = true;
+  fallo.leer = 2; // la del botón y la del resumen
   boton(a.div, 'Ver resumen').click();
   await hasta(() => boton(a.div, 'Reintentar'));
   verdadero(a.div.textContent.includes('No se pudo cargar el resumen'));
@@ -526,5 +526,83 @@ prueba('probable pantallas: si el voto no se creó, vuelve a ofrecer las opcione
   boton(a.div, 'Sofi').click();
   await hasta(() => a.div.textContent.includes('No se pudo enviar tu voto'));
   verdadero(a.div.querySelector('.opcion-juego'), 'vuelve a ofrecer votar');
+  salir();
+});
+
+// ---- «Ver resumen» que parecía no hacer nada: escucha caída, espera sin aviso y lecturas en fila ----
+const hastaUltima = async (a, b) => {
+  for (let i = 0; i < 4; i++) {
+    await votarLosDos(a, b, i);
+    boton(a.div, 'Siguiente').click();
+    await hasta(() => a.div.textContent.includes(`Frase ${i + 2} de 5`) && b.div.textContent.includes(`Frase ${i + 2} de 5`));
+  }
+  await votarLosDos(a, b, 4, true);
+};
+
+prueba('probable pantallas: «Siguiente» y «Ver resumen» sirven aunque la escucha de la sala se haya caído', async () => {
+  const estado = { muda: false };
+  const sorda = (nube) => {
+    const w = Object.create(nube);
+    w.escuchar = (ruta, fn) => nube.escuchar(ruta, (d) => { if (!estado.muda) fn(d); });
+    return w;
+  };
+  const { a, b } = await enJuego(5, { envolver: (n, l) => (l === 'a' ? sorda(n) : n) });
+  await votarLosDos(a, b, 0);
+  estado.muda = true;
+  boton(a.div, 'Siguiente').click();
+  await hasta(() => a.div.textContent.includes('Frase 2 de 5'));
+  estado.muda = false;
+  for (let i = 1; i < 4; i++) {
+    await votarLosDos(a, b, i);
+    boton(a.div, 'Siguiente').click();
+    await hasta(() => a.div.textContent.includes(`Frase ${i + 2} de 5`) && b.div.textContent.includes(`Frase ${i + 2} de 5`));
+  }
+  await votarLosDos(a, b, 4, true);
+  estado.muda = true;
+  boton(a.div, 'Ver resumen').click();
+  await hasta(() => a.div.textContent.includes('Coincidieron en 5 de 5'));
+  salir();
+});
+
+prueba('probable pantallas: si el otro ya avanzó y la escucha no avisó, el botón no se queda muerto', async () => {
+  const estado = { muda: false };
+  const sorda = (nube) => {
+    const w = Object.create(nube);
+    w.escuchar = (ruta, fn) => nube.escuchar(ruta, (d) => { if (!estado.muda) fn(d); });
+    return w;
+  };
+  const { a, b } = await enJuego(5, { envolver: (n, l) => (l === 'a' ? sorda(n) : n) });
+  await hastaUltima(a, b);
+  estado.muda = true;
+  boton(b.div, 'Ver resumen').click();
+  await hasta(() => b.div.textContent.includes('Coincidieron en 5 de 5'));
+  verdadero(boton(a.div, 'Ver resumen'), 'a sigue en la última frase porque no le llegó el cambio');
+  boton(a.div, 'Ver resumen').click();
+  await hasta(() => a.div.textContent.includes('Coincidieron en 5 de 5'));
+  salir();
+});
+
+prueba('probable pantallas: mientras carga el resumen lo dice, y lee los votos a la vez y no en fila', async () => {
+  const estado = { lenta: false, activas: 0, maximo: 0 };
+  const lenta = (nube) => {
+    const w = Object.create(nube);
+    w.leer = async (ruta) => {
+      if (!estado.lenta || !ruta.includes('/votos/')) return nube.leer(ruta);
+      estado.activas++;
+      estado.maximo = Math.max(estado.maximo, estado.activas);
+      await esperar(40);
+      estado.activas--;
+      return nube.leer(ruta);
+    };
+    return w;
+  };
+  const { a, b } = await enJuego(5, { envolver: (n, l) => (l === 'a' ? lenta(n) : n) });
+  await hastaUltima(a, b);
+  estado.lenta = true;
+  boton(a.div, 'Ver resumen').click();
+  await hasta(() => a.div.textContent.includes('Cargando el resumen…'));
+  verdadero(!boton(a.div, 'Ver resumen'), 'el botón ya no está: se ve que algo pasa');
+  await hasta(() => a.div.textContent.includes('Coincidieron en 5 de 5'));
+  verdadero(estado.maximo >= 10, `los 10 votos se leen a la vez (máximo a la vez: ${estado.maximo})`);
   salir();
 });

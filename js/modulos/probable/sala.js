@@ -100,11 +100,9 @@ export async function votar(nube, pareja, id, { indice, voto }) {
 }
 
 export async function leerVotos(nube, pareja, id, indice, lugares = LUGARES) {
+  const leidos = await Promise.all(lugares.map((l) => nube.leer(rutaVoto(pareja.codigo, id, indice, l))));
   const votos = {};
-  for (const l of lugares) {
-    const v = await nube.leer(rutaVoto(pareja.codigo, id, indice, l));
-    if (v) votos[l] = v.voto;
-  }
+  lugares.forEach((l, n) => { if (leidos[n]) votos[l] = leidos[n].voto; });
   return votos;
 }
 
