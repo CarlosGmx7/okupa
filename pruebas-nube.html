@@ -18,7 +18,7 @@
   <script type="module">
     import { crearNube, VERSION_FIREBASE } from './js/nucleo/nube.js';
     import { crearAlmacen } from './js/nucleo/almacen.js';
-    import { crearPareja, unirse, vigilarLugar, reclamar, miPareja } from './js/nucleo/pareja.js';
+    import { crearPareja, unirse, vigilarLugar, pedirLugar, aprobarSolicitud, miPareja } from './js/nucleo/pareja.js';
 
     const config = { apiKey: 'demo-clave', projectId: 'demo-okupa', authDomain: 'demo-okupa.firebaseapp.com' };
     const emuladores = { auth: 'http://127.0.0.1:9099', firestore: { host: '127.0.0.1', puerto: 8085 } };
@@ -60,9 +60,10 @@
       const motivos = [];
       vigilarLugar(a, almA, (m) => motivos.push(m));
       await esperar(500);
-      await reclamar(c, almC, { codigo, lugar: 'a' });
+      await pedirLugar(c, almC, { codigo, lugar: 'a' });
+      await aprobarSolicitud(a, almA, 'a');
       for (let i = 0; i < 20 && !motivos.length; i++) await esperar(150);
-      afirmar(motivos[0] === 'reclamado' && !miPareja(almA), 'el celular reclamado se entera');
+      afirmar(motivos[0] === 'entregado' && !miPareja(almA), 'el celular que entregó su lugar se entera');
       document.getElementById('resultado').textContent = 'OK';
       document.getElementById('resultado').className = 'ok';
     } catch (e) {

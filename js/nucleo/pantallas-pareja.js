@@ -3,12 +3,14 @@
 import { el } from './ui.js';
 import { ErrorNube } from './nube.js';
 import {
-  crearPareja, unirse, lugaresDe, reclamar, vigilarLugar, cambiarNombre, salir, borrarTodo, miPareja,
-  formatearCodigo, ErrorPareja,
+  crearPareja, unirse, lugaresDe, pedirLugar, miSolicitud, completarEntrada, entrarVencida, cancelarSolicitud,
+  solicitudApuntada, vigilarLugar, cambiarNombre, salir, borrarTodo, miPareja, formatearCodigo, ErrorPareja,
 } from './pareja.js';
 
 const MENSAJES = {
   'no-existe': 'Ese código no existe. Revísalo.',
+  'solicitud-ajena': 'Ya hay una solicitud de otro celular para ese lugar. Cualquiera de los dos puede rechazarla desde Okupa.',
+  'no-todavia': 'Todavía no se puede entrar. Intenta más tarde.',
   nombre: 'Escribe tu nombre (máximo 30 letras).',
   'sin-conexion': 'No hay conexión. Intenta de nuevo.',
   permiso: 'No tienes permiso para hacer eso.',
@@ -57,6 +59,125 @@ export async function conectar(zona, ctx) {
   const espera = el('p', { clase: 'subtitulo', role: 'status' }, 'Conectando…');
   zona.append(espera);
   try { return await ctx.nube(); } catch (e) { pintarSinNube(zona, ctx, e); return null; } finally { espera.remove(); }
+}
+
+const FECHA_LARGA = { weekday: 'long', day: 'numeric', month: 'long' };
+const FECHA_CON_HORA = { ...FECHA_LARGA, hour: 'numeric', minute: '2-digit' };
+const fecha = (ms, opciones) => new Date(ms).toLocaleString('es-CO', opciones);
+const REVISION_MS = 60000;
+
+// Espera del celular nuevo: la solicitud ya está en la nube y este celular la tiene apuntada.
+// Escucha la pareja (una sola escucha, se corta al salir) y la revisa en cada cambio y cada minuto.
+function pintarEspera(zona, ctx, nube, alEnlazar) {
+  zona.detenerEspera?.();
+  const apuntada = solicitudApuntada(ctx.almacen);
+  let vivo = true;
+  let corte = () => {};
+  let minuto = null;
+  let revision = 0;
+  let pintado = false;
+  const detener = () => {
+    vivo = false;
+    corte();
+    clearInterval(minuto);
+    window.removeEventListener('hashchange', detener);
+    if (zona.detenerEspera === detener) zona.detenerEspera = null;
+  };
+  zona.detenerEspera = detener;
+  alSalirDeRuta(detener);
+
+  const volver = () => { detener(); pintarEnlace(zona, ctx, nube, alEnlazar); };
+  const error = el('p', { clase: 'error-formulario', role: 'alert' });
+  const boton = (texto, fn, principal) => {
+    const b = el('button', { clase: principal ? 'boton boton-principal' : 'boton', type: 'button' }, texto);
+    b.addEventListener('click', () => accion(b, error, fn));
+    return b;
+  };
+  const cancelar = () => boton('Cancelar solicitud', async () => { await cancelarSolicitud(nube, ctx.almacen); volver(); });
+  const pantalla = (titulo, textos, ...botones) => {
+    pintado = true;
+    zona.replaceChildren(
+      el('h1', { clase: 'titulo-pantalla' }, titulo),
+      ...textos.map((t) => el('p', { clase: 'subtitulo' }, t)),
+      error,
+      el('div', { clase: 'enlace-acciones' }, ...botones));
+  };
+
+  function sinRed() {
+    pantalla('Esperando la aprobación', ['No hay conexión. Intenta de nuevo.'],
+      el('button', { clase: 'boton boton-principal', type: 'button', onclick: () => { revisar(); } }, 'Reintentar'));
+    pintado = false; // la pantalla de error no cuenta: la próxima revisión debe poder reemplazarla
+  }
+
+  function pintarEstado(s) {
+    error.textContent = '';
+    if (s.estado === 'pendiente') {
+      pantalla('Esperando la aprobación', [
+        'Abre Okupa en tu celular anterior y toca «Aprobar».',
+        s.entraMs === null ? 'Si ya no lo tienes, podrás entrar en 7 días.'
+          : `Si ya no lo tienes, podrás entrar el ${fecha(s.entraMs, FECHA_LARGA)}.`,
+      ], cancelar());
+    } else if (s.estado === 'vencida') {
+      pantalla('Ya puedes entrar', ['Ya pasaron los 7 días sin que nadie rechazara la solicitud.'],
+        boton('Entrar', async () => {
+          try { await entrarVencida(nube, ctx.almacen); } catch (e) {
+            if (e?.codigo === 'permiso') throw new ErrorPareja('no-todavia');
+            throw e;
+          }
+          detener();
+          alEnlazar();
+        }, true),
+        cancelar());
+    } else if (s.estado === 'rechazada') {
+      const puede = s.reintentoMs !== null && Date.now() >= s.reintentoMs;
+      pantalla('Rechazaron la solicitud', [
+        puede ? 'Ya puedes volver a pedirla.'
+          : s.reintentoMs === null ? 'Podrás volver a pedirla en 24 horas.'
+            : `Puedes volver a pedirla el ${fecha(s.reintentoMs, FECHA_CON_HORA)}.`,
+      ],
+      puede ? boton('Volver a pedir', async () => {
+        await pedirLugar(nube, ctx.almacen, { codigo: s.codigo, lugar: s.lugar });
+        pintarEspera(zona, ctx, nube, alEnlazar);
+      }, true) : null,
+      cancelar());
+    } else {
+      pantalla('La solicitud ya no existe', ['Alguien de la pareja la borró.'],
+        boton('Volver', async () => { await cancelarSolicitud(nube, ctx.almacen); volver(); }, true));
+    }
+  }
+
+  async function revisar() {
+    const mia = ++revision;
+    let s;
+    try { s = await miSolicitud(nube, ctx.almacen); } catch (e) {
+      if (!vivo || mia !== revision) return;
+      if (!(e instanceof ErrorNube)) console.warn('Okupa:', e);
+      if (!pintado) sinRed(); // si ya hay algo en pantalla, se reintenta en el siguiente minuto
+      return;
+    }
+    if (!vivo || mia !== revision) return;
+    if (!s) { volver(); return; }
+    if (s.estado === 'aprobada') {
+      try { await completarEntrada(nube, ctx.almacen); } catch {
+        // Otra pantalla de este mismo celular pudo completar la entrada un instante antes.
+        if (!miPareja(ctx.almacen)) {
+          if (vivo && mia === revision && !pintado) sinRed();
+          return;
+        }
+      }
+      if (!vivo) return;
+      detener();
+      alEnlazar();
+      return;
+    }
+    pintarEstado(s);
+  }
+
+  zona.replaceChildren(el('p', { clase: 'subtitulo', role: 'status' }, 'Revisando tu solicitud…'));
+  if (!apuntada) { volver(); return; }
+  corte = nube.escuchar(`parejas/${apuntada.codigo}`, () => { if (vivo) revisar(); });
+  minuto = setInterval(revisar, REVISION_MS);
+  revisar();
 }
 
 export function pintarEnlace(zona, ctx, nube, alEnlazar) {
@@ -129,24 +250,30 @@ export function pintarEnlace(zona, ctx, nube, alEnlazar) {
     const opciones = ['a', 'b'].filter((l) => nombres[l]).map((lugar) => {
       const b = el('button', { clase: 'boton', type: 'button' }, `Soy ${nombres[lugar]}`);
       b.addEventListener('click', () => accion(b, error, async () => {
-        await reclamar(nube, ctx.almacen, { codigo, lugar });
-        alEnlazar();
+        await pedirLugar(nube, ctx.almacen, { codigo, lugar });
+        pintarEspera(zona, ctx, nube, alEnlazar);
       }));
       return b;
     });
     zona.replaceChildren(
       el('h1', { clase: 'titulo-pantalla' }, '¿Quién eres?'),
-      el('p', { clase: 'subtitulo' }, 'Esta pareja ya tiene sus dos celulares. El otro celular con ese nombre quedará desconectado.'),
+      el('p', { clase: 'subtitulo' }, 'Tu celular anterior tendrá que aprobarlo. Si ya no lo tienes, podrás entrar en 7 días.'),
       el('div', { clase: 'enlace-acciones' }, opciones), error,
       el('button', { clase: 'boton-texto', type: 'button', onclick: inicio }, 'Volver'));
   }
 
-  inicio();
+  if (solicitudApuntada(ctx.almacen)) pintarEspera(zona, ctx, nube, alEnlazar);
+  else inicio();
 }
+
+const TEXTO_PERDIDO = {
+  borrada: 'Tu pareja borró sus datos de la nube',
+  entregado: 'Pasaste tu lugar a tu celular nuevo',
+};
 
 function pintarPerdido(zona, ctx, motivo) {
   zona.replaceChildren(el('div', { clase: 'vacio' },
-    el('p', {}, motivo === 'borrada' ? 'Tu pareja borró sus datos de la nube' : 'Tu lugar se abrió en otro celular'),
+    el('p', {}, TEXTO_PERDIDO[motivo] || 'Tu lugar se abrió en otro celular'),
     el('button', { clase: 'boton boton-principal', type: 'button', onclick: () => ctx.refrescar() }, 'Volver a enlazar')));
 }
 
@@ -182,6 +309,7 @@ function pintarEnlazados(zona, ctx, nube) {
     el('h1', { clase: 'titulo-pantalla' }, 'Nuestra pareja'),
     el('p', { clase: 'subtitulo' }, 'Su código (para enlazar un celular nuevo):'),
     el('p', { clase: 'codigo-pareja' }, formatearCodigo(codigo)),
+    el('p', { clase: 'campo-ayuda' }, 'Para pasar a otro celular vas a necesitar este para aprobarlo. Sin él (o si borras los datos del navegador) la espera es de 7 días.'),
     el('section', { clase: 'bloque-texto' }, yo, otro, editarNombre, error),
     el('div', { clase: 'enlace-acciones' },
       el('button', { clase: 'boton', type: 'button', onclick: () => { editarNombre.hidden = !editarNombre.hidden; } }, 'Cambiar mi nombre'),

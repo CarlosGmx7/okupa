@@ -4,7 +4,7 @@ import { crearAlmacen } from '../js/nucleo/almacen.js';
 import { ErrorNube } from '../js/nucleo/nube.js';
 import {
   ALFABETO, generarCodigo, formatearCodigo, normalizarCodigo, limpiarNombre, miPareja,
-  crearPareja, unirse, lugaresDe, reclamar, vigilarLugar, cambiarNombre, salir, borrarTodo, ErrorPareja,
+  crearPareja, unirse, lugaresDe, vigilarLugar, cambiarNombre, salir, borrarTodo, ErrorPareja,
 } from '../js/nucleo/pareja.js';
 
 export function almacenEnMemoria() {
@@ -114,15 +114,14 @@ prueba('pareja: unirse con código inexistente o mal escrito da no-existe', asyn
   await rechaza(unirse(mundo.nube('u3'), almacenEnMemoria(), { codigo: 'OOO-OOO', nombre: 'X' }), 'no-existe');
 });
 
-prueba('pareja: tercer celular recibe llena y puede reclamar', async () => {
+prueba('pareja: tercer celular recibe llena y ya no hay cómo reclamar', async () => {
   const { mundo, codigo } = await parejaCompleta();
   const alm3 = almacenEnMemoria();
   await rechaza(unirse(mundo.nube('u3'), alm3, { codigo, nombre: 'Intruso' }), 'llena');
   igual(await lugaresDe(mundo.nube('u3'), codigo), { nombres: { a: 'Carlos', b: 'Sofi' }, ocupados: { a: true, b: true } });
-  igual(await reclamar(mundo.nube('u3'), alm3, { codigo, lugar: 'a' }), { codigo, lugar: 'a' });
-  const doc = await mundo.nube('u3').leer(`parejas/${codigo}`);
-  igual([doc.lugares, doc.nombres.a], [{ a: 'u3', b: 'u2' }, 'Carlos']);
-  igual(miPareja(alm3), { codigo, lugar: 'a' });
+  const modulo = await import('../js/nucleo/pareja.js');
+  igual(typeof modulo.reclamar, 'undefined', 'reclamar ya no existe: el cambio de celular va con solicitud');
+  igual(miPareja(alm3), null);
 });
 
 prueba('pareja: dos uniéndose a la vez, solo uno entra', async () => {
@@ -136,12 +135,12 @@ prueba('pareja: dos uniéndose a la vez, solo uno entra', async () => {
   igual(resultados.filter((r) => r.status === 'rejected').map((r) => r.reason.codigo), ['llena']);
 });
 
-prueba('pareja: el celular reclamado se entera y olvida la pareja', async () => {
+prueba('pareja: si otro celular queda con el lugar, el anterior se entera y olvida la pareja', async () => {
   const { mundo, codigo, alm1 } = await parejaCompleta();
   const motivos = [];
   vigilarLugar(mundo.nube('u1'), alm1, (m) => motivos.push(m));
   await microtareas();
-  await reclamar(mundo.nube('u3'), almacenEnMemoria(), { codigo, lugar: 'a' });
+  await mundo.nube('u3').escribir(`parejas/${codigo}`, { lugares: { a: 'u3' } }, { combinar: true });
   await microtareas();
   igual(motivos, ['reclamado']);
   igual(miPareja(alm1), null);

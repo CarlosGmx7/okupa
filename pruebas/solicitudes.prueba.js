@@ -6,7 +6,7 @@ import { almacenEnMemoria } from './pareja.prueba.js';
 import {
   ESPERA_SOLICITUD_MS, FRENO_RECHAZO_MS, estadoSolicitud, pedirLugar, miSolicitud, completarEntrada,
   entrarVencida, cancelarSolicitud, solicitudesDe, aprobarSolicitud, rechazarSolicitud,
-  crearPareja, unirse, miPareja,
+  solicitudApuntada, vigilarLugar, crearPareja, unirse, miPareja,
 } from '../js/nucleo/pareja.js';
 
 const DIA = 86400000;
@@ -260,4 +260,56 @@ prueba('solicitudes: solicitudesDe no muestra una ya aprobada que quedó sin bor
   await pedirLugar(mundo.nube('u3'), alm3, { codigo, lugar: 'a' });
   await aprobarSolicitud(mundo.nube('u1'), alm1, 'a');
   igual(await solicitudesDe(mundo.nube('u2'), miPareja(alm2)), []);
+});
+
+const microtareas = () => new Promise((r) => setTimeout(r, 0));
+
+prueba('solicitudes: solicitudApuntada dice sin esperar si este celular dejó una solicitud', async () => {
+  const { mundo, codigo, alm1, alm3 } = await parejaCompleta();
+  igual(solicitudApuntada(alm3), null);
+  igual(solicitudApuntada(alm1), null, 'un miembro no tiene solicitud');
+  await pedirLugar(mundo.nube('u3'), alm3, { codigo, lugar: 'a' });
+  igual(solicitudApuntada(alm3), { codigo, lugar: 'a' });
+  alm3.escribir(CLAVE, { codigo: 'malo', lugar: 'z' });
+  igual(solicitudApuntada(alm3), null, 'una clave dañada no cuenta');
+});
+
+prueba('solicitudes: al aprobar, el celular viejo se entera con el motivo «entregado»', async () => {
+  const { mundo, codigo, alm1, alm3 } = await parejaCompleta();
+  const motivos = [];
+  vigilarLugar(mundo.nube('u1'), alm1, (m) => motivos.push(m));
+  await microtareas();
+  await pedirLugar(mundo.nube('u3'), alm3, { codigo, lugar: 'a' });
+  await aprobarSolicitud(mundo.nube('u1'), alm1, 'a');
+  await microtareas();
+  igual(motivos, ['entregado']);
+});
+
+prueba('solicitudes: si el nuevo entra por los 7 días, el viejo se entera con «reclamado»', async () => {
+  const { mundo, codigo, alm1, alm3, rutaSol } = await parejaCompleta();
+  const motivos = [];
+  vigilarLugar(mundo.nube('u1'), alm1, (m) => motivos.push(m));
+  await microtareas();
+  await pedirLugar(mundo.nube('u3'), alm3, { codigo, lugar: 'a' });
+  await mundo.nube('u3').escribir(rutaSol('a'), { uid: 'u3', creada: Date.now() - 8 * DIA });
+  await entrarVencida(mundo.nube('u3'), alm3);
+  await microtareas();
+  igual(motivos, ['reclamado']);
+  igual(miPareja(alm1), null);
+});
+
+prueba('solicitudes: si aprobar falla, el celular viejo sigue enlazado y no queda marcado como entregado', async () => {
+  const { mundo, codigo, alm1, alm3, rutaSol } = await parejaCompleta();
+  await pedirLugar(mundo.nube('u3'), alm3, { codigo, lugar: 'a' });
+  mundo.desconectar();
+  await rechaza(aprobarSolicitud(mundo.nube('u1'), alm1, 'a'), 'sin-conexion');
+  mundo.reconectar();
+  igual(miPareja(alm1), { codigo, lugar: 'a' });
+  const motivos = [];
+  vigilarLugar(mundo.nube('u1'), alm1, (m) => motivos.push(m));
+  await microtareas();
+  await mundo.nube('u3').escribir(rutaSol('a'), { uid: 'u3', creada: Date.now() - 8 * DIA });
+  await entrarVencida(mundo.nube('u3'), alm3);
+  await microtareas();
+  igual(motivos, ['reclamado']);
 });

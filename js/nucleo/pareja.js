@@ -54,7 +54,11 @@ const anunciar = (enlazada) => {
   try { globalThis.dispatchEvent?.(new CustomEvent('okupa:pareja', { detail: { enlazada } })); } catch { /* sin eventos */ }
 };
 
+// Código de la pareja cuyo lugar este celular acaba de entregar al aprobar (para avisar 'entregado').
+let entregado = null;
+
 const recordar = (almacen, codigo, lugar) => {
+  entregado = null;
   almacen.escribir(CLAVE, { codigo, lugar });
   anunciar(true);
   return { codigo, lugar };
@@ -116,18 +120,6 @@ export async function lugaresDe(nube, codigo) {
   };
 }
 
-// Toma un lugar ocupado (p. ej. al cambiar de celular). El celular anterior queda fuera.
-export async function reclamar(nube, almacen, { codigo, lugar }) {
-  const limpio = exigirCodigo(codigo);
-  if (!LUGARES.includes(lugar)) throw new ErrorPareja('no-existe');
-  const { uid } = await nube.iniciar();
-  await nube.transaccion(async (tx) => {
-    if (!(await tx.leer(ruta(limpio)))) throw new ErrorPareja('no-existe');
-    tx.escribir(ruta(limpio), { lugares: { [lugar]: uid } }, { combinar: true });
-  });
-  return recordar(almacen, limpio, lugar);
-}
-
 // ── Cambio de celular con aprobación ────────────────────────────────────────────────────────────
 // El celular nuevo deja una solicitud en parejas/{codigo}/solicitudes/{lugar}. La aprueba el celular
 // que hoy tiene ese lugar; sin él, el nuevo entra a los 7 días si nadie la rechazó. Quién puede hacer
@@ -145,7 +137,7 @@ const aMs = (v) => {
 };
 const esPermiso = (e) => e?.codigo === 'permiso';
 
-function solicitudApuntada(almacen) {
+export function solicitudApuntada(almacen) {
   const s = almacen.leer(CLAVE_SOLICITUD, null);
   return s && normalizarCodigo(s.codigo) === s.codigo && LUGARES.includes(s.lugar) ? { codigo: s.codigo, lugar: s.lugar } : null;
 }
@@ -269,7 +261,14 @@ export async function aprobarSolicitud(nube, almacen, lugar) {
   if (lugar !== pareja.lugar) throw new ErrorPareja('no-es-tu-lugar');
   const solicitud = await nube.leer(rutaSolicitud(pareja.codigo, lugar));
   if (!solicitud || solicitud.rechazada != null || typeof solicitud.uid !== 'string') throw new ErrorPareja('sin-solicitud');
-  await nube.escribir(ruta(pareja.codigo), { lugares: { [lugar]: solicitud.uid } }, { combinar: true });
+  // Se marca antes de escribir: al cambiar el lugar, la escucha de este celular ya debe saber que fue entregado.
+  entregado = pareja.codigo;
+  try {
+    await nube.escribir(ruta(pareja.codigo), { lugares: { [lugar]: solicitud.uid } }, { combinar: true });
+  } catch (e) {
+    entregado = null;
+    throw e;
+  }
   salir(almacen);
 }
 
@@ -280,7 +279,8 @@ export async function rechazarSolicitud(nube, pareja, lugar) {
   await nube.escribir(rutaSolicitud(pareja.codigo, lugar), { rechazada: nube.horaServidor() }, { combinar: true });
 }
 
-// Avisa una sola vez si este celular pierde su lugar ('reclamado') o la pareja se borra ('borrada').
+// Avisa una sola vez si este celular pierde su lugar ('entregado' si él mismo lo aprobó, 'reclamado' si
+// otro celular entró por los 7 días) o la pareja se borra ('borrada').
 export function vigilarLugar(nube, almacen, alPerder) {
   const pareja = miPareja(almacen);
   if (!pareja) return () => {};
@@ -292,6 +292,8 @@ export function vigilarLugar(nube, almacen, alPerder) {
       if (!activo) return;
       activo = false;
       cancelar();
+      if (motivo === 'reclamado' && entregado === pareja.codigo) motivo = 'entregado';
+      entregado = null;
       salir(almacen);
       alPerder(motivo);
     };
