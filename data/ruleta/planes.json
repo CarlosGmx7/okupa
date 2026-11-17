@@ -311,7 +311,7 @@
     "id": "cas-med-003",
     "presupuesto": "medio",
     "lugar": "casa",
-    "texto": "Compren una baraja nueva y aprendan un juego de cartas que ninguno conozca, con las reglas sacadas de internet. Al mejor de cinco.",
+    "texto": "Aprendan con una baraja nueva un juego de cartas que ninguno conozca, con las reglas sacadas de internet. Al mejor de cinco.",
     "tipo": "juego"
   },
   {
@@ -360,7 +360,7 @@
     "id": "cas-med-010",
     "presupuesto": "medio",
     "lugar": "casa",
-    "texto": "Compren lo de unos envueltos o tamales y, mientras amarran las hojas, cuéntense cómo eran las navidades en su casa de infancia.",
+    "texto": "Pidan una pizza mediana y, por cada porción, cuenten algo que nunca le han contado a nadie. Porción sin secreto no se come.",
     "tipo": "conversacion"
   },
   {
@@ -374,7 +374,7 @@
     "id": "cas-med-012",
     "presupuesto": "medio",
     "lugar": "casa",
-    "texto": "Cada uno compra con $20.000 un detalle sorpresa para el otro, con una condición: tiene que ser para usar esta misma noche.",
+    "texto": "Hagan una lista de canciones llamada «esta noche», tres escogidas por cada uno, destapen un vino y pónganla en aleatorio a ver adónde los lleva.",
     "tipo": "picante"
   },
   {
@@ -395,7 +395,7 @@
     "id": "cas-med-015",
     "presupuesto": "medio",
     "lugar": "casa",
-    "texto": "Compren plastilina y jueguen a esculpir en un minuto una palabra que el otro tiene que adivinar. A diez puntos.",
+    "texto": "Esculpan en plastilina, en un minuto, una palabra que el otro tiene que adivinar. A diez puntos.",
     "tipo": "juego"
   },
   {
@@ -416,7 +416,7 @@
     "id": "cas-med-018",
     "presupuesto": "medio",
     "lugar": "casa",
-    "texto": "Compren en la panadería un postre pequeño por cada año juntos y, con cada uno, cuenten el mejor momento de ese año.",
+    "texto": "Por cada año juntos, un postrecito de la panadería: con cada uno, cuenten el mejor momento de ese año.",
     "tipo": "conversacion"
   },
   {
@@ -451,7 +451,7 @@
     "id": "cas-med-023",
     "presupuesto": "medio",
     "lugar": "casa",
-    "texto": "Compren un kit básico de bordado y aprendan con un tutorial. Cada uno termina una figura pequeña para regalársela al otro.",
+    "texto": "Aprendan a bordar con un kit básico y un tutorial; cada uno termina una figura pequeña para regalársela al otro.",
     "tipo": "cultura"
   },
   {
@@ -591,7 +591,7 @@
     "id": "cas-gra-001",
     "presupuesto": "grande",
     "lugar": "casa",
-    "texto": "Compren un buen corte de res, papas criollas y vino tinto, y monten una cena de restaurante con tres tiempos y la mesa bien puesta.",
+    "texto": "Monten una cena de restaurante con tres tiempos: buen corte de res, papas criollas, vino tinto y la mesa bien puesta.",
     "tipo": "cocinar"
   },
   {
@@ -605,8 +605,8 @@
     "id": "cas-gra-003",
     "presupuesto": "grande",
     "lugar": "casa",
-    "texto": "Pidan a domicilio una cena para dos con postre de chocolate y espumoso; la regla es comerla en la cama y sin cubiertos de por medio.",
-    "tipo": "picante"
+    "texto": "Contraten un bartender a domicilio por dos horas para que les enseñe tres cócteles, y cierren la noche con su favorito a la luz de las velas.",
+    "tipo": "cultura"
   },
   {
     "id": "cas-gra-004",
@@ -647,7 +647,7 @@
     "id": "cas-gra-009",
     "presupuesto": "grande",
     "lugar": "casa",
-    "texto": "Compren un kit de cervezas artesanales o vinos de distintas regiones y organicen una cata a ciegas con hoja de puntajes.",
+    "texto": "Organicen una cata a ciegas con un kit de cervezas artesanales o vinos de distintas regiones, con hoja de puntajes.",
     "tipo": "cultura"
   },
   {
@@ -675,7 +675,7 @@
     "id": "cas-gra-013",
     "presupuesto": "grande",
     "lugar": "casa",
-    "texto": "Compren un juego de misterio de asesinato para dos, pidan comida elegante y resuelvan el caso antes de que llegue el postre.",
+    "texto": "Resuelvan un juego de misterio de asesinato para dos mientras llega la comida elegante que pidieron; el caso se cierra antes del postre.",
     "tipo": "juego"
   },
   {
@@ -696,7 +696,7 @@
     "id": "cas-gra-016",
     "presupuesto": "grande",
     "lugar": "casa",
-    "texto": "Sushi de verdad: pescado fresco para sashimi, alga, arroz especial y esterilla nueva. Compitan por el rollo más bonito.",
+    "texto": "Sushi en casa: salmón ahumado, langostinos, aguacate, alga, arroz especial y esterilla nueva. Compitan por el rollo más bonito.",
     "tipo": "cocinar"
   },
   {
@@ -738,7 +738,7 @@
     "id": "cas-gra-022",
     "presupuesto": "grande",
     "lugar": "casa",
-    "texto": "Compren una joya sencilla o un detalle grabado con la fecha en que empezaron, y entréguenselo en una cena a la luz de las velas.",
+    "texto": "Encarguen entre los dos un detalle para la casa grabado con la fecha en que empezaron, y destápenlo juntos en una cena a la luz de las velas.",
     "tipo": "romantico"
   },
   {
@@ -780,7 +780,7 @@
     "id": "cas-gra-028",
     "presupuesto": "grande",
     "lugar": "casa",
-    "texto": "Compren un rompecabezas 3D de madera de los grandes y armen entre los dos una maqueta que quede de adorno en la sala.",
+    "texto": "Armen entre los dos un rompecabezas 3D de madera de los grandes, de esos que quedan de adorno en la sala.",
     "tipo": "juego"
   },
   {
@@ -808,21 +808,21 @@
     "id": "cas-gra-032",
     "presupuesto": "grande",
     "lugar": "casa",
-    "texto": "Estrenen sábanas de algodón fino y almohadas nuevas, pongan velas y una botella de espumoso, y declaren la noche sin salir del cuarto.",
+    "texto": "Pónganse elegantes, pidan una cena especial con espumoso y, entre plato y plato, bailen un bolero bien pegaditos, así no sepan.",
     "tipo": "picante"
   },
   {
     "id": "cas-gra-033",
     "presupuesto": "grande",
     "lugar": "casa",
-    "texto": "Compren dos ejemplares del mismo libro que les antoje y una botella de vino: hoy es la primera sesión de su club de lectura de dos.",
+    "texto": "Arranquen su club de lectura de dos: dos ejemplares del mismo libro, una botella de vino y la primera sesión hoy.",
     "tipo": "cultura"
   },
   {
     "id": "cas-gra-034",
     "presupuesto": "grande",
     "lugar": "casa",
-    "texto": "Compren un kit de magia y aprendan tres trucos cada uno; al final hagan función para el otro, con aplausos obligatorios.",
+    "texto": "Aprendan tres trucos de magia cada uno con un kit y hagan función para el otro, con aplausos obligatorios.",
     "tipo": "juego"
   },
   {
@@ -892,7 +892,7 @@
     "id": "sal-nul-002",
     "presupuesto": "nulo",
     "lugar": "salir",
-    "texto": "Vayan al parque más cercano y hagan una rutina de ejercicio en pareja: sentadillas, planchas y abdominales, uno cuenta y el otro sufre.",
+    "texto": "Salgan a buscar el árbol más grande y viejo del barrio o de un parque cercano, abrácenlo entre los dos para medirlo y pónganle nombre.",
     "tipo": "aire-libre"
   },
   {
@@ -1053,7 +1053,7 @@
     "id": "sal-nul-025",
     "presupuesto": "nulo",
     "lugar": "salir",
-    "texto": "Conviertan el gimnasio al aire libre del parque en un reto: cada máquina es una prueba y el que gane más escoge la cena de la casa.",
+    "texto": "Recorran el barrio buscando placas con fechas, calles de nombre raro y casas viejas; quien encuentre la fecha más antigua gana.",
     "tipo": "aventura"
   },
   {
@@ -1088,7 +1088,7 @@
     "id": "sal-nul-030",
     "presupuesto": "nulo",
     "lugar": "salir",
-    "texto": "En una banca concurrida del parque, susúrrense al oído lo que más les gusta del otro, sin que nadie más alcance a oír.",
+    "texto": "Recorran el parque buscando el rincón más bonito para una foto de beso; tómense cinco y en la casa escojan la ganadora.",
     "tipo": "picante"
   },
   {
@@ -1165,7 +1165,7 @@
     "id": "sal-nul-041",
     "presupuesto": "nulo",
     "lugar": "salir",
-    "texto": "Lleven un termo de tinto a un parque alto y planeen, peso por peso, qué harían si se ganaran la lotería.",
+    "texto": "Lleven de día un termo de tinto a un parque alto y planeen, peso por peso, qué harían si se ganaran la lotería.",
     "tipo": "conversacion"
   },
   {
@@ -1207,7 +1207,7 @@
     "id": "sal-med-004",
     "presupuesto": "medio",
     "lugar": "salir",
-    "texto": "Tomen juntos una clase suelta de rumba, spinning o boxeo en un parque o coliseo, y después un jugo natural para recuperarse.",
+    "texto": "Tomen juntos una clase suelta de rumba o spinning en un parque o coliseo (las hay gratis o baratas) y luego un jugo natural para recuperarse.",
     "tipo": "aventura"
   },
   {
@@ -1305,7 +1305,7 @@
     "id": "sal-med-018",
     "presupuesto": "medio",
     "lugar": "salir",
-    "texto": "Compren en la plaza frutas, queso y pan, cada uno tres cosas sin que el otro vea, y hagan picnic de domingo en el parque.",
+    "texto": "Picnic de domingo en el parque: en la plaza, cada uno compra tres cosas (fruta, queso, pan) sin que el otro vea, y se destapan allá.",
     "tipo": "aire-libre"
   },
   {
@@ -1389,7 +1389,7 @@
     "id": "sal-med-030",
     "presupuesto": "medio",
     "lugar": "salir",
-    "texto": "Compren una cometa e hilo y elévenla en el parque con más viento; no se van hasta que pase la altura de los árboles.",
+    "texto": "Eleven una cometa nueva en el parque con más viento; no se van hasta que pase la altura de los árboles.",
     "tipo": "aire-libre"
   },
   {
@@ -1445,7 +1445,7 @@
     "id": "sal-med-038",
     "presupuesto": "medio",
     "lugar": "salir",
-    "texto": "En un sitio de rumba de barrio, bailen solo las canciones lentas; las rápidas se las pasan sentados hablándose al oído.",
+    "texto": "Vayan a bailar a un sitio de rumba de barrio con una regla: en cada canción lenta se miran a los ojos, sin hablar, hasta que termine.",
     "tipo": "picante"
   },
   {
@@ -1459,7 +1459,7 @@
     "id": "sal-med-040",
     "presupuesto": "medio",
     "lugar": "salir",
-    "texto": "Tómense un tinto en la terminal de buses, miren los destinos del tablero y escojan entre los dos su próximo paseo.",
+    "texto": "Tómense un tinto en una cafetería con el mapa de Colombia en el celular y escojan juntos el próximo paseo, con fecha y presupuesto.",
     "tipo": "conversacion"
   },
   {
@@ -1473,14 +1473,14 @@
     "id": "sal-med-042",
     "presupuesto": "medio",
     "lugar": "salir",
-    "texto": "Pidan dos chocolates calientes en una cafetería con vista a la calle y escríbanse en servilletas, sin hablar, lo que sienten por el otro.",
+    "texto": "Pidan dos chocolates calientes en una cafetería con vista a la calle y escojan la pareja que pase más parecida a ustedes de viejitos.",
     "tipo": "romantico"
   },
   {
     "id": "sal-med-043",
     "presupuesto": "medio",
     "lugar": "salir",
-    "texto": "Noche de bolirana con cerveza: cada vez que alguien emboque la rana, el otro tiene que inventarle un piropo nuevo.",
+    "texto": "Jueguen bolirana con cerveza y una sola regla: todos los lanzamientos con la mano contraria. Quien emboque la rana escoge la canción.",
     "tipo": "juego"
   },
   {
@@ -1494,7 +1494,7 @@
     "id": "sal-gra-002",
     "presupuesto": "grande",
     "lugar": "salir",
-    "texto": "Paguen un día completo en un centro recreacional o club con piscina, toboganes y canchas, y prueben todo antes del almuerzo.",
+    "texto": "Paguen un recorrido guiado en bicicleta por la ciudad o sus alrededores, con bicis buenas alquiladas, y terminen con almuerzo de restaurante.",
     "tipo": "aventura"
   },
   {
@@ -1508,7 +1508,7 @@
     "id": "sal-gra-004",
     "presupuesto": "grande",
     "lugar": "salir",
-    "texto": "Compren boletas para un concierto que les guste a los dos y apréndanse juntos la letra de tres canciones antes de ir.",
+    "texto": "Consigan boletas para un concierto que les guste a los dos y apréndanse juntos la letra de tres canciones antes de ir.",
     "tipo": "cultura"
   },
   {
@@ -1550,7 +1550,7 @@
     "id": "sal-gra-010",
     "presupuesto": "grande",
     "lugar": "salir",
-    "texto": "Cabalgata de medio día por veredas cercanas, y al final almuerzo campesino con todo: sopa, seco y aguapanela.",
+    "texto": "Hagan una cabalgata por veredas cercanas o, si no hay, una caminata guiada por el campo; al final, almuerzo campesino con aguapanela.",
     "tipo": "aire-libre"
   },
   {
@@ -1620,7 +1620,7 @@
     "id": "sal-gra-020",
     "presupuesto": "grande",
     "lugar": "salir",
-    "texto": "Pasen una noche en un glamping cerca de la ciudad, con fogata, vino y cielo estrellado, solo los dos.",
+    "texto": "Pasen una noche en un glamping o, si no hay cerca, en una cabaña o hotel campestre de las afueras, con fogata o chimenea y vino.",
     "tipo": "picante"
   },
   {
@@ -1711,14 +1711,14 @@
     "id": "sal-gra-033",
     "presupuesto": "grande",
     "lugar": "salir",
-    "texto": "Vayan a un restaurante de cocina de autor y, con cada plato, cuenten qué recuerdo de infancia les trae ese sabor.",
-    "tipo": "conversacion"
+    "texto": "En un restaurante de cocina de autor, apuesten con cada plato cuál es el ingrediente secreto; al final, que el mesero diga quién ganó.",
+    "tipo": "juego"
   },
   {
     "id": "sal-gra-034",
     "presupuesto": "grande",
     "lugar": "salir",
-    "texto": "Reserven en un bar de cócteles de autor, pidan la ronda más cara de la carta y, por cada sorbo, díganse al oído algo que les gusta del otro.",
+    "texto": "Reserven en un bar de cócteles de autor, pidan la ronda más cara y que cada uno escoja el cóctel del otro según el plan que tiene para después.",
     "tipo": "picante"
   },
   {
@@ -1746,7 +1746,7 @@
     "id": "sal-gra-038",
     "presupuesto": "grande",
     "lugar": "salir",
-    "texto": "Pasen un domingo en una finca de recreo por día: piscina, almuerzo de leña y hamaca, sin mirar el reloj.",
+    "texto": "Pasen un domingo en una finca de recreo o, si no hay, en el club campestre más cercano: piscina, almuerzo de leña y hamaca.",
     "tipo": "aire-libre"
   },
   {
@@ -1774,7 +1774,7 @@
     "id": "sal-gra-042",
     "presupuesto": "grande",
     "lugar": "salir",
-    "texto": "Compren buenas sillas para una función de comedia en vivo, y en la cena de después traten de repetir los mejores chistes.",
+    "texto": "Siéntense en buenas sillas en una función de comedia en vivo, y en la cena de después traten de repetir los mejores chistes.",
     "tipo": "cultura"
   },
   {
