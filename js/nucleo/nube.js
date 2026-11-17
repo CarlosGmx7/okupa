@@ -1,6 +1,6 @@
 // Única puerta a internet de Okupa (Firebase). Lo demás de la app no depende de ella:
 // el SDK se descarga solo cuando una sección en línea lo pide.
-import { CONFIG_FIREBASE, EMULADORES } from './nube-config.js';
+import { CONFIG_FIREBASE, EMULADORES, CLAVE_RECAPTCHA } from './nube-config.js';
 
 export const VERSION_FIREBASE = '13.1.0';
 const ESPERA_MAXIMA_MS = 10000;
@@ -24,13 +24,15 @@ function traducir(e) {
   return new ErrorNube('desconocido', e.message);
 }
 
-async function cargarSdkDefecto() {
+// `importar` se puede cambiar en las pruebas; firebase-app-check.js solo se descarga si se va a usar.
+export async function cargarSdkDefecto({ conAppCheck = false, importar = (url) => import(url) } = {}) {
   const base = `https://www.gstatic.com/firebasejs/${VERSION_FIREBASE}`;
   try {
-    const [app, auth, fs] = await Promise.all([
-      import(`${base}/firebase-app.js`), import(`${base}/firebase-auth.js`), import(`${base}/firebase-firestore.js`),
+    const [app, auth, fs, appCheck] = await Promise.all([
+      importar(`${base}/firebase-app.js`), importar(`${base}/firebase-auth.js`), importar(`${base}/firebase-firestore.js`),
+      conAppCheck ? importar(`${base}/firebase-app-check.js`) : null,
     ]);
-    return { app, auth, fs };
+    return appCheck ? { app, auth, fs, appCheck } : { app, auth, fs };
   } catch (e) {
     throw new ErrorNube('sin-conexion', `No se pudo descargar Firebase: ${e.message}`);
   }
@@ -44,14 +46,28 @@ function conTiempoLimite(promesa) {
   return Promise.race([promesa, limite]).finally(() => clearTimeout(reloj));
 }
 
-export function crearNube({ config, emuladores = null, nombreApp = '[DEFAULT]', cargarSdk = cargarSdkDefecto } = {}) {
+const ANFITRIONES_LOCALES = ['localhost', '127.0.0.1'];
+
+// `anfitrion` y `global` se pueden inyectar en las pruebas.
+export function crearNube({
+  config, emuladores = null, nombreApp = '[DEFAULT]', cargarSdk = cargarSdkDefecto, claveRecaptcha = null,
+  anfitrion = globalThis.location?.hostname, global = globalThis,
+} = {}) {
   let preparado = null;
   let sdk = null;
+  // App Check solo con clave y sin emuladores (los emuladores no lo verifican).
+  const conAppCheck = Boolean(claveRecaptcha) && !emuladores;
 
   const preparar = () => (preparado ??= (async () => {
     if (!config) throw new ErrorNube('sin-config');
-    sdk = await cargarSdk();
+    sdk = await cargarSdk({ conAppCheck });
     const app = sdk.app.getApps().find((a) => a.name === nombreApp) || sdk.app.initializeApp(config, nombreApp);
+    if (conAppCheck) {
+      if (ANFITRIONES_LOCALES.includes(anfitrion)) global.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+      sdk.appCheck.initializeAppCheck(app, {
+        provider: new sdk.appCheck.ReCaptchaV3Provider(claveRecaptcha), isTokenAutoRefreshEnabled: true,
+      });
+    }
     const auth = sdk.auth.getAuth(app);
     const db = sdk.fs.getFirestore(app);
     if (emuladores) {
@@ -116,7 +132,7 @@ let unica = null;
 // La nube de la app, con la configuración de nube-config.js. Rechaza con ErrorNube si no se puede.
 export async function obtenerNube() {
   if (!CONFIG_FIREBASE) throw new ErrorNube('sin-config');
-  unica ??= crearNube({ config: CONFIG_FIREBASE, emuladores: EMULADORES });
+  unica ??= crearNube({ config: CONFIG_FIREBASE, emuladores: EMULADORES, claveRecaptcha: CLAVE_RECAPTCHA });
   await unica.iniciar();
   return unica;
 }

@@ -13,6 +13,10 @@ export const CONFIG_FIREBASE = {
 // { auth: 'http://127.0.0.1:9099', firestore: { host: '127.0.0.1', puerto: 8085 } }
 export const EMULADORES = null;
 
+// Clave del SITIO de reCAPTCHA v3 para App Check (dominio carlosgmx7.github.io). Es pública; la clave
+// secreta vive solo en Firebase → App Check. Con null, la app funciona sin App Check.
+export const CLAVE_RECAPTCHA = '6Lcj7SQuAAAAAIISCKXmLyGlTd8muPBQ0i0CO46_';
+
 // Clave pública de notificaciones web (Firebase → Configuración → Cloud Messaging → Certificados web push).
 // No es secreta. Mientras sea null, Ajustes dice que las notificaciones aún no están configuradas.
 export const CLAVE_VAPID = 'BHgVvZSMSnTD9FwiQXJyXVAz64WnaYflAfiJLq4010-Ay19msI7IBHxKEvEcF-bZTkORsrTZrB3hJmKNOyABz0s';
