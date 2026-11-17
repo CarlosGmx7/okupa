@@ -39,10 +39,11 @@ App para parejas (PWA y APK Android): Preguntas, Trivia, ¿Quién es más probab
 - `../okupa-apk/`: el proyecto de la APK. Lleva `twa-manifest.json`, `construir.ps1` (lo corre Carlos) y `android.keystore`, que nunca va a git.
 - `C:\bubblewrap\`: JDK 17, el SDK de Android (cmdline-tools en `tools\`) y la CLI de Bubblewrap.
 ## Próximo paso
-Hacer la v22 de Seguridad con brainstorming junto a Carlos. Son dos cosas: App Check (reCAPTCHA v3, con pasos de Carlos en la consola) y un cambio de celular que no deje leer lo del otro. Se crea la rama `v22-seguridad` desde `main` en un worktree `../okupa-v22`, con uniones de `node_modules` hacia `okupa-app` y una copia de `correr-una.html`. Carlos tiene pendiente decidir si se agrega un aviso «hay una APK nueva» dentro de la app.
+Seguir el brainstorming de la v22 de Seguridad (rama `v22-seguridad`, worktree `../okupa-v22`). Ya decidido con Carlos: solo el celular viejo del mismo lugar aprueba al nuevo; sin él, la solicitud se aprueba sola a los 7 días y cualquiera de los dos celulares puede rechazarla; la pareja la ve pero no la acelera. Falta: presentar enfoques, escribir el diseño y App Check (reCAPTCHA v3, con pasos de Carlos en la consola).
+Después, en este orden (cada uno con su brainstorming): guardar el resumen de una ronda en el celular y mostrar si el otro también lo guardó; aviso «ya aceptaron tu juego» (ojo: los avisos salen cada 15 min y la sala caduca a los 30); subir cada tema de ¿Quién es más probable? de 31 a 200 frases no genéricas, investigando en Reddit y redes; modo nuevo «Ruleta de citas» con presupuesto (nulo, medio, grande). Pendiente de Carlos: decidir el aviso «hay una APK nueva».
 ## Cómo verificar
-- App: desde la carpeta de la rama, `python herramientas/servidor.py <puerto>`. Luego abrir http://127.0.0.1:<puerto>/pruebas.html, que debe decir "0 fallaron" (612 pruebas).
-- Reglas: en `firebase/`, correr `node emuladores.mjs exec "node --test pruebas/ ../servidor/notificaciones/pasada.test.mjs ../servidor/notificaciones/logica.test.mjs"` (133 pruebas) y después cerrar el java del puerto 8085.
+- App: desde la carpeta de la rama, `python herramientas/servidor.py <puerto>`. Luego abrir http://127.0.0.1:<puerto>/pruebas.html, que debe decir "0 fallaron" (625 pruebas).
+- Reglas: en `firebase/`, correr `node emuladores.mjs exec "node --test pruebas/ ../servidor/notificaciones/pasada.test.mjs ../servidor/notificaciones/logica.test.mjs"` (136 pruebas) y después cerrar el java del puerto 8085.
 - Publicado: `https://carlosgmx7.github.io/okupa/sw.js` muestra la `CACHE` actual.
 ## Cuidado con
 - En cada cambio:
@@ -58,3 +59,4 @@ Hacer la v22 de Seguridad con brainstorming junto a Carlos. Son dos cosas: App C
   - Gradle no corre en el sandbox de Claude.
   - Nunca dejar `source.properties` en la raíz del SDK.
 - APK nueva: siempre con la misma llave y subiendo `appVersionCode`. Los cambios web llegan solos a la APK.
+  - probar en los dos celulares una ronda de ¿Quién es más probable? hasta el resumen (la causa exacta del botón en su celular no se pudo reproducir), el mapa en la calle, un aviso de las 8:00 y una carta.
