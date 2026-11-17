@@ -65,7 +65,7 @@ export function crearNube({
     if (conAppCheck) {
       if (ANFITRIONES_LOCALES.includes(anfitrion)) global.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
       sdk.appCheck.initializeAppCheck(app, {
-        provider: new sdk.appCheck.ReCaptchaV3Provider(claveRecaptcha), isTokenAutoRefreshEnabled: true,
+        provider: new sdk.appCheck.ReCaptchaEnterpriseProvider(claveRecaptcha), isTokenAutoRefreshEnabled: true,
       });
     }
     const auth = sdk.auth.getAuth(app);

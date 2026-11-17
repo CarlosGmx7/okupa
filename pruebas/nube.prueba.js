@@ -9,7 +9,7 @@ function sdkFalso(llamadas) {
     auth: { getAuth: () => { llamadas.push('getAuth'); return auth; }, connectAuthEmulator() { llamadas.push('connectAuthEmulator'); }, signInAnonymously: async () => {} },
     fs: { getFirestore: () => { llamadas.push('getFirestore'); return {}; }, connectFirestoreEmulator() {}, serverTimestamp: () => 'ts' },
     appCheck: {
-      ReCaptchaV3Provider: class { constructor(clave) { this.clave = clave; } },
+      ReCaptchaEnterpriseProvider: class { constructor(clave) { this.clave = clave; } },
       initializeAppCheck: (app, opciones) => { llamadas.push({ appCheck: opciones }); },
     },
   };

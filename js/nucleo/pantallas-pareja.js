@@ -134,7 +134,7 @@ function pintarEspera(zona, ctx, nube, alEnlazar) {
       pantalla('Rechazaron la solicitud', [
         puede ? 'Ya puedes volver a pedirla.'
           : s.reintentoMs === null ? 'Podrás volver a pedirla en 24 horas.'
-            : `Puedes volver a pedirla el ${fecha(s.reintentoMs, FECHA_CON_HORA)}.`,
+            : `Puedes volver a pedirla el ${fecha(s.reintentoMs, FECHA_CON_HORA).replace(/\.$/, '')}.`,
       ],
       puede ? boton('Volver a pedir', async () => {
         await pedirLugar(nube, ctx.almacen, { codigo: s.codigo, lugar: s.lugar });

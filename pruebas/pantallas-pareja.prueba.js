@@ -208,6 +208,7 @@ prueba('pantalla pareja: si la rechazan lo dice y explica cuándo puede volver a
   await otraVez.pintar();
   await hasta(() => otraVez.div.textContent.includes('Rechazaron la solicitud'));
   verdadero(otraVez.div.textContent.includes(`Puedes volver a pedirla el ${fechaConHora(sol.rechazada + DIA)}`), otraVez.div.textContent);
+  verdadero(!otraVez.div.textContent.includes('..'), 'sin doble punto: ' + otraVez.div.textContent);
   verdadero(!boton(otraVez.div, 'Volver a pedir'), 'antes de 24 h no se puede pedir');
   verdadero(!boton(otraVez.div, 'Entrar'), 'no puede entrar');
 });
