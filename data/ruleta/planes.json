@@ -1,0 +1,1787 @@
+[
+  {
+    "id": "cas-nul-001",
+    "presupuesto": "nulo",
+    "lugar": "casa",
+    "texto": "Cocinen arepas rellenas con lo que haya en la nevera y califíquense como en un reality de cocina, con jurado estricto y todo.",
+    "tipo": "cocinar"
+  },
+  {
+    "id": "cas-nul-002",
+    "presupuesto": "nulo",
+    "lugar": "casa",
+    "texto": "Armen un fuerte con cobijas y cojines en la sala, apaguen la luz y cuéntense historias de miedo con la linterna del celular.",
+    "tipo": "juego"
+  },
+  {
+    "id": "cas-nul-003",
+    "presupuesto": "nulo",
+    "lugar": "casa",
+    "texto": "Busquen las fotos más viejas que tengan en el celular y cada uno cuente qué estaba pensando ese día. Gana el recuerdo más absurdo.",
+    "tipo": "conversacion"
+  },
+  {
+    "id": "cas-nul-004",
+    "presupuesto": "nulo",
+    "lugar": "casa",
+    "texto": "Pongan la canción que sonaba cuando se conocieron y bailen en la cocina descalzos, así ninguno se sepa los pasos.",
+    "tipo": "romantico"
+  },
+  {
+    "id": "cas-nul-005",
+    "presupuesto": "nulo",
+    "lugar": "casa",
+    "texto": "Escondan un papelito con un premio prometido en algún rincón de la casa y guíense con «frío» o «caliente». El premio lo decide quien escondió.",
+    "tipo": "picante"
+  },
+  {
+    "id": "cas-nul-006",
+    "presupuesto": "nulo",
+    "lugar": "casa",
+    "texto": "Torneo de piedra, papel o tijera a 21 puntos. Quien pierda prepara el tinto de mañana y lo lleva hasta la cama.",
+    "tipo": "juego"
+  },
+  {
+    "id": "cas-nul-007",
+    "presupuesto": "nulo",
+    "lugar": "casa",
+    "texto": "Inventen una receta con solo cinco cosas de la alacena, pónganle un nombre pomposo y emplátenla como en restaurante elegante.",
+    "tipo": "cocinar"
+  },
+  {
+    "id": "cas-nul-008",
+    "presupuesto": "nulo",
+    "lugar": "casa",
+    "texto": "Escojan un país al azar en el mapa del celular: esta noche la música, la comida improvisada y un dato curioso de cada uno son de allá.",
+    "tipo": "cultura"
+  },
+  {
+    "id": "cas-nul-009",
+    "presupuesto": "nulo",
+    "lugar": "casa",
+    "texto": "Escriban tres preguntas que nunca se han atrevido a hacerse, dóblenlas en papelitos y saquen una por turno. Prohibido pasar.",
+    "tipo": "conversacion"
+  },
+  {
+    "id": "cas-nul-010",
+    "presupuesto": "nulo",
+    "lugar": "casa",
+    "texto": "Jueguen charadas solo con telenovelas y películas colombianas. Quien pierda cierra la noche imitando al villano más famoso.",
+    "tipo": "juego"
+  },
+  {
+    "id": "cas-nul-011",
+    "presupuesto": "nulo",
+    "lugar": "casa",
+    "texto": "Apaguen todas las luces, prendan velas o la linterna del celular y cenen lo que haya sobre una sábana en el piso, como picnic bajo techo.",
+    "tipo": "romantico"
+  },
+  {
+    "id": "cas-nul-012",
+    "presupuesto": "nulo",
+    "lugar": "casa",
+    "texto": "Pongan por turnos una canción que el otro debe bailar de la forma más seductora posible. Se vale reírse; rendirse no.",
+    "tipo": "picante"
+  },
+  {
+    "id": "cas-nul-013",
+    "presupuesto": "nulo",
+    "lugar": "casa",
+    "texto": "Saquen dos sillas al patio, la terraza o la ventana más grande con un tinto y adivinen qué pasa en cada ventana prendida del frente.",
+    "tipo": "aire-libre"
+  },
+  {
+    "id": "cas-nul-014",
+    "presupuesto": "nulo",
+    "lugar": "casa",
+    "texto": "Crispetas en olla en tres sabores con lo que haya: panela, sal con limón y uno que nunca se atreverían a probar. Voten el mejor.",
+    "tipo": "cocinar"
+  },
+  {
+    "id": "cas-nul-015",
+    "presupuesto": "nulo",
+    "lugar": "casa",
+    "texto": "Jueguen «¿Qué prefieres?» con opciones absurdas, y quien responda tiene que defender su elección durante un minuto completo.",
+    "tipo": "juego"
+  },
+  {
+    "id": "cas-nul-016",
+    "presupuesto": "nulo",
+    "lugar": "casa",
+    "texto": "Cuéntense el peor oso que han hecho en la vida, con lujo de detalles. Luego el segundo peor. Paren cuando alguien llore de la risa.",
+    "tipo": "conversacion"
+  },
+  {
+    "id": "cas-nul-017",
+    "presupuesto": "nulo",
+    "lugar": "casa",
+    "texto": "Saquen cualquier libro de la casa, ábranlo en una página al azar y léanse en voz alta con voz de locutor de radio de los ochenta.",
+    "tipo": "cultura"
+  },
+  {
+    "id": "cas-nul-018",
+    "presupuesto": "nulo",
+    "lugar": "casa",
+    "texto": "Escríbanse una carta corta a mano, como si estuvieran lejos, y léansela al otro en voz alta mirándolo a los ojos.",
+    "tipo": "romantico"
+  },
+  {
+    "id": "cas-nul-019",
+    "presupuesto": "nulo",
+    "lugar": "casa",
+    "texto": "Cinco minutos para construir la torre más alta con lo que haya en la cocina: vasos, cucharas, cajas. Gana la que siga en pie.",
+    "tipo": "juego"
+  },
+  {
+    "id": "cas-nul-020",
+    "presupuesto": "nulo",
+    "lugar": "casa",
+    "texto": "Masajes por turnos de diez minutos, con la crema que haya y las luces bajitas. El que se duerma primero debe uno doble mañana.",
+    "tipo": "picante"
+  },
+  {
+    "id": "cas-nul-021",
+    "presupuesto": "nulo",
+    "lugar": "casa",
+    "texto": "Esta noche duermen en la sala, con el colchón en el piso como si fuera camping, y nada de celular después de las diez.",
+    "tipo": "aventura"
+  },
+  {
+    "id": "cas-nul-022",
+    "presupuesto": "nulo",
+    "lugar": "casa",
+    "texto": "Desayuno a la hora de la comida: calentado, huevos pericos y chocolate, servidos como en hotel, con servilleta doblada y todo.",
+    "tipo": "cocinar"
+  },
+  {
+    "id": "cas-nul-023",
+    "presupuesto": "nulo",
+    "lugar": "casa",
+    "texto": "Diseñen en una hoja el viaje soñado de los dos: destino, qué comer, dónde dormir y cuánto ahorrar al mes para lograrlo.",
+    "tipo": "conversacion"
+  },
+  {
+    "id": "cas-nul-024",
+    "presupuesto": "nulo",
+    "lugar": "casa",
+    "texto": "Escóndanse por turnos un objeto cualquiera en la casa; el que lo encuentre en menos de dos minutos escoge la próxima cena.",
+    "tipo": "juego"
+  },
+  {
+    "id": "cas-nul-025",
+    "presupuesto": "nulo",
+    "lugar": "casa",
+    "texto": "Armen una lista con las canciones que les recuerdan momentos juntos y, con cada una, cuenten qué recuerdan. Sin saltarse ninguna.",
+    "tipo": "romantico"
+  },
+  {
+    "id": "cas-nul-026",
+    "presupuesto": "nulo",
+    "lugar": "casa",
+    "texto": "Busquen un documental gratis sobre algo de lo que ninguno sepa nada, tomen apuntes y al final háganse un quiz de cinco preguntas.",
+    "tipo": "cultura"
+  },
+  {
+    "id": "cas-nul-027",
+    "presupuesto": "nulo",
+    "lugar": "casa",
+    "texto": "Siembren en una matera una semilla de la cocina (aguacate, fríjol o limón), pónganle nombre a la mata y túrnense para regarla.",
+    "tipo": "aire-libre"
+  },
+  {
+    "id": "cas-nul-028",
+    "presupuesto": "nulo",
+    "lugar": "casa",
+    "texto": "Karaoke sin karaoke: letra en el celular, cucharón de micrófono y el otro de jurado con puntajes del 1 al 10. Después cambian.",
+    "tipo": "juego"
+  },
+  {
+    "id": "cas-nul-029",
+    "presupuesto": "nulo",
+    "lugar": "casa",
+    "texto": "Escriban en papelitos cinco cosas que les encanta que el otro les haga, revuélvanlos y saquen uno cada media hora.",
+    "tipo": "picante"
+  },
+  {
+    "id": "cas-nul-030",
+    "presupuesto": "nulo",
+    "lugar": "casa",
+    "texto": "Respondan por turnos «¿qué fue lo primero que pensaste de mí?» y «¿cuándo supiste que esto iba en serio?». Nada de respuestas cortas.",
+    "tipo": "conversacion"
+  },
+  {
+    "id": "cas-nul-031",
+    "presupuesto": "nulo",
+    "lugar": "casa",
+    "texto": "Hagan tortillas o pan de sartén con harina, agua y sal. Mientras reposa la masa, jueguen cartas: el que gane escoge el relleno.",
+    "tipo": "cocinar"
+  },
+  {
+    "id": "cas-nul-032",
+    "presupuesto": "nulo",
+    "lugar": "casa",
+    "texto": "Parqués, dominó o cartas con apuestas que no cuestan: lavar los platos, escoger la música o un masaje de cinco minutos.",
+    "tipo": "juego"
+  },
+  {
+    "id": "cas-nul-033",
+    "presupuesto": "nulo",
+    "lugar": "casa",
+    "texto": "Recreen su primera cita en la sala: la comida más parecida que puedan, la ropa de ese día si se acuerdan y las mismas preguntas nerviosas.",
+    "tipo": "romantico"
+  },
+  {
+    "id": "cas-nul-034",
+    "presupuesto": "nulo",
+    "lugar": "casa",
+    "texto": "Dibujen el uno al otro en diez minutos, cuelguen los retratos con cinta y hagan la inauguración de la exposición con tinto.",
+    "tipo": "cultura"
+  },
+  {
+    "id": "cas-nul-035",
+    "presupuesto": "nulo",
+    "lugar": "casa",
+    "texto": "Declaren apagón voluntario: dos horas sin pantallas ni bombillos, solo velas, cuentos y lo que se les vaya ocurriendo.",
+    "tipo": "aventura"
+  },
+  {
+    "id": "cas-nul-036",
+    "presupuesto": "nulo",
+    "lugar": "casa",
+    "texto": "Entrevístense como si el otro fuera famoso: infancia, primer amor, peor fracaso. Graben el audio para oírlo dentro de un año.",
+    "tipo": "conversacion"
+  },
+  {
+    "id": "cas-nul-037",
+    "presupuesto": "nulo",
+    "lugar": "casa",
+    "texto": "Cada uno busca en la casa un objeto que represente al otro y tiene un minuto para defender por qué. El más creativo gana un beso.",
+    "tipo": "juego"
+  },
+  {
+    "id": "cas-nul-038",
+    "presupuesto": "nulo",
+    "lugar": "casa",
+    "texto": "Cata a ciegas con lo que haya: frutas, salsas, galletas. Con los ojos vendados, adivinen qué es y pónganse puntaje.",
+    "tipo": "cocinar"
+  },
+  {
+    "id": "cas-nul-039",
+    "presupuesto": "nulo",
+    "lugar": "casa",
+    "texto": "Verdad o reto en versión pareja: los retos solo valen dentro de la casa y ninguna pregunta está prohibida.",
+    "tipo": "picante"
+  },
+  {
+    "id": "cas-nul-040",
+    "presupuesto": "nulo",
+    "lugar": "casa",
+    "texto": "Lávense el pelo el uno al otro con calma, como en peluquería fina, con masaje en la cabeza y toalla tibia incluidos.",
+    "tipo": "romantico"
+  },
+  {
+    "id": "cas-nul-041",
+    "presupuesto": "nulo",
+    "lugar": "casa",
+    "texto": "Asómense juntos a ver el atardecer desde la ventana o la terraza, con algo caliente, y prohibido hablar hasta que oscurezca del todo.",
+    "tipo": "aire-libre"
+  },
+  {
+    "id": "cas-nul-042",
+    "presupuesto": "nulo",
+    "lugar": "casa",
+    "texto": "Dibujen una foto de los dos en un cartón, córtenlo en veinte pedazos y ármenlo contra reloj. Luego lo arma el otro y comparan tiempos.",
+    "tipo": "juego"
+  },
+  {
+    "id": "cas-med-001",
+    "presupuesto": "medio",
+    "lugar": "casa",
+    "texto": "Noche de empanadas: compren masa y relleno, armen la más fea posible y premien a la fea que quede más rica.",
+    "tipo": "cocinar"
+  },
+  {
+    "id": "cas-med-002",
+    "presupuesto": "medio",
+    "lugar": "casa",
+    "texto": "Hamburguesas caseras en competencia: cada uno arma la suya con un ingrediente secreto y el otro la juzga con los ojos cerrados.",
+    "tipo": "cocinar"
+  },
+  {
+    "id": "cas-med-003",
+    "presupuesto": "medio",
+    "lugar": "casa",
+    "texto": "Compren una baraja nueva y aprendan un juego de cartas que ninguno conozca, con las reglas sacadas de internet. Al mejor de cinco.",
+    "tipo": "juego"
+  },
+  {
+    "id": "cas-med-004",
+    "presupuesto": "medio",
+    "lugar": "casa",
+    "texto": "Una botella de vino sencillo, unos quesos y mantel: apaguen el televisor y hagan una cena de dos tiempos con los mejores cubiertos.",
+    "tipo": "romantico"
+  },
+  {
+    "id": "cas-med-005",
+    "presupuesto": "medio",
+    "lugar": "casa",
+    "texto": "Compren aceite para masajes y una vela aromática, y reserven la noche para masajes por turnos con temporizador de quince minutos.",
+    "tipo": "picante"
+  },
+  {
+    "id": "cas-med-006",
+    "presupuesto": "medio",
+    "lugar": "casa",
+    "texto": "Escojan un álbum completo que ninguno haya oído, compren pasabocas y escúchenlo de principio a fin, calificando canción por canción.",
+    "tipo": "cultura"
+  },
+  {
+    "id": "cas-med-007",
+    "presupuesto": "medio",
+    "lugar": "casa",
+    "texto": "Compren una torre de bloques de madera y escriban un reto en cada bloque: el que saque uno cumple el reto o pierde la ronda.",
+    "tipo": "juego"
+  },
+  {
+    "id": "cas-med-008",
+    "presupuesto": "medio",
+    "lugar": "casa",
+    "texto": "Pizza casera desde la masa: cada uno decora la mitad en secreto para sorprender al otro, y se califica originalidad y sabor.",
+    "tipo": "cocinar"
+  },
+  {
+    "id": "cas-med-009",
+    "presupuesto": "medio",
+    "lugar": "casa",
+    "texto": "Compren flores en la plaza de mercado, llenen la casa con ellas y cenen algo sencillo rodeados de flores y velas.",
+    "tipo": "romantico"
+  },
+  {
+    "id": "cas-med-010",
+    "presupuesto": "medio",
+    "lugar": "casa",
+    "texto": "Compren una caja de chocolates y, por cada uno que se coman, respondan una pregunta sobre el futuro: casa, viajes, hijos, vejez.",
+    "tipo": "conversacion"
+  },
+  {
+    "id": "cas-med-011",
+    "presupuesto": "medio",
+    "lugar": "casa",
+    "texto": "Dominó o parqués con apuesta de verdad pero pequeña: $2.000 por partida, y con lo que se gane se compra el desayuno de mañana.",
+    "tipo": "juego"
+  },
+  {
+    "id": "cas-med-012",
+    "presupuesto": "medio",
+    "lugar": "casa",
+    "texto": "Cada uno compra con $20.000 un detalle sorpresa para el otro, con una condición: tiene que ser para usar esta misma noche.",
+    "tipo": "picante"
+  },
+  {
+    "id": "cas-med-013",
+    "presupuesto": "medio",
+    "lugar": "casa",
+    "texto": "Fondue de chocolate con fresas, banano y galletas. Por cada pedazo que se caiga en la olla, el dueño paga penitencia.",
+    "tipo": "cocinar"
+  },
+  {
+    "id": "cas-med-014",
+    "presupuesto": "medio",
+    "lugar": "casa",
+    "texto": "Noche de cine mudo: busquen una película muda clásica gratis, compren crispetas y pongan ustedes los diálogos en voz alta.",
+    "tipo": "cultura"
+  },
+  {
+    "id": "cas-med-015",
+    "presupuesto": "medio",
+    "lugar": "casa",
+    "texto": "Compren plastilina y jueguen a esculpir en un minuto una palabra que el otro tiene que adivinar. A diez puntos.",
+    "tipo": "juego"
+  },
+  {
+    "id": "cas-med-016",
+    "presupuesto": "medio",
+    "lugar": "casa",
+    "texto": "Monten peluquería en casa: mascarilla para el pelo, uñas pintadas y el otro de cliente exigente. Luego cambian de silla.",
+    "tipo": "romantico"
+  },
+  {
+    "id": "cas-med-017",
+    "presupuesto": "medio",
+    "lugar": "casa",
+    "texto": "Compren camarones o mejillones y preparen un arroz a la marinera con música costeña de fondo y la mesa bien puesta.",
+    "tipo": "cocinar"
+  },
+  {
+    "id": "cas-med-018",
+    "presupuesto": "medio",
+    "lugar": "casa",
+    "texto": "Compren en la panadería un postre pequeño por cada año juntos y, con cada uno, cuenten el mejor momento de ese año.",
+    "tipo": "conversacion"
+  },
+  {
+    "id": "cas-med-019",
+    "presupuesto": "medio",
+    "lugar": "casa",
+    "texto": "Descarguen un videojuego cooperativo barato para jugar en el mismo sofá y no se acuesten hasta pasar juntos el primer jefe.",
+    "tipo": "juego"
+  },
+  {
+    "id": "cas-med-020",
+    "presupuesto": "medio",
+    "lugar": "casa",
+    "texto": "Escriban cupones canjeables para el otro (un beso largo, un masaje, un deseo), péguenlos a unos chocolates y canjeen uno hoy.",
+    "tipo": "picante"
+  },
+  {
+    "id": "cas-med-021",
+    "presupuesto": "medio",
+    "lugar": "casa",
+    "texto": "Arepas de huevo desde cero, con el aceite bien caliente y un reto: quién logra meter el huevo y freírla sin que se rompa.",
+    "tipo": "cocinar"
+  },
+  {
+    "id": "cas-med-022",
+    "presupuesto": "medio",
+    "lugar": "casa",
+    "texto": "Camping en la sala: carpa prestada o sábanas sobre sillas, salchichas en la estufa, masmelos y cuentos de espantos.",
+    "tipo": "aventura"
+  },
+  {
+    "id": "cas-med-023",
+    "presupuesto": "medio",
+    "lugar": "casa",
+    "texto": "Compren un kit básico de bordado y aprendan con un tutorial. Cada uno termina una figura pequeña para regalársela al otro.",
+    "tipo": "cultura"
+  },
+  {
+    "id": "cas-med-024",
+    "presupuesto": "medio",
+    "lugar": "casa",
+    "texto": "Restaurante en casa: uno cocina, el otro hace de mesero con trapo en el brazo; la carta va escrita a mano y la propina es en besos.",
+    "tipo": "romantico"
+  },
+  {
+    "id": "cas-med-025",
+    "presupuesto": "medio",
+    "lugar": "casa",
+    "texto": "Bingo de pareja con cartones hechos a mano y premios de la tienda: quien cante bingo escoge el plan del fin de semana.",
+    "tipo": "juego"
+  },
+  {
+    "id": "cas-med-026",
+    "presupuesto": "medio",
+    "lugar": "casa",
+    "texto": "Ceviche de camarón con limón, cebolla y cilantro, acompañado de patacones que hagan entre los dos. Uno pela, el otro aplasta.",
+    "tipo": "cocinar"
+  },
+  {
+    "id": "cas-med-027",
+    "presupuesto": "medio",
+    "lugar": "casa",
+    "texto": "Compren media de aguardiente o una botella de vino y jueguen «yo nunca» en versión pareja: cada confesión, un trago.",
+    "tipo": "conversacion"
+  },
+  {
+    "id": "cas-med-028",
+    "presupuesto": "medio",
+    "lugar": "casa",
+    "texto": "Fresas, chocolate y miel: uno con los ojos vendados adivina qué le dan a probar, luego cambian. Lo demás, ustedes verán.",
+    "tipo": "picante"
+  },
+  {
+    "id": "cas-med-029",
+    "presupuesto": "medio",
+    "lugar": "casa",
+    "texto": "Compren dos lienzos pequeños y pinturas, pongan música y pinten un retrato del otro en treinta minutos. Cuélguenlos en la sala.",
+    "tipo": "cultura"
+  },
+  {
+    "id": "cas-med-030",
+    "presupuesto": "medio",
+    "lugar": "casa",
+    "texto": "Inflen una bolsa de globos y armen retos absurdos: reventarlos sin manos, mantenerlos en el aire, pasarlos sin usar los brazos.",
+    "tipo": "juego"
+  },
+  {
+    "id": "cas-med-031",
+    "presupuesto": "medio",
+    "lugar": "casa",
+    "texto": "Un ajiaco o un sancocho de domingo, pero entre semana, con todos los aliños, y cómanlo en la mesa con mantel y sin celulares.",
+    "tipo": "cocinar"
+  },
+  {
+    "id": "cas-med-032",
+    "presupuesto": "medio",
+    "lugar": "casa",
+    "texto": "Escríbanse una canción cursi con la melodía de una conocida, compren un ponqué pequeño y hagan la presentación oficial.",
+    "tipo": "romantico"
+  },
+  {
+    "id": "cas-med-033",
+    "presupuesto": "medio",
+    "lugar": "casa",
+    "texto": "Saquen una colchoneta al patio, la terraza o junto a la ventana, pidan una pizza mediana y busquen constelaciones con una app.",
+    "tipo": "aire-libre"
+  },
+  {
+    "id": "cas-med-034",
+    "presupuesto": "medio",
+    "lugar": "casa",
+    "texto": "Cada uno prepara quince preguntas sobre el otro, estilo concurso de televisión. Quien gane se lleva un postre comprado.",
+    "tipo": "juego"
+  },
+  {
+    "id": "cas-med-035",
+    "presupuesto": "medio",
+    "lugar": "casa",
+    "texto": "Helado casero sin máquina: crema de leche, leche condensada y fruta. Inventen dos sabores y pónganle nombre de heladería a cada uno.",
+    "tipo": "cocinar"
+  },
+  {
+    "id": "cas-med-036",
+    "presupuesto": "medio",
+    "lugar": "casa",
+    "texto": "Compren una libreta bonita y empiecen el diario de los dos: hoy escriban la primera página sobre cómo están y qué sueñan.",
+    "tipo": "conversacion"
+  },
+  {
+    "id": "cas-med-037",
+    "presupuesto": "medio",
+    "lugar": "casa",
+    "texto": "Preparen cócteles caseros por turnos; cada cóctel viene con una pregunta atrevida que el otro tiene que contestar sin rodeos.",
+    "tipo": "picante"
+  },
+  {
+    "id": "cas-med-038",
+    "presupuesto": "medio",
+    "lugar": "casa",
+    "texto": "Aprendan los pasos básicos de salsa o bachata con un video, compren algo de picar y practiquen hasta que salga una vuelta limpia.",
+    "tipo": "cultura"
+  },
+  {
+    "id": "cas-med-039",
+    "presupuesto": "medio",
+    "lugar": "casa",
+    "texto": "Noche de experimentos: compren lo de un volcán de bicarbonato, slime y cristales de azúcar, y apuesten cuál sale mejor.",
+    "tipo": "aventura"
+  },
+  {
+    "id": "cas-med-040",
+    "presupuesto": "medio",
+    "lugar": "casa",
+    "texto": "Con chocolate caliente y queso, escriban cada uno veinte cosas que aman del otro y léanlas intercaladas, una y una.",
+    "tipo": "romantico"
+  },
+  {
+    "id": "cas-med-041",
+    "presupuesto": "medio",
+    "lugar": "casa",
+    "texto": "Compren pan de panadería, quesos y carnes frías, y armen la tabla más elegante de su vida para comer en el piso de la sala.",
+    "tipo": "cocinar"
+  },
+  {
+    "id": "cas-med-042",
+    "presupuesto": "medio",
+    "lugar": "casa",
+    "texto": "Búsqueda del tesoro con pistas en verso por toda la casa; al final espera un detalle de menos de $30.000.",
+    "tipo": "juego"
+  },
+  {
+    "id": "cas-gra-001",
+    "presupuesto": "grande",
+    "lugar": "casa",
+    "texto": "Compren un buen corte de res, papas criollas y vino tinto, y monten una cena de restaurante con tres tiempos y la mesa bien puesta.",
+    "tipo": "cocinar"
+  },
+  {
+    "id": "cas-gra-002",
+    "presupuesto": "grande",
+    "lugar": "casa",
+    "texto": "Contraten un chef a domicilio por una noche y siéntense como clientes; pregúntenle todo y aprendan su plato estrella.",
+    "tipo": "romantico"
+  },
+  {
+    "id": "cas-gra-003",
+    "presupuesto": "grande",
+    "lugar": "casa",
+    "texto": "Reserven la noche: sábanas nuevas, velas, aceite para masaje, una botella de vino y los celulares apagados en otra habitación.",
+    "tipo": "picante"
+  },
+  {
+    "id": "cas-gra-004",
+    "presupuesto": "grande",
+    "lugar": "casa",
+    "texto": "Langostinos o salmón en salsa de mantequilla y ajo, con vino blanco bien frío. El que cocine no lava; el otro, sí.",
+    "tipo": "cocinar"
+  },
+  {
+    "id": "cas-gra-005",
+    "presupuesto": "grande",
+    "lugar": "casa",
+    "texto": "Compren un kit de cerámica en frío o de pintura por números y dediquen la noche a terminar una obra para colgar en la casa.",
+    "tipo": "cultura"
+  },
+  {
+    "id": "cas-gra-006",
+    "presupuesto": "grande",
+    "lugar": "casa",
+    "texto": "Compren un buen juego de mesa de estrategia y estrénenlo con pasabocas finos; el que gane escoge el próximo plan.",
+    "tipo": "juego"
+  },
+  {
+    "id": "cas-gra-007",
+    "presupuesto": "grande",
+    "lugar": "casa",
+    "texto": "Pidan un ramo grande y una torta pequeña, escriban votos de pareja para el año que viene y léanlos con un brindis.",
+    "tipo": "romantico"
+  },
+  {
+    "id": "cas-gra-008",
+    "presupuesto": "grande",
+    "lugar": "casa",
+    "texto": "Paguen una clase de cocina en línea (pasta fresca o ramen), compren todos los ingredientes y sigan al chef paso a paso.",
+    "tipo": "cocinar"
+  },
+  {
+    "id": "cas-gra-009",
+    "presupuesto": "grande",
+    "lugar": "casa",
+    "texto": "Compren un kit de cervezas artesanales o vinos de distintas regiones y organicen una cata a ciegas con hoja de puntajes.",
+    "tipo": "cultura"
+  },
+  {
+    "id": "cas-gra-010",
+    "presupuesto": "grande",
+    "lugar": "casa",
+    "texto": "Cada uno le compra al otro una pijama de seda o algo especial para dormir; se entrega envuelto y se estrena esta misma noche.",
+    "tipo": "picante"
+  },
+  {
+    "id": "cas-gra-011",
+    "presupuesto": "grande",
+    "lugar": "casa",
+    "texto": "Pidan a domicilio de su restaurante favorito y, entre plato y plato, hagan el balance del año: lo mejor, lo duro y lo que viene.",
+    "tipo": "conversacion"
+  },
+  {
+    "id": "cas-gra-012",
+    "presupuesto": "grande",
+    "lugar": "casa",
+    "texto": "Paella de verdad, con azafrán, mariscos y chorizo, en la paila más grande que tengan y con música española de fondo.",
+    "tipo": "cocinar"
+  },
+  {
+    "id": "cas-gra-013",
+    "presupuesto": "grande",
+    "lugar": "casa",
+    "texto": "Compren un juego de misterio de asesinato para dos, pidan comida elegante y resuelvan el caso antes de que llegue el postre.",
+    "tipo": "juego"
+  },
+  {
+    "id": "cas-gra-014",
+    "presupuesto": "grande",
+    "lugar": "casa",
+    "texto": "Spa de lujo en casa: sales de baño, batas nuevas, frutas, espumoso y una lista de música suave que dure dos horas.",
+    "tipo": "romantico"
+  },
+  {
+    "id": "cas-gra-015",
+    "presupuesto": "grande",
+    "lugar": "casa",
+    "texto": "Compren unos binoculares o un telescopio sencillo y pasen la noche buscando la Luna, planetas y constelaciones.",
+    "tipo": "aventura"
+  },
+  {
+    "id": "cas-gra-016",
+    "presupuesto": "grande",
+    "lugar": "casa",
+    "texto": "Sushi de verdad: pescado fresco para sashimi, alga, arroz especial y esterilla nueva. Compitan por el rollo más bonito.",
+    "tipo": "cocinar"
+  },
+  {
+    "id": "cas-gra-017",
+    "presupuesto": "grande",
+    "lugar": "casa",
+    "texto": "Conviertan la habitación en hotel: cama perfecta, toallas dobladas en cisne, bombones en la almohada y servicio a la habitación.",
+    "tipo": "picante"
+  },
+  {
+    "id": "cas-gra-018",
+    "presupuesto": "grande",
+    "lugar": "casa",
+    "texto": "Compren una buena botella y un mazo de cartas de preguntas para parejas; respondan hasta que se acabe la botella o el mazo.",
+    "tipo": "conversacion"
+  },
+  {
+    "id": "cas-gra-019",
+    "presupuesto": "grande",
+    "lugar": "casa",
+    "texto": "Compren cacao colombiano fino y hagan trufas y mousse de chocolate. Califiquen cuál quedó mejor con hoja de jurado.",
+    "tipo": "cocinar"
+  },
+  {
+    "id": "cas-gra-020",
+    "presupuesto": "grande",
+    "lugar": "casa",
+    "texto": "Compren boletas para un concierto o una obra transmitida en vivo por internet, vístanse para la ocasión y apaguen las luces.",
+    "tipo": "cultura"
+  },
+  {
+    "id": "cas-gra-021",
+    "presupuesto": "grande",
+    "lugar": "casa",
+    "texto": "Alquilen un parlante con micrófono, pidan alitas y canten hasta que los vecinos se quejen. Cada uno escoge las canciones del otro.",
+    "tipo": "juego"
+  },
+  {
+    "id": "cas-gra-022",
+    "presupuesto": "grande",
+    "lugar": "casa",
+    "texto": "Pidan una cena especial con postre, llenen la casa de velas y bailen lento entre el plato fuerte y el postre con la canción de su primera cita.",
+    "tipo": "romantico"
+  },
+  {
+    "id": "cas-gra-023",
+    "presupuesto": "grande",
+    "lugar": "casa",
+    "texto": "Compren un kit para hacer su propia cerveza o kombucha, prepárenla hoy y marquen en el calendario el día de la prueba.",
+    "tipo": "aventura"
+  },
+  {
+    "id": "cas-gra-024",
+    "presupuesto": "grande",
+    "lugar": "casa",
+    "texto": "Asado en casa: costillas, chorizos, maduro con queso y una salsa de la casa inventada por los dos, en parrilla o sartén grill.",
+    "tipo": "cocinar"
+  },
+  {
+    "id": "cas-gra-025",
+    "presupuesto": "grande",
+    "lugar": "casa",
+    "texto": "Compren un juego de cartas atrevido para parejas y ábranlo con una botella de espumoso; las reglas las pone quien vaya ganando.",
+    "tipo": "picante"
+  },
+  {
+    "id": "cas-gra-026",
+    "presupuesto": "grande",
+    "lugar": "casa",
+    "texto": "Inscríbanse a un curso de baile en línea, compren ropa cómoda nueva y dense la primera clase hoy en la sala.",
+    "tipo": "cultura"
+  },
+  {
+    "id": "cas-gra-027",
+    "presupuesto": "grande",
+    "lugar": "casa",
+    "texto": "Pidan una picada grande a domicilio y dibujen en una cartulina el plan de los próximos cinco años: metas, viajes y ahorros.",
+    "tipo": "conversacion"
+  },
+  {
+    "id": "cas-gra-028",
+    "presupuesto": "grande",
+    "lugar": "casa",
+    "texto": "Compren un rompecabezas de mil piezas de un paisaje colombiano y un vino; no se levantan hasta terminar la mitad.",
+    "tipo": "juego"
+  },
+  {
+    "id": "cas-gra-029",
+    "presupuesto": "grande",
+    "lugar": "casa",
+    "texto": "Mándense a imprimir un álbum con las mejores fotos de su historia y ábranlo juntos esta noche con una botella de vino.",
+    "tipo": "romantico"
+  },
+  {
+    "id": "cas-gra-030",
+    "presupuesto": "grande",
+    "lugar": "casa",
+    "texto": "Compren todo lo de un plato que comieron en un viaje o en una cita especial e intenten replicarlo idéntico.",
+    "tipo": "cocinar"
+  },
+  {
+    "id": "cas-gra-031",
+    "presupuesto": "grande",
+    "lugar": "casa",
+    "texto": "Noche temática completa: escojan una década, compren accesorios, pongan la música de la época y cocinen lo que se comía entonces.",
+    "tipo": "aventura"
+  },
+  {
+    "id": "cas-gra-032",
+    "presupuesto": "grande",
+    "lugar": "casa",
+    "texto": "Llenen el baño de velas y pétalos, pongan música lenta y dejen que el agua caliente haga el resto.",
+    "tipo": "picante"
+  },
+  {
+    "id": "cas-gra-033",
+    "presupuesto": "grande",
+    "lugar": "casa",
+    "texto": "Compren dos ejemplares del mismo libro que les antoje y una botella de vino: hoy es la primera sesión de su club de lectura de dos.",
+    "tipo": "cultura"
+  },
+  {
+    "id": "cas-gra-034",
+    "presupuesto": "grande",
+    "lugar": "casa",
+    "texto": "Compren un kit de magia y aprendan tres trucos cada uno; al final hagan función para el otro, con aplausos obligatorios.",
+    "tipo": "juego"
+  },
+  {
+    "id": "cas-gra-035",
+    "presupuesto": "grande",
+    "lugar": "casa",
+    "texto": "Compren dos cuadernos de cuero y escríbanle al otro una carta larga para leer en el próximo aniversario. Ciérrenla bien.",
+    "tipo": "conversacion"
+  },
+  {
+    "id": "cas-gra-036",
+    "presupuesto": "grande",
+    "lugar": "casa",
+    "texto": "Encarguen en la plaza una caja de frutas exóticas (pitahaya, mangostino, granadilla, borojó) y hagan cata y cócteles con ellas.",
+    "tipo": "cocinar"
+  },
+  {
+    "id": "cas-gra-037",
+    "presupuesto": "grande",
+    "lugar": "casa",
+    "texto": "Contraten un trío o mariachi por media hora para que les toque sus canciones en la sala, y bailen la primera como en su boda.",
+    "tipo": "romantico"
+  },
+  {
+    "id": "cas-gra-038",
+    "presupuesto": "grande",
+    "lugar": "casa",
+    "texto": "Compren un proyector sencillo, cuelguen una sábana blanca y armen cine de verdad con crispetas gourmet y cobijas nuevas.",
+    "tipo": "romantico"
+  },
+  {
+    "id": "cas-gra-039",
+    "presupuesto": "grande",
+    "lugar": "casa",
+    "texto": "Escojan y compren un disfraz para el otro, entréguenlo en una caja y vivan la noche en personaje hasta el final.",
+    "tipo": "picante"
+  },
+  {
+    "id": "cas-gra-040",
+    "presupuesto": "grande",
+    "lugar": "casa",
+    "texto": "Compren tres cafés especiales de distintas regiones del país y cátenlos como baristas: aroma, acidez, cuerpo y nota final.",
+    "tipo": "cultura"
+  },
+  {
+    "id": "cas-gra-041",
+    "presupuesto": "grande",
+    "lugar": "casa",
+    "texto": "Atrévanse con algo que nunca han cocinado (un pescado entero, cordero o pato) y asúmanlo como el gran reto de la noche.",
+    "tipo": "cocinar"
+  },
+  {
+    "id": "cas-gra-042",
+    "presupuesto": "grande",
+    "lugar": "casa",
+    "texto": "Pidan un brunch de lujo a domicilio para el domingo y hablen sin afán, en pijama, de cómo sería su casa ideal.",
+    "tipo": "conversacion"
+  },
+  {
+    "id": "sal-nul-001",
+    "presupuesto": "nulo",
+    "lugar": "salir",
+    "texto": "Caminen hasta el punto más alto cerca de la casa para ver el atardecer y tómense una foto justo cuando se esconda el sol.",
+    "tipo": "aire-libre"
+  },
+  {
+    "id": "sal-nul-002",
+    "presupuesto": "nulo",
+    "lugar": "salir",
+    "texto": "Vayan a la ciclovía del domingo a pie o trotando; cada kilómetro, uno escoge una canción que el otro debe cantar sin parar.",
+    "tipo": "aire-libre"
+  },
+  {
+    "id": "sal-nul-003",
+    "presupuesto": "nulo",
+    "lugar": "salir",
+    "texto": "Busquen en la casa de la cultura o en la universidad pública una charla o cine foro gratis de esta semana, y vayan.",
+    "tipo": "cultura"
+  },
+  {
+    "id": "sal-nul-004",
+    "presupuesto": "nulo",
+    "lugar": "salir",
+    "texto": "Caminen media hora en una dirección que nunca toman, girando a la derecha cada vez que vean algo amarillo. ¿Dónde terminaron?",
+    "tipo": "aventura"
+  },
+  {
+    "id": "sal-nul-005",
+    "presupuesto": "nulo",
+    "lugar": "salir",
+    "texto": "Lleven una cobija y algo de la nevera a un parque, acuéstense en el pasto y busquen formas en las nubes durante media hora.",
+    "tipo": "romantico"
+  },
+  {
+    "id": "sal-nul-006",
+    "presupuesto": "nulo",
+    "lugar": "salir",
+    "texto": "Siéntense en una plaza a inventarle la vida a la gente que pasa: nombre, oficio y un secreto. El más creativo gana.",
+    "tipo": "juego"
+  },
+  {
+    "id": "sal-nul-007",
+    "presupuesto": "nulo",
+    "lugar": "salir",
+    "texto": "Vayan a la biblioteca pública, cada uno escoge un libro para el otro sin decir cuál y léanse el primer párrafo allá, en susurro.",
+    "tipo": "cultura"
+  },
+  {
+    "id": "sal-nul-008",
+    "presupuesto": "nulo",
+    "lugar": "salir",
+    "texto": "Únanse a una caminata gratuita de las que organizan las alcaldías o los colectivos de senderismo; solo lleven agua y ganas.",
+    "tipo": "aire-libre"
+  },
+  {
+    "id": "sal-nul-009",
+    "presupuesto": "nulo",
+    "lugar": "salir",
+    "texto": "En una banca de la plaza principal, cuéntense cómo se imaginaban su vida a los quince años. ¿Qué se cumplió y qué no?",
+    "tipo": "conversacion"
+  },
+  {
+    "id": "sal-nul-010",
+    "presupuesto": "nulo",
+    "lugar": "salir",
+    "texto": "Foto maratón: diez fotos en una hora con temas como «algo rojo», «un perro feliz» o «una puerta vieja». Gana la mejor.",
+    "tipo": "aventura"
+  },
+  {
+    "id": "sal-nul-011",
+    "presupuesto": "nulo",
+    "lugar": "salir",
+    "texto": "Entren a una sala de exposiciones con entrada libre y escojan cada uno su obra favorita; tienen dos minutos para defenderla.",
+    "tipo": "cultura"
+  },
+  {
+    "id": "sal-nul-012",
+    "presupuesto": "nulo",
+    "lugar": "salir",
+    "texto": "Salgan a caminar de noche por un barrio tranquilo y róbense un beso en cada esquina; el que se le olvide uno, paga con dos.",
+    "tipo": "picante"
+  },
+  {
+    "id": "sal-nul-013",
+    "presupuesto": "nulo",
+    "lugar": "salir",
+    "texto": "Recorran una plaza de mercado temprano solo para mirar, oler y preguntar nombres de frutas raras. Cada uno elige la que compraría.",
+    "tipo": "cultura"
+  },
+  {
+    "id": "sal-nul-014",
+    "presupuesto": "nulo",
+    "lugar": "salir",
+    "texto": "Hagan una lista de cinco cosas para que el otro encuentre en el parque: una hoja en forma de corazón, una piedra plana… Gana el más rápido.",
+    "tipo": "juego"
+  },
+  {
+    "id": "sal-nul-015",
+    "presupuesto": "nulo",
+    "lugar": "salir",
+    "texto": "Si les queda a pie, vuelvan al lugar donde se conocieron o se dieron el primer beso, y repitan la escena tal cual, nervios incluidos.",
+    "tipo": "romantico"
+  },
+  {
+    "id": "sal-nul-016",
+    "presupuesto": "nulo",
+    "lugar": "salir",
+    "texto": "Lleven un balón o un frisbee al parque y jueguen hasta que alguien se rinda; quien pierda carga al otro a caballito un tramo.",
+    "tipo": "aire-libre"
+  },
+  {
+    "id": "sal-nul-017",
+    "presupuesto": "nulo",
+    "lugar": "salir",
+    "texto": "Busquen una retreta, una banda o un evento gratis en un parque y quédense hasta el final opinando como críticos de música.",
+    "tipo": "cultura"
+  },
+  {
+    "id": "sal-nul-018",
+    "presupuesto": "nulo",
+    "lugar": "salir",
+    "texto": "Caminen una hora sin rumbo con una sola regla: solo se puede hablar de planes futuros. Nada de trabajo ni de problemas.",
+    "tipo": "conversacion"
+  },
+  {
+    "id": "sal-nul-019",
+    "presupuesto": "nulo",
+    "lugar": "salir",
+    "texto": "Exploren a pie un barrio que nunca han caminado y escojan cada uno la casa en la que viviría. Expliquen por qué.",
+    "tipo": "aventura"
+  },
+  {
+    "id": "sal-nul-020",
+    "presupuesto": "nulo",
+    "lugar": "salir",
+    "texto": "Busquen la banca más escondida de un parque al atardecer y quédense ahí, sin celular, hasta que se prendan los postes.",
+    "tipo": "picante"
+  },
+  {
+    "id": "sal-nul-021",
+    "presupuesto": "nulo",
+    "lugar": "salir",
+    "texto": "Mientras caminan, sumen puntos por cada perro con ropa, carro amarillo o persona bailando. El primero en llegar a 20 gana.",
+    "tipo": "juego"
+  },
+  {
+    "id": "sal-nul-022",
+    "presupuesto": "nulo",
+    "lugar": "salir",
+    "texto": "Recorran entero el parque más grande que tengan cerca hasta su rincón más lejano, ese al que nunca han llegado.",
+    "tipo": "aire-libre"
+  },
+  {
+    "id": "sal-nul-023",
+    "presupuesto": "nulo",
+    "lugar": "salir",
+    "texto": "Recorran a pie los murales y grafitis de la ciudad, tómense una foto frente al que más les guste y averigüen quién lo pintó.",
+    "tipo": "cultura"
+  },
+  {
+    "id": "sal-nul-024",
+    "presupuesto": "nulo",
+    "lugar": "salir",
+    "texto": "Lleven una libreta a una banca y escriban un poema a medias: cada uno escribe un verso y se la pasa al otro.",
+    "tipo": "romantico"
+  },
+  {
+    "id": "sal-nul-025",
+    "presupuesto": "nulo",
+    "lugar": "salir",
+    "texto": "Salgan a cazar escaleras escondidas, pasajes y callejones bonitos del barrio, y dibujen un mapa de los hallazgos.",
+    "tipo": "aventura"
+  },
+  {
+    "id": "sal-nul-026",
+    "presupuesto": "nulo",
+    "lugar": "salir",
+    "texto": "Siéntense en una plaza llena de gente y cuéntense, con pelos y señales, la peor cita que tuvieron antes de conocerse.",
+    "tipo": "conversacion"
+  },
+  {
+    "id": "sal-nul-027",
+    "presupuesto": "nulo",
+    "lugar": "salir",
+    "texto": "Recorran un vivero de barrio sin comprar nada, escojan la mata que tendrían juntos y pregúntenle al dueño cómo cuidarla.",
+    "tipo": "aire-libre"
+  },
+  {
+    "id": "sal-nul-028",
+    "presupuesto": "nulo",
+    "lugar": "salir",
+    "texto": "Concurso de piedras planas en el río, lago o quebrada más cercano: la que más rebote se gana un masaje en la espalda.",
+    "tipo": "juego"
+  },
+  {
+    "id": "sal-nul-029",
+    "presupuesto": "nulo",
+    "lugar": "salir",
+    "texto": "Únanse a una clase gratis de rumba, baile o yoga en el parque y quédense hasta el final, así les dé pena.",
+    "tipo": "aventura"
+  },
+  {
+    "id": "sal-nul-030",
+    "presupuesto": "nulo",
+    "lugar": "salir",
+    "texto": "Hagan de cuenta que es su primera cita: preséntense de nuevo en el parque, coqueteen como desconocidos y pídanse el número.",
+    "tipo": "picante"
+  },
+  {
+    "id": "sal-nul-031",
+    "presupuesto": "nulo",
+    "lugar": "salir",
+    "texto": "Suban a pie una loma o cerro cercano con agua y fruta; no se vale bajar sin una foto de los dos con la ciudad de fondo.",
+    "tipo": "aire-libre"
+  },
+  {
+    "id": "sal-nul-032",
+    "presupuesto": "nulo",
+    "lugar": "salir",
+    "texto": "Sean turistas en su propia ciudad: hablen con acento extranjero, pidan direcciones y tómense fotos posando en todo.",
+    "tipo": "juego"
+  },
+  {
+    "id": "sal-nul-033",
+    "presupuesto": "nulo",
+    "lugar": "salir",
+    "texto": "Caminen alrededor de un lago o una fuente y, por cada vuelta, cada uno cuenta un recuerdo de infancia que el otro no sepa.",
+    "tipo": "conversacion"
+  },
+  {
+    "id": "sal-nul-034",
+    "presupuesto": "nulo",
+    "lugar": "salir",
+    "texto": "Sigan a pie, durante una hora, el río o la quebrada que atraviesa la ciudad, y miren hasta dónde llegan.",
+    "tipo": "aventura"
+  },
+  {
+    "id": "sal-nul-035",
+    "presupuesto": "nulo",
+    "lugar": "salir",
+    "texto": "Paseen de noche, de la mano, por la plaza o el parque más iluminado de la ciudad y escojan la luz más bonita para darse un beso.",
+    "tipo": "romantico"
+  },
+  {
+    "id": "sal-nul-036",
+    "presupuesto": "nulo",
+    "lugar": "salir",
+    "texto": "Visiten la iglesia, la casa o el edificio más antiguo de la ciudad y descubran su historia entre los dos leyendo las placas.",
+    "tipo": "cultura"
+  },
+  {
+    "id": "sal-nul-037",
+    "presupuesto": "nulo",
+    "lugar": "salir",
+    "texto": "Recreen en la calle poses de cuadros famosos o portadas de discos, con lo que encuentren a mano. El otro adivina cuál es.",
+    "tipo": "juego"
+  },
+  {
+    "id": "sal-nul-038",
+    "presupuesto": "nulo",
+    "lugar": "salir",
+    "texto": "Busquen un parque con columpios y móntense como niños: a ver quién llega más alto y quién se asusta primero.",
+    "tipo": "aire-libre"
+  },
+  {
+    "id": "sal-nul-039",
+    "presupuesto": "nulo",
+    "lugar": "salir",
+    "texto": "Den una vuelta por un mercado de pulgas sin plata en el bolsillo: cada uno escoge el objeto más raro y le inventa una historia.",
+    "tipo": "juego"
+  },
+  {
+    "id": "sal-nul-040",
+    "presupuesto": "nulo",
+    "lugar": "salir",
+    "texto": "Si está lloviznando, salgan a caminar una cuadra sin sombrilla y vuelvan mojados a la casa. Lo que pase después es asunto suyo.",
+    "tipo": "picante"
+  },
+  {
+    "id": "sal-nul-041",
+    "presupuesto": "nulo",
+    "lugar": "salir",
+    "texto": "Lleven un termo de tinto a un parque alto y planeen, peso por peso, qué harían si se ganaran la lotería.",
+    "tipo": "conversacion"
+  },
+  {
+    "id": "sal-nul-042",
+    "presupuesto": "nulo",
+    "lugar": "salir",
+    "texto": "Vayan a la plaza principal a ver a los artistas callejeros, aplaudan más fuerte que nadie y escojan cada uno su favorito del día.",
+    "tipo": "cultura"
+  },
+  {
+    "id": "sal-nul-043",
+    "presupuesto": "nulo",
+    "lugar": "salir",
+    "texto": "Recojan hojas, flores caídas y piedras bonitas en el parque, y al volver armen con ellas un cuadro de los dos.",
+    "tipo": "aire-libre"
+  },
+  {
+    "id": "sal-med-001",
+    "presupuesto": "medio",
+    "lugar": "salir",
+    "texto": "Tour de empanadas: tres puestos distintos, una empanada cada uno por parada y nota del 1 al 10. El ganador se lleva la corona.",
+    "tipo": "aventura"
+  },
+  {
+    "id": "sal-med-002",
+    "presupuesto": "medio",
+    "lugar": "salir",
+    "texto": "Busquen la panadería de barrio más bonita, pidan tinto y pan y tómenselo en una banca viendo pasar gente, como abuelitos enamorados.",
+    "tipo": "romantico"
+  },
+  {
+    "id": "sal-med-003",
+    "presupuesto": "medio",
+    "lugar": "salir",
+    "texto": "Vayan a una obra de teatro pequeño o de microteatro; después, con un tinto, cada uno cuenta qué le cambiaría al final.",
+    "tipo": "cultura"
+  },
+  {
+    "id": "sal-med-004",
+    "presupuesto": "medio",
+    "lugar": "salir",
+    "texto": "Tres líneas de bolos con apuesta: quien pierda paga el helado de salida y lo sirve en la boca del ganador.",
+    "tipo": "juego"
+  },
+  {
+    "id": "sal-med-005",
+    "presupuesto": "medio",
+    "lugar": "salir",
+    "texto": "Alquilen bicicletas un par de horas y armen una ruta que termine en un puesto de salpicón con todo.",
+    "tipo": "aire-libre"
+  },
+  {
+    "id": "sal-med-006",
+    "presupuesto": "medio",
+    "lugar": "salir",
+    "texto": "Tomen un bus a un pueblo a menos de una hora, almuercen la sopa del día en la plaza y regresen antes de que oscurezca.",
+    "tipo": "aventura"
+  },
+  {
+    "id": "sal-med-007",
+    "presupuesto": "medio",
+    "lugar": "salir",
+    "texto": "Alquilen patines en una pista y no se suelten de la mano en toda la tarde, aunque se caigan los dos.",
+    "tipo": "aire-libre"
+  },
+  {
+    "id": "sal-med-008",
+    "presupuesto": "medio",
+    "lugar": "salir",
+    "texto": "Busquen un café tranquilo, pidan dos tintos y un postre, y respondan: ¿qué admiras de mí que nunca me has dicho?",
+    "tipo": "conversacion"
+  },
+  {
+    "id": "sal-med-009",
+    "presupuesto": "medio",
+    "lugar": "salir",
+    "texto": "Vayan a jugar minitejo con unas cervezas en un sitio de barrio; quien pierda hace el desayuno de mañana.",
+    "tipo": "juego"
+  },
+  {
+    "id": "sal-med-010",
+    "presupuesto": "medio",
+    "lugar": "salir",
+    "texto": "Caminata con fiambre: empaquen arroz, carne y huevo en hoja de plátano, compren gaseosa en el camino y almuercen en la cima.",
+    "tipo": "aire-libre"
+  },
+  {
+    "id": "sal-med-011",
+    "presupuesto": "medio",
+    "lugar": "salir",
+    "texto": "Busquen la función de un cineclub o una sala alternativa, y comenten la película después en una panadería.",
+    "tipo": "cultura"
+  },
+  {
+    "id": "sal-med-012",
+    "presupuesto": "medio",
+    "lugar": "salir",
+    "texto": "En la plaza de mercado, cada uno compra en secreto tres frutas que crea que el otro nunca ha probado. La cata es en una banca.",
+    "tipo": "aventura"
+  },
+  {
+    "id": "sal-med-013",
+    "presupuesto": "medio",
+    "lugar": "salir",
+    "texto": "Vayan a las maquinitas con $30.000 en fichas y apuesten: quien haga más puntos escoge la comida de la noche.",
+    "tipo": "juego"
+  },
+  {
+    "id": "sal-med-014",
+    "presupuesto": "medio",
+    "lugar": "salir",
+    "texto": "Karaoke de barrio: cada uno escoge la canción del otro sin avisarle, y hay que cantarla con todo, así se desafine.",
+    "tipo": "juego"
+  },
+  {
+    "id": "sal-med-015",
+    "presupuesto": "medio",
+    "lugar": "salir",
+    "texto": "Váyanse a un mirador con una botella de vino barato y dos vasos, y no se bajan hasta que se acabe el vino o la luz.",
+    "tipo": "picante"
+  },
+  {
+    "id": "sal-med-016",
+    "presupuesto": "medio",
+    "lugar": "salir",
+    "texto": "Busquen una academia que dé la primera clase barata (cerámica, baile, pintura) y no se rindan a la mitad.",
+    "tipo": "cultura"
+  },
+  {
+    "id": "sal-med-017",
+    "presupuesto": "medio",
+    "lugar": "salir",
+    "texto": "Almuercen corrientazo en un sitio nuevo y, mientras llega la sopa, cada uno cuenta tres cosas que quiere lograr este año.",
+    "tipo": "conversacion"
+  },
+  {
+    "id": "sal-med-018",
+    "presupuesto": "medio",
+    "lugar": "salir",
+    "texto": "Alquilen un bote o un pedalón en el lago del parque y traten de remar derecho sin dar vueltas en círculo.",
+    "tipo": "aire-libre"
+  },
+  {
+    "id": "sal-med-019",
+    "presupuesto": "medio",
+    "lugar": "salir",
+    "texto": "Compren un helado doble, compartan el mismo cono y caminen hasta que se acabe; si alguien lo deja caer, paga el próximo.",
+    "tipo": "romantico"
+  },
+  {
+    "id": "sal-med-020",
+    "presupuesto": "medio",
+    "lugar": "salir",
+    "texto": "Vayan a un muro de escalada para principiantes y suban la misma ruta; quien llegue más alto escoge la cena.",
+    "tipo": "aventura"
+  },
+  {
+    "id": "sal-med-021",
+    "presupuesto": "medio",
+    "lugar": "salir",
+    "texto": "Torneo de billar a tres chicos con apuesta de besos; el ganador escoge la música del camino de regreso.",
+    "tipo": "juego"
+  },
+  {
+    "id": "sal-med-022",
+    "presupuesto": "medio",
+    "lugar": "salir",
+    "texto": "En una feria artesanal, cada uno compra con $30.000 un detalle hecho a mano para el otro, sin dejar que vea qué es.",
+    "tipo": "cultura"
+  },
+  {
+    "id": "sal-med-023",
+    "presupuesto": "medio",
+    "lugar": "salir",
+    "texto": "Entren a un bar con música en vivo, siéntense en la barra como si no se conocieran y conquístense desde cero con otro nombre.",
+    "tipo": "picante"
+  },
+  {
+    "id": "sal-med-024",
+    "presupuesto": "medio",
+    "lugar": "salir",
+    "texto": "Paguen una mesa en un café de juegos de mesa y prueben tres juegos que nunca hayan visto. El que pierda más, invita la próxima.",
+    "tipo": "juego"
+  },
+  {
+    "id": "sal-med-025",
+    "presupuesto": "medio",
+    "lugar": "salir",
+    "texto": "Siéntense en una tienda de barrio con dos cervezas y un paquete de papas, y cuéntense un secreto por cada botella.",
+    "tipo": "conversacion"
+  },
+  {
+    "id": "sal-med-026",
+    "presupuesto": "medio",
+    "lugar": "salir",
+    "texto": "Almuercen en la plaza de mercado, en el puesto con más fila: pidan lo mismo que el señor de al lado y fruta de postre.",
+    "tipo": "aventura"
+  },
+  {
+    "id": "sal-med-027",
+    "presupuesto": "medio",
+    "lugar": "salir",
+    "texto": "Busquen un restaurante de comida casera con terraza, almuercen largo y pidan la especialidad de la casa para compartir.",
+    "tipo": "romantico"
+  },
+  {
+    "id": "sal-med-028",
+    "presupuesto": "medio",
+    "lugar": "salir",
+    "texto": "Vayan a un parque de trampolines y compitan en cinco pruebas; quien pierda carga las cosas de vuelta a la casa.",
+    "tipo": "juego"
+  },
+  {
+    "id": "sal-med-029",
+    "presupuesto": "medio",
+    "lugar": "salir",
+    "texto": "Vayan a un partido de un torneo local o de fútbol femenino, con camiseta y todo, y griten como hinchas de toda la vida.",
+    "tipo": "cultura"
+  },
+  {
+    "id": "sal-med-030",
+    "presupuesto": "medio",
+    "lugar": "salir",
+    "texto": "Vayan a una piscina pública o de caja de compensación, hagan carrera de un largo y el que pierda paga los buñuelos.",
+    "tipo": "aire-libre"
+  },
+  {
+    "id": "sal-med-031",
+    "presupuesto": "medio",
+    "lugar": "salir",
+    "texto": "Vayan a la última función de cine, siéntense en la última fila y compórtense como si tuvieran quince años.",
+    "tipo": "picante"
+  },
+  {
+    "id": "sal-med-032",
+    "presupuesto": "medio",
+    "lugar": "salir",
+    "texto": "Pidan chocolate con queso y almojábana en una panadería tradicional y armen allá mismo el presupuesto de su próximo viaje.",
+    "tipo": "conversacion"
+  },
+  {
+    "id": "sal-med-033",
+    "presupuesto": "medio",
+    "lugar": "salir",
+    "texto": "Súbanse a una ruta de bus que nunca han tomado y bájense donde vean algo que les llame la atención. Regresen antes de la noche.",
+    "tipo": "aventura"
+  },
+  {
+    "id": "sal-med-034",
+    "presupuesto": "medio",
+    "lugar": "salir",
+    "texto": "Vayan a una librería de segunda con $40.000: cada uno compra un libro para el otro y le escribe una dedicatoria adentro.",
+    "tipo": "cultura"
+  },
+  {
+    "id": "sal-med-035",
+    "presupuesto": "medio",
+    "lugar": "salir",
+    "texto": "Alquilen una hora de cancha de microfútbol o mesa de ping-pong y jueguen uno contra uno, con apuesta de masaje.",
+    "tipo": "juego"
+  },
+  {
+    "id": "sal-med-036",
+    "presupuesto": "medio",
+    "lugar": "salir",
+    "texto": "Entren a un restaurante pequeño que nunca hayan probado y pidan, a ciegas, lo que el mesero les recomiende.",
+    "tipo": "romantico"
+  },
+  {
+    "id": "sal-med-037",
+    "presupuesto": "medio",
+    "lugar": "salir",
+    "texto": "Vayan a un parque ecológico o reserva con entrada barata y hagan el sendero más largo que les permitan.",
+    "tipo": "aire-libre"
+  },
+  {
+    "id": "sal-med-038",
+    "presupuesto": "medio",
+    "lugar": "salir",
+    "texto": "En un sitio de rumba de barrio, bailen solo las canciones lentas; las rápidas se las pasan sentados hablándose al oído.",
+    "tipo": "picante"
+  },
+  {
+    "id": "sal-med-039",
+    "presupuesto": "medio",
+    "lugar": "salir",
+    "texto": "Busquen un taller barato de un día (fotografía con celular, coctelería o tejido), aprendan algo y pruébenlo al volver.",
+    "tipo": "cultura"
+  },
+  {
+    "id": "sal-med-040",
+    "presupuesto": "medio",
+    "lugar": "salir",
+    "texto": "Tómense un tinto en la terminal de buses, miren los destinos del tablero y escojan entre los dos su próximo paseo.",
+    "tipo": "conversacion"
+  },
+  {
+    "id": "sal-med-041",
+    "presupuesto": "medio",
+    "lugar": "salir",
+    "texto": "Desayunen tamal o lechona en un mercado campesino de fin de semana, de pie y con chocolate, como debe ser.",
+    "tipo": "aventura"
+  },
+  {
+    "id": "sal-med-042",
+    "presupuesto": "medio",
+    "lugar": "salir",
+    "texto": "Busquen la terraza alta de un café para ver el atardecer con una bebida cada uno, y prométanse algo pequeño antes de que oscurezca.",
+    "tipo": "romantico"
+  },
+  {
+    "id": "sal-med-043",
+    "presupuesto": "medio",
+    "lugar": "salir",
+    "texto": "Noche de bolirana o minigolf con cerveza; quien pierda paga el taxi de regreso, si les queda plata.",
+    "tipo": "juego"
+  },
+  {
+    "id": "sal-gra-001",
+    "presupuesto": "grande",
+    "lugar": "salir",
+    "texto": "Reserven en el restaurante más bonito que se puedan permitir, pidan el menú de degustación y brinden por algo que lograron juntos.",
+    "tipo": "romantico"
+  },
+  {
+    "id": "sal-gra-002",
+    "presupuesto": "grande",
+    "lugar": "salir",
+    "texto": "Hagan parapente biplaza en el pueblo más cercano que lo ofrezca y graben la cara del otro en el momento del despegue.",
+    "tipo": "aventura"
+  },
+  {
+    "id": "sal-gra-003",
+    "presupuesto": "grande",
+    "lugar": "salir",
+    "texto": "Váyanse un día a unos termales cercanos, quédense en el agua caliente hasta arrugarse y almuercen trucha de regreso.",
+    "tipo": "aire-libre"
+  },
+  {
+    "id": "sal-gra-004",
+    "presupuesto": "grande",
+    "lugar": "salir",
+    "texto": "Compren boletas para un concierto que les guste a los dos y apréndanse juntos la letra de tres canciones antes de ir.",
+    "tipo": "cultura"
+  },
+  {
+    "id": "sal-gra-005",
+    "presupuesto": "grande",
+    "lugar": "salir",
+    "texto": "Reserven una noche de hotel en su misma ciudad, como si estuvieran de viaje, y no salgan de la habitación hasta el desayuno.",
+    "tipo": "picante"
+  },
+  {
+    "id": "sal-gra-006",
+    "presupuesto": "grande",
+    "lugar": "salir",
+    "texto": "Spa para parejas: masaje, sauna o turco, y luego un almuerzo liviano en el que está prohibido hablar de trabajo.",
+    "tipo": "romantico"
+  },
+  {
+    "id": "sal-gra-007",
+    "presupuesto": "grande",
+    "lugar": "salir",
+    "texto": "Rafting, canopy o rapel para principiantes en un destino cercano; prométanse no soltarse de la mano en el último tramo.",
+    "tipo": "aventura"
+  },
+  {
+    "id": "sal-gra-008",
+    "presupuesto": "grande",
+    "lugar": "salir",
+    "texto": "Hagan una cata guiada de vinos o cervezas artesanales y apunten en el celular sus favoritas para la próxima ocasión especial.",
+    "tipo": "cultura"
+  },
+  {
+    "id": "sal-gra-009",
+    "presupuesto": "grande",
+    "lugar": "salir",
+    "texto": "Cenen en un restaurante con vista y escríbanles una carta a ustedes mismos dentro de cinco años, para guardarla sin abrir.",
+    "tipo": "conversacion"
+  },
+  {
+    "id": "sal-gra-010",
+    "presupuesto": "grande",
+    "lugar": "salir",
+    "texto": "Cabalgata de medio día por veredas cercanas, y al final almuerzo campesino con todo: sopa, seco y aguadepanela.",
+    "tipo": "aire-libre"
+  },
+  {
+    "id": "sal-gra-011",
+    "presupuesto": "grande",
+    "lugar": "salir",
+    "texto": "Vayan a un escape room y traten de salir con el mejor tiempo; luego celebren, o lloren la derrota, con hamburguesas.",
+    "tipo": "juego"
+  },
+  {
+    "id": "sal-gra-012",
+    "presupuesto": "grande",
+    "lugar": "salir",
+    "texto": "Reserven por horas un jacuzzi o sauna privado para los dos, con una botella de espumoso y nada de prisa.",
+    "tipo": "picante"
+  },
+  {
+    "id": "sal-gra-013",
+    "presupuesto": "grande",
+    "lugar": "salir",
+    "texto": "Tomen un bautizo de buceo con instructor (en piscina o en el mar si lo tienen cerca) y aprendan a respirar bajo el agua juntos.",
+    "tipo": "aventura"
+  },
+  {
+    "id": "sal-gra-014",
+    "presupuesto": "grande",
+    "lugar": "salir",
+    "texto": "Vayan al teatro a una obra grande o al ballet, vístanse elegantes y tómense una copa de vino en el intermedio.",
+    "tipo": "cultura"
+  },
+  {
+    "id": "sal-gra-015",
+    "presupuesto": "grande",
+    "lugar": "salir",
+    "texto": "Súbanse a una chiva rumbera y bailen todo el recorrido sin sentarse; quien se siente primero paga la comida de después.",
+    "tipo": "aventura"
+  },
+  {
+    "id": "sal-gra-016",
+    "presupuesto": "grande",
+    "lugar": "salir",
+    "texto": "Vayan a un parque natural con guía pagado, hagan el sendero completo y almuercen comida típica en el camino.",
+    "tipo": "aire-libre"
+  },
+  {
+    "id": "sal-gra-017",
+    "presupuesto": "grande",
+    "lugar": "salir",
+    "texto": "Desayunen a lo grande en un sitio campestre a las afueras: calentado, chocolate y arepa, mientras planean el año de los dos.",
+    "tipo": "conversacion"
+  },
+  {
+    "id": "sal-gra-018",
+    "presupuesto": "grande",
+    "lugar": "salir",
+    "texto": "Pase completo en un parque de diversiones grande: cada uno escoge una atracción que el otro tiene que montar sí o sí.",
+    "tipo": "juego"
+  },
+  {
+    "id": "sal-gra-019",
+    "presupuesto": "grande",
+    "lugar": "salir",
+    "texto": "Hagan un tour de café en una finca cercana, del grano a la taza, y compren una libra para estrenar en la casa.",
+    "tipo": "cultura"
+  },
+  {
+    "id": "sal-gra-020",
+    "presupuesto": "grande",
+    "lugar": "salir",
+    "texto": "Pasen una noche en un glamping cerca de la ciudad, con fogata, vino y cielo estrellado, solo los dos.",
+    "tipo": "picante"
+  },
+  {
+    "id": "sal-gra-021",
+    "presupuesto": "grande",
+    "lugar": "salir",
+    "texto": "Alquilen kayaks en una represa o laguna cercana y remen hasta la orilla opuesta; quien llegue primero escoge el almuerzo.",
+    "tipo": "aventura"
+  },
+  {
+    "id": "sal-gra-022",
+    "presupuesto": "grande",
+    "lugar": "salir",
+    "texto": "Reserven mesa al atardecer en un restaurante con mirador y pidan el postre más caro de la carta para compartir con una sola cuchara.",
+    "tipo": "romantico"
+  },
+  {
+    "id": "sal-gra-023",
+    "presupuesto": "grande",
+    "lugar": "salir",
+    "texto": "Hagan juntos una clase de cerámica en torno, de esas de dos horas, y regálense la pieza que les salga.",
+    "tipo": "cultura"
+  },
+  {
+    "id": "sal-gra-024",
+    "presupuesto": "grande",
+    "lugar": "salir",
+    "texto": "Vayan a una pista de karts y corran tres carreras; quien gane la final escoge el restaurante de esa noche.",
+    "tipo": "juego"
+  },
+  {
+    "id": "sal-gra-025",
+    "presupuesto": "grande",
+    "lugar": "salir",
+    "texto": "Madruguen a un avistamiento de aves con guía en una reserva cercana y lleven una lista para chulear cada pájaro que vean.",
+    "tipo": "aire-libre"
+  },
+  {
+    "id": "sal-gra-026",
+    "presupuesto": "grande",
+    "lugar": "salir",
+    "texto": "Pidan una tabla en un bar de vinos tranquilo y repasen la historia de su relación año por año, sin saltarse los difíciles.",
+    "tipo": "conversacion"
+  },
+  {
+    "id": "sal-gra-027",
+    "presupuesto": "grande",
+    "lugar": "salir",
+    "texto": "Inscríbanse a una clase de bachata sensual de una noche y practiquen hasta que la vuelta les salga perfecta.",
+    "tipo": "picante"
+  },
+  {
+    "id": "sal-gra-028",
+    "presupuesto": "grande",
+    "lugar": "salir",
+    "texto": "Hagan un recorrido guiado por un pueblo patrimonio cercano y quédense a cenar allá el plato típico.",
+    "tipo": "cultura"
+  },
+  {
+    "id": "sal-gra-029",
+    "presupuesto": "grande",
+    "lugar": "salir",
+    "texto": "Paseo de un día a un río para bañarse, con almuerzo de sancocho de leña en un restaurante de carretera.",
+    "tipo": "aventura"
+  },
+  {
+    "id": "sal-gra-030",
+    "presupuesto": "grande",
+    "lugar": "salir",
+    "texto": "Vayan a un concierto de música clásica o de orquesta en buenas sillas, y tómense de la mano en el movimiento más lento.",
+    "tipo": "romantico"
+  },
+  {
+    "id": "sal-gra-031",
+    "presupuesto": "grande",
+    "lugar": "salir",
+    "texto": "Inscríbanse en una noche de trivia en un bar como equipo de dos y celebren cada respuesta correcta como si fuera gol.",
+    "tipo": "juego"
+  },
+  {
+    "id": "sal-gra-032",
+    "presupuesto": "grande",
+    "lugar": "salir",
+    "texto": "Alquilen bicicletas de montaña con guía para una ruta rural de medio día, y paren a tomar jugo en cada tienda del camino.",
+    "tipo": "aire-libre"
+  },
+  {
+    "id": "sal-gra-033",
+    "presupuesto": "grande",
+    "lugar": "salir",
+    "texto": "Vayan a un restaurante de cocina de autor y, con cada plato, cuenten qué recuerdo de infancia les trae ese sabor.",
+    "tipo": "conversacion"
+  },
+  {
+    "id": "sal-gra-034",
+    "presupuesto": "grande",
+    "lugar": "salir",
+    "texto": "En un bar de cócteles, cada uno pide para el otro el trago que crea que lo describe, y tiene que explicar por qué.",
+    "tipo": "picante"
+  },
+  {
+    "id": "sal-gra-035",
+    "presupuesto": "grande",
+    "lugar": "salir",
+    "texto": "Hagan una salida fotográfica guiada de un día y al final manden a imprimir la mejor foto de cada uno.",
+    "tipo": "cultura"
+  },
+  {
+    "id": "sal-gra-036",
+    "presupuesto": "grande",
+    "lugar": "salir",
+    "texto": "Vuelen en ultraliviano o en globo donde lo ofrezcan cerca y, allá arriba, díganse algo que nunca se han dicho.",
+    "tipo": "aventura"
+  },
+  {
+    "id": "sal-gra-037",
+    "presupuesto": "grande",
+    "lugar": "salir",
+    "texto": "Cenen en un sitio con música en vivo y páguenle al músico para que les toque su canción mientras bailan.",
+    "tipo": "romantico"
+  },
+  {
+    "id": "sal-gra-038",
+    "presupuesto": "grande",
+    "lugar": "salir",
+    "texto": "Pasen un domingo en una finca de recreo por día: piscina, almuerzo de leña y hamaca, sin mirar el reloj.",
+    "tipo": "aire-libre"
+  },
+  {
+    "id": "sal-gra-039",
+    "presupuesto": "grande",
+    "lugar": "salir",
+    "texto": "Tomen juntos una clase de cocina para parejas y, al final, cenen lo que prepararon como si fuera su propio restaurante.",
+    "tipo": "cocinar"
+  },
+  {
+    "id": "sal-gra-040",
+    "presupuesto": "grande",
+    "lugar": "salir",
+    "texto": "Vayan a un parque acuático un día entre semana y compitan en cada tobogán: el que grite más paga el helado.",
+    "tipo": "juego"
+  },
+  {
+    "id": "sal-gra-041",
+    "presupuesto": "grande",
+    "lugar": "salir",
+    "texto": "Den un paseo en lancha o tren turístico donde lo haya, y durante el recorrido escriban veinte cosas que quieren hacer juntos.",
+    "tipo": "conversacion"
+  },
+  {
+    "id": "sal-gra-042",
+    "presupuesto": "grande",
+    "lugar": "salir",
+    "texto": "Compren buenas sillas para una función de comedia en vivo, y en la cena de después traten de repetir los mejores chistes.",
+    "tipo": "cultura"
+  },
+  {
+    "id": "sal-gra-043",
+    "presupuesto": "grande",
+    "lugar": "salir",
+    "texto": "Sesión de fotos de pareja con fotógrafo profesional, con ropa que los haga sentir guapos. Escojan la más atrevida (pero publicable).",
+    "tipo": "picante"
+  }
+]
