@@ -46,6 +46,8 @@ const TEXTOS = {
   probable: (n) => ({ titulo: `${n} te invita a jugar ¿Quién es más probable? 🤔`, texto: 'Te está esperando para jugar.', ruta: '#/probable' }),
   mapa: (n) => ({ titulo: `${n} agregó algo al mapa`, texto: 'Entra a verlo.', ruta: '#/mapa' }),
   solicitud: (n) => ({ titulo: 'Okupa', texto: `Alguien pide entrar como ${n} desde otro celular. Si no eres tú, recházalo.`, ruta: '#/' }),
+  // Para el celular de la pareja (no el que tiene ese lugar): no dice «como yo».
+  'solicitud-pareja': (n) => ({ titulo: 'Okupa', texto: `${n} pidió entrar desde otro celular. Si no fue ${n}, recházalo.`, ruta: '#/' }),
   'solicitud-recordatorio': (n) => ({ titulo: 'Okupa', texto: `Mañana un celular nuevo entra como ${n} si nadie lo rechaza.`, ruta: '#/' }),
   recordatorio: () => ({ titulo: '¿Ya respondiste el Diario?', texto: 'Te falta tu parte de hoy.', ruta: '#/diario' }),
 };
@@ -76,7 +78,7 @@ export function miembrosDe(dispositivos, parejaDoc) {
   const enviar = [];
   const invalidos = [];
   for (const { id, datos } of dispositivos) {
-    if (registroVigente(datos, parejaDoc)) enviar.push({ id, token: datos.token });
+    if (registroVigente(datos, parejaDoc)) enviar.push({ id, token: datos.token, lugar: datos.lugar });
     else invalidos.push(id);
   }
   return { enviar, invalidos };
@@ -84,14 +86,15 @@ export function miembrosDe(dispositivos, parejaDoc) {
 
 const DIA_MS = 24 * 60 * 60 * 1000;
 const RECORDAR_DIA = 6;
-const LIMPIAR_RECHAZADA_DIAS = 8;
+// Una rechazada se limpia pasado el freno de 24 h (con margen): hasta entonces el celular nuevo no puede volver a pedir.
+const LIMPIAR_RECHAZADA_MS = 25 * 60 * 60 * 1000;
 const aMs = (v) => v?.toMillis?.() ?? v ?? null;
 
 // Qué hacer con una solicitud de celular nuevo (`lugar` es el id del documento): 'avisar' | 'recordar' | 'borrar' | null.
 export function accionSolicitud(solicitud, parejaDoc, lugar, ahoraMs) {
   if (!parejaDoc || parejaDoc.lugares?.[lugar] === solicitud.uid) return 'borrar';
   const rechazada = aMs(solicitud.rechazada);
-  if (rechazada !== null) return ahoraMs - rechazada > LIMPIAR_RECHAZADA_DIAS * DIA_MS ? 'borrar' : null;
+  if (rechazada !== null) return ahoraMs - rechazada > LIMPIAR_RECHAZADA_MS ? 'borrar' : null;
   if (!solicitud.avisada) return 'avisar';
   const creada = aMs(solicitud.creada);
   if (!solicitud.recordada && creada !== null && ahoraMs - creada >= RECORDAR_DIA * DIA_MS) return 'recordar';

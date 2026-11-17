@@ -141,6 +141,19 @@ describe('cambio de celular: pedir, aprobar y entrar', () => {
   });
 });
 
+describe('cambio de celular: cancelar tras el aviso', () => {
+  it('si el servidor ya la avisó, cancelar no la borra pero el celular la olvida y la retoma al pedir', async () => {
+    const alm3 = almacenEnMemoria();
+    await pedirLugar(nubeDe('u3'), alm3, { codigo: CODIGO, lugar: 'a' });
+    await sembrar({ [SOL_A]: { uid: 'u3', creada: hace(2 * 3600000), avisada: hace(3600000) } });
+    await cancelarSolicitud(nubeDe('u3'), alm3);
+    assert.equal(alm3.leer('okupa:solicitud', null), null, 'este celular la olvida');
+    assert.equal((await leerSinReglas(SOL_A)).uid, 'u3', 'la solicitud sigue ahí');
+    const otra = await pedirLugar(nubeDe('u3'), alm3, { codigo: CODIGO, lugar: 'a' });
+    assert.ok(otra.entraMs < Date.now() + 7 * DIA, 'conserva su fecha original');
+    assert.equal((await miSolicitud(nubeDe('u3'), alm3)).estado, 'pendiente');
+  });
+});
 describe('cambio de celular: rechazar', () => {
   it('tras el rechazo el nuevo no entra, no puede borrarla ni volver a pedir', async () => {
     const alm3 = almacenEnMemoria();

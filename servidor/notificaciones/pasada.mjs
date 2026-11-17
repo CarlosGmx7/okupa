@@ -101,7 +101,13 @@ export async function pasada({ db, mandar, ahora = new Date() }) {
       const tipo = accion === 'avisar' ? 'solicitud' : 'solicitud-recordatorio';
       const { enviar, invalidos } = miembrosDe(await dispositivosDe(codigo), parejaDoc);
       for (const id of invalidos) await olvidar(id);
-      const llegaron = await enviarA(enviar, { ...textoDe(tipo, parejaDoc.nombres?.[s.id]), tipo });
+      // El aviso inicial cambia de texto según el celular: quien tiene ese lugar lee «como tú», la pareja lee el nombre.
+      const nombre = parejaDoc.nombres?.[s.id];
+      const dueno = enviar.filter((d) => d.lugar === s.id);
+      const pareja = enviar.filter((d) => d.lugar !== s.id);
+      const llegaron = accion === 'avisar'
+        ? (await enviarA(dueno, { ...textoDe('solicitud', nombre), tipo })) + (await enviarA(pareja, { ...textoDe('solicitud-pareja', nombre), tipo }))
+        : await enviarA(enviar, { ...textoDe(tipo, nombre), tipo });
       if (llegaron) await s.ref.update(accion === 'avisar' ? { avisada: true } : { recordada: true });
     } catch (e) {
       console.warn(`Solicitud ${s.ref.path} no se pudo procesar: ${e?.code ?? e?.message ?? e}`);

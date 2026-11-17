@@ -125,11 +125,15 @@ service cloud.firestore {
           && pendiente()
           && soloCambia(resource.data, request.resource.data, ['rechazada'])
           && request.resource.data.rechazada == request.time;
-        // Borrar: un miembro siempre; quien pidió, si está pendiente (cancelar) o 24 h después del
-        // rechazo (freno para que no insista).
+        // Borrar: un miembro siempre. Quien pidió: si está pendiente y el servidor todavía no la avisó, o
+        // 24 h después de pedirla (si no, pedir y cancelar sin freno avisaría una y otra vez); y una
+        // rechazada, 24 h después del rechazo (freno para que no insista).
         allow delete: if esMiembro(codigo)
           || (autenticado() && esMia()
-            && (pendiente() || request.time >= resource.data.rechazada + duration.value(24, 'h')));
+            && ((pendiente()
+                && (!('avisada' in resource.data) || request.time >= resource.data.creada + duration.value(24, 'h')))
+              || ('rechazada' in resource.data
+                && request.time >= resource.data.rechazada + duration.value(24, 'h'))));
       }
 
       match /perfiles/{lugar} { allow read, write: if esMiembro(codigo); }

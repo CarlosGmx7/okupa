@@ -247,7 +247,9 @@ test('solicitud: avisa a los dos celulares aunque tengan los avisos apagados y m
   const m = mandador();
   await pasada({ db, mandar: m.mandar, ahora: AHORA });
   assert.deepEqual(m.enviados.map((e) => e.token).sort(), ['t-a', 't-b']);
-  for (const e of m.enviados) assert.deepEqual(e.data, { titulo: 'Okupa', texto: 'Alguien pide entrar como Carlos desde otro celular. Si no eres tú, recházalo.', ruta: '#/', tipo: 'solicitud' });
+  const textoDe = (t) => m.enviados.find((e) => e.token === t).data;
+  assert.deepEqual(textoDe('t-a'), { titulo: 'Okupa', texto: 'Alguien pide entrar como Carlos desde otro celular. Si no eres tú, recházalo.', ruta: '#/', tipo: 'solicitud' }, 'quien tiene ese lugar');
+  assert.deepEqual(textoDe('t-b'), { titulo: 'Okupa', texto: 'Carlos pidió entrar desde otro celular. Si no fue Carlos, recházalo.', ruta: '#/', tipo: 'solicitud' }, 'la pareja');
   assert.equal((await db.doc(RUTA_S).get()).data().avisada, true);
   const m2 = mandador();
   await pasada({ db, mandar: m2.mandar, ahora: AHORA });
@@ -275,10 +277,10 @@ test('solicitud: si no llegó a nadie no se marca avisada (se reintenta)', async
   assert.equal((await db.doc(RUTA_S).get()).data().avisada, undefined);
 });
 
-test('solicitud: aprobada, rechazada hace 9 días o de pareja inexistente se borran sin mandar', async () => {
+test('solicitud: aprobada, rechazada hace más de 25 h o de pareja inexistente se borran sin mandar', async () => {
   await sembrar({ 'parejas/K7PQ2M': pareja, 'dispositivos/da': disp('u1', 'a'),
     [RUTA_S]: solicitud(1, { uid: 'u1' }),
-    'parejas/K7PQ2M/solicitudes/b': solicitud(10, { rechazada: Timestamp.fromMillis(AHORA.getTime() - 9 * DIA) }),
+    'parejas/K7PQ2M/solicitudes/b': solicitud(2, { rechazada: Timestamp.fromMillis(AHORA.getTime() - 26 * 3600e3) }),
     'parejas/ZZZZZZ/solicitudes/a': solicitud(0) });
   const m = mandador();
   await pasada({ db, mandar: m.mandar, ahora: AHORA });
@@ -302,9 +304,9 @@ test('solicitud: una que falla no corta la pasada (la otra pareja se avisa y el 
   assert.equal((await db.doc('sistema/notificaciones').get()).data().ultimaFranja, '2026-11-14T01:00:00.000Z');
 });
 
-test('solicitud: rechazada reciente se conserva sin avisar; token inválido y registro viejo se olvidan', async () => {
+test('solicitud: rechazada hace menos de 25 h se conserva sin avisar; token inválido y registro viejo se olvidan', async () => {
   await sembrar({ 'parejas/K7PQ2M': pareja, 'dispositivos/db': disp('u2', 'b'), 'dispositivos/viejo': disp('u9', 'b'),
-    [RUTA_S]: solicitud(3, { rechazada: Timestamp.fromMillis(AHORA.getTime() - 2 * DIA) }),
+    [RUTA_S]: solicitud(3, { rechazada: Timestamp.fromMillis(AHORA.getTime() - 20 * 3600e3) }),
     'parejas/K7PQ2M/solicitudes/b': solicitud(0) });
   const m = mandador({ fallar: { 't-b': 'messaging/registration-token-not-registered' } });
   await pasada({ db, mandar: m.mandar, ahora: AHORA });

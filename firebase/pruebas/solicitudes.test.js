@@ -231,6 +231,18 @@ describe('borrar', () => {
     await sembrar({ [SOL_A]: rechazada(2 * DIA, 25 * HORA) });
     await assertSucceeds(deleteDoc(solicitud('u3')));
   });
+  it('quien pidió no cancela una pendiente que el servidor ya avisó (freno contra pedir y cancelar)', async () => {
+    await sembrar({ [SOL_A]: { ...pendiente(2 * HORA), avisada: hace(HORA) } });
+    await assertFails(deleteDoc(solicitud('u3')));
+  });
+  it('quien pidió sí cancela una pendiente avisada cuando pasaron 24 h desde que la creó', async () => {
+    await sembrar({ [SOL_A]: { ...pendiente(25 * HORA), avisada: hace(20 * HORA) } });
+    await assertSucceeds(deleteDoc(solicitud('u3')));
+  });
+  it('los miembros borran una pendiente avisada cuando quieran', async () => {
+    await sembrar({ [SOL_A]: { ...pendiente(2 * HORA), avisada: hace(HORA) } });
+    await assertSucceeds(deleteDoc(solicitud('u1')));
+  });
   it('un extraño no la borra', async () => {
     await assertFails(deleteDoc(solicitud('u9')));
   });
