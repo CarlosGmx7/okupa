@@ -35,9 +35,16 @@ export function montarAvisoSolicitud(contenedor, ctx, { ahora = Date.now, confir
       error.textContent = '';
       try { await fn(); } catch (e) {
         if (!vivo) return;
-        if (e?.name !== 'ErrorNube' && e?.name !== 'ErrorPareja') console.warn('Okupa:', e);
-        error.textContent = SIN_RED;
-        botones.forEach((b) => { b.disabled = false; });
+        if (e?.name === 'ErrorPareja') {
+          // La solicitud ya no es la que se veía (la borraron, la rechazaron o cambió de celular): no es la
+          // conexión, se vuelve a leer para mostrar lo que hay ahora.
+          try { await leer(true); } catch { error.textContent = SIN_RED; }
+        } else {
+          if (e?.name !== 'ErrorNube') console.warn('Okupa:', e);
+          error.textContent = SIN_RED;
+        }
+      } finally {
+        if (vivo) botones.forEach((b) => { b.disabled = false; });
       }
     });
     const boton = (texto, principal, fn) => {
@@ -48,14 +55,14 @@ export function montarAvisoSolicitud(contenedor, ctx, { ahora = Date.now, confir
     };
     const rechazar = boton('Rechazar', false, async () => {
       await rechazarSolicitud(nube, pareja, s.lugar);
-      if (vivo) await leer();
+      if (vivo) await leer(true);
     });
     const texto = s.mia
       ? `Alguien pide entrar como ${s.nombre || 'tú'} desde otro celular. ¿Eres tú?`
       : `${s.nombre || 'Tu pareja'} pidió entrar desde otro celular. Entrará el ${fecha(s.entraMs)} si nadie lo rechaza.`;
     const aprobar = s.mia ? boton('Aprobar', true, async () => {
-      if (!confirmar('Este celular quedará por fuera. ¿Aprobar?')) { botones.forEach((b) => { b.disabled = false; }); return; }
-      await aprobarSolicitud(nube, ctx.almacen, s.lugar);
+      if (!confirmar('Este celular quedará por fuera. ¿Aprobar?')) return;
+      await aprobarSolicitud(nube, ctx.almacen, s.lugar, s.uid);
       if (!vivo) return;
       desmontar();
       contenedor.replaceChildren(el('div', { clase: 'franja-solicitud', role: 'status' },
@@ -67,7 +74,8 @@ export function montarAvisoSolicitud(contenedor, ctx, { ahora = Date.now, confir
       el('div', { clase: 'franja-solicitud-acciones' }, aprobar, rechazar));
   }
 
-  async function leer() {
+  // propagar: un fallo de lectura se lanza (para que quien la pidió avise) en vez de callarse.
+  async function leer(propagar = false) {
     const mia = ++lectura;
     try {
       const pareja = ctx.almacen ? miPareja(ctx.almacen) : null;
@@ -76,7 +84,10 @@ export function montarAvisoSolicitud(contenedor, ctx, { ahora = Date.now, confir
       const pendientes = await solicitudesDe(nube, pareja, ahora());
       if (!vivo || mia !== lectura) return;
       contenedor.replaceChildren(...pendientes.map((s) => franja(s, nube, pareja)));
-    } catch { /* sin red o sin nube: se deja lo que haya y se reintenta al volver a la app */ }
+    } catch (e) {
+      if (propagar) throw e;
+      /* sin red o sin nube: se deja lo que haya y se reintenta al volver a la app */
+    }
   }
 
   globalThis.document?.addEventListener?.('visibilitychange', alVolver);

@@ -151,3 +151,54 @@ prueba('franja: si el inicio se repinta (nodo fuera de la página) se desmonta s
   igual(div.children.length, 0, 'no leyó tras salir de la página');
   desmontar();
 });
+
+prueba('franja: si la solicitud cambió de celular antes de tocar Aprobar, no entrega y se actualiza sin culpar a la conexión', async () => {
+  const { mundo, codigo, alm3, ctx1 } = await escenario();
+  const rutaSol = `parejas/${codigo}/solicitudes/a`;
+  await pedirLugar(mundo.nube('u3'), alm3, { codigo, lugar: 'a' });
+  const div = document.createElement('div');
+  const desmontar = montarAvisoSolicitud(div, ctx1, { confirmar: () => true });
+  await hasta(() => boton(div, 'Aprobar'));
+  const vieja = div.querySelector('.franja-solicitud');
+  await mundo.nube('u1').borrar(rutaSol);
+  await mundo.nube('u9').escribir(rutaSol, { uid: 'u9', creada: Date.now() });
+  boton(div, 'Aprobar').click();
+  await hasta(() => div.querySelector('.franja-solicitud') && div.querySelector('.franja-solicitud') !== vieja);
+  igual((await mundo.nube('u1').leer(`parejas/${codigo}`)).lugares.a, 'u1', 'no se entregó el lugar');
+  verdadero(!div.textContent.includes('Revisa la conexión'), div.textContent);
+  verdadero(boton(div, 'Aprobar') && !boton(div, 'Aprobar').disabled, 'la franja nueva se puede usar');
+  desmontar();
+});
+
+prueba('franja: si la solicitud ya no existe al tocar Aprobar, la franja se quita sin decir «Revisa la conexión»', async () => {
+  const { mundo, codigo, alm3, ctx1 } = await escenario();
+  await pedirLugar(mundo.nube('u3'), alm3, { codigo, lugar: 'a' });
+  const div = document.createElement('div');
+  const desmontar = montarAvisoSolicitud(div, ctx1, { confirmar: () => true });
+  await hasta(() => boton(div, 'Aprobar'));
+  await mundo.nube('u1').borrar(`parejas/${codigo}/solicitudes/a`);
+  boton(div, 'Aprobar').click();
+  await hasta(() => !div.querySelector('.franja-solicitud'));
+  verdadero(!div.textContent.includes('Revisa la conexión'), div.textContent);
+  desmontar();
+});
+
+prueba('franja: si Rechazar funciona pero la relectura falla sin red, los botones se reactivan y dice que revise la conexión', async () => {
+  const { mundo, codigo, alm3, ctx2 } = await escenario();
+  await pedirLugar(mundo.nube('u3'), alm3, { codigo, lugar: 'a' });
+  const ctx = {
+    ...ctx2,
+    nube: async () => {
+      const n = mundo.nube('u2');
+      return { ...n, escribir: async (...a) => { const r = await n.escribir(...a); mundo.desconectar(); return r; } };
+    },
+  };
+  const div = document.createElement('div');
+  const desmontar = montarAvisoSolicitud(div, ctx);
+  await hasta(() => boton(div, 'Rechazar'));
+  boton(div, 'Rechazar').click();
+  await hasta(() => div.textContent.includes('No se pudo. Revisa la conexión e intenta otra vez.'));
+  verdadero(!boton(div, 'Rechazar').disabled, 'Rechazar debe reactivarse');
+  mundo.reconectar();
+  desmontar();
+});

@@ -6,7 +6,7 @@ import { almacenEnMemoria } from './pareja.prueba.js';
 import {
   ESPERA_SOLICITUD_MS, FRENO_RECHAZO_MS, estadoSolicitud, pedirLugar, miSolicitud, completarEntrada,
   entrarVencida, cancelarSolicitud, solicitudesDe, aprobarSolicitud, rechazarSolicitud,
-  solicitudApuntada, vigilarLugar, crearPareja, unirse, miPareja,
+  solicitudApuntada, vigilarLugar, crearPareja, unirse, miPareja, borrarTodo,
 } from '../js/nucleo/pareja.js';
 
 const DIA = 86400000;
@@ -249,8 +249,8 @@ prueba('solicitudes: entrarVencida y completarEntrada sin solicitud apuntada dan
 prueba('solicitudes: solicitudesDe marca mia solo en el lugar propio y omite las rechazadas', async () => {
   const { mundo, codigo, alm1, alm2, alm3 } = await parejaCompleta();
   const { entraMs } = await pedirLugar(mundo.nube('u3'), alm3, { codigo, lugar: 'a' });
-  igual(await solicitudesDe(mundo.nube('u1'), miPareja(alm1)), [{ lugar: 'a', mia: true, entraMs, nombre: 'Carlos' }]);
-  igual(await solicitudesDe(mundo.nube('u2'), miPareja(alm2)), [{ lugar: 'a', mia: false, entraMs, nombre: 'Carlos' }]);
+  igual(await solicitudesDe(mundo.nube('u1'), miPareja(alm1)), [{ lugar: 'a', mia: true, entraMs, nombre: 'Carlos', uid: 'u3' }]);
+  igual(await solicitudesDe(mundo.nube('u2'), miPareja(alm2)), [{ lugar: 'a', mia: false, entraMs, nombre: 'Carlos', uid: 'u3' }]);
   await rechazarSolicitud(mundo.nube('u2'), miPareja(alm2), 'a');
   igual(await solicitudesDe(mundo.nube('u1'), miPareja(alm1)), []);
 });
@@ -312,4 +312,27 @@ prueba('solicitudes: si aprobar falla, el celular viejo sigue enlazado y no qued
   await entrarVencida(mundo.nube('u3'), alm3);
   await microtareas();
   igual(motivos, ['reclamado']);
+});
+
+prueba('solicitudes: aprobar con el uid que se vio solo entrega a ese celular; si cambió, no entrega y avisa', async () => {
+  const { mundo, codigo, alm1, alm3, rutaSol } = await parejaCompleta();
+  await pedirLugar(mundo.nube('u3'), alm3, { codigo, lugar: 'a' });
+  // Entre que se vio la franja (u3) y se tocó «Aprobar», otro celular quedó con la solicitud.
+  await mundo.nube('u1').borrar(rutaSol('a'));
+  await mundo.nube('u9').escribir(rutaSol('a'), { uid: 'u9', creada: Date.now() });
+  await rechaza(aprobarSolicitud(mundo.nube('u1'), alm1, 'a', 'u3'), 'solicitud-cambio');
+  igual((await mundo.nube('u1').leer(`parejas/${codigo}`)).lugares, { a: 'u1', b: 'u2' });
+  igual(miPareja(alm1), { codigo, lugar: 'a' });
+  await aprobarSolicitud(mundo.nube('u1'), alm1, 'a', 'u9');
+  igual((await mundo.nube('u2').leer(`parejas/${codigo}`)).lugares, { a: 'u9', b: 'u2' });
+});
+
+prueba('solicitudes: borrarTodo borra también las solicitudes de los dos lugares', async () => {
+  const { mundo, codigo, alm1, alm3, rutaSol } = await parejaCompleta();
+  await pedirLugar(mundo.nube('u3'), alm3, { codigo, lugar: 'a' });
+  await pedirLugar(mundo.nube('u4'), almacenEnMemoria(), { codigo, lugar: 'b' });
+  await borrarTodo(mundo.nube('u1'), alm1, { cargarIdsTarjetas: async () => [] });
+  igual(await mundo.nube('u1').leer(rutaSol('a')), null);
+  igual(await mundo.nube('u1').leer(rutaSol('b')), null);
+  igual(await mundo.nube('u1').leer(`parejas/${codigo}`), null);
 });

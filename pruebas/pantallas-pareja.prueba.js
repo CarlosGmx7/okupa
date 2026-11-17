@@ -116,7 +116,7 @@ async function pedirComoCarlos() {
 prueba('pantalla pareja: pareja llena ofrece escoger quién eres y avisa que hay que aprobar', async () => {
   const { div } = await llegarAQuienEres();
   verdadero(boton(div, 'Soy Sofi'), 'ofrece los dos nombres');
-  verdadero(div.textContent.includes('Tu celular anterior tendrá que aprobarlo. Si ya no lo tienes, podrás entrar en 7 días.'), div.textContent);
+  verdadero(div.textContent.includes('Tu celular anterior tendrá que aprobarlo. Si ya no lo tienes, podrás entrar en 7 días si nadie lo rechaza.'), div.textContent);
   verdadero(!div.textContent.includes('quedará desconectado'), 'ya no desconecta al otro');
 });
 
@@ -398,4 +398,62 @@ prueba('exigirPareja: null y pinta el enlace sin pareja; nube y pareja si la hay
   igual(r.pareja, { codigo, lugar: 'a', nombres: { a: 'Carlos', b: null } });
   verdadero(typeof r.nube.leer === 'function');
   igual(con.div.textContent, '', 'no pinta nada si hay pareja');
+});
+
+// El navegador oculta la pestaña: se simula con document.hidden (se restaura al terminar).
+const ocultar = (si) => Object.defineProperty(document, 'hidden', { configurable: true, get: () => si });
+const mostrarDeNuevo = () => { delete document.hidden; };
+// La pantalla de espera cuelga su detenerEspera de la zona interior que pinta la pantalla.
+const detenerEspera = (div) => [...div.children].forEach((z) => z.detenerEspera?.());
+
+prueba('pantalla pareja: la espera no revisa cada minuto con la pantalla oculta; revisa al volver y al recuperar la red', async () => {
+  const { mundo, almacen } = await pedirComoCarlos();
+  const nuevo = montar(mundo, 'u3', almacen);
+  nuevo.ctx.revisionMs = 30;
+  let lecturas = 0;
+  nuevo.ctx.nube = async () => { const n = mundo.nube('u3'); return { ...n, leer: async (r) => { lecturas++; return n.leer(r); } }; };
+  await nuevo.pintar();
+  await hasta(() => nuevo.div.textContent.includes('celular anterior y toca'));
+  ocultar(true);
+  try {
+    await esperar(60);
+    const antes = lecturas;
+    await esperar(150);
+    igual(lecturas, antes, 'oculta no lee');
+    window.dispatchEvent(new Event('online'));
+    await esperar(60);
+    igual(lecturas, antes, 'oculta tampoco lee al volver la red');
+    ocultar(false);
+    document.dispatchEvent(new Event('visibilitychange'));
+    await hasta(() => lecturas > antes);
+    const despues = lecturas;
+    window.dispatchEvent(new Event('online'));
+    await hasta(() => lecturas > despues);
+  } finally { mostrarDeNuevo(); }
+  detenerEspera(nuevo.div);
+  const quieta = lecturas;
+  document.dispatchEvent(new Event('visibilitychange'));
+  window.dispatchEvent(new Event('online'));
+  await esperar(100);
+  igual(lecturas, quieta, 'al salir suelta los oyentes y el temporizador');
+});
+
+prueba('pantalla pareja: la revisión periódica no borra el error de «Entrar» ni cambia el botón si nada cambió', async () => {
+  const { mundo, almacen, rutaSol } = await pedirComoCarlos();
+  await mundo.nube('u3').escribir(rutaSol, { uid: 'u3', creada: Date.now() - 8 * DIA });
+  const nuevo = montar(mundo, 'u3', almacen);
+  nuevo.ctx.revisionMs = 30;
+  nuevo.ctx.nube = async () => {
+    const n = mundo.nube('u3');
+    return { ...n, transaccion: async () => { throw new ErrorNube('permiso'); } };
+  };
+  await nuevo.pintar();
+  await hasta(() => boton(nuevo.div, 'Entrar'));
+  const entrar = boton(nuevo.div, 'Entrar');
+  entrar.click();
+  await hasta(() => nuevo.div.querySelector('.error-formulario')?.textContent);
+  await esperar(150);
+  igual(nuevo.div.querySelector('.error-formulario').textContent, 'Todavía no se puede entrar. Intenta más tarde.');
+  verdadero(boton(nuevo.div, 'Entrar') === entrar, 'es el mismo botón');
+  detenerEspera(nuevo.div);
 });

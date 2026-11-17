@@ -87,8 +87,8 @@ describe('cambio de celular: pedir, aprobar y entrar', () => {
     assert.equal((await miSolicitud(nubeDe('u3'), alm3)).estado, 'pendiente');
     await assert.rejects(nubeDe('u3').leer(`${RUTA}/perfiles/a`), conCodigo('permiso'), 'pedir no da acceso');
 
-    assert.deepEqual(await solicitudesDe(nubeDe('u1'), miPareja(alm1)), [{ lugar: 'a', mia: true, entraMs: pedida.entraMs, nombre: 'Carlos' }]);
-    assert.deepEqual(await solicitudesDe(nubeDe('u2'), { codigo: CODIGO, lugar: 'b' }), [{ lugar: 'a', mia: false, entraMs: pedida.entraMs, nombre: 'Carlos' }]);
+    assert.deepEqual(await solicitudesDe(nubeDe('u1'), miPareja(alm1)), [{ lugar: 'a', mia: true, entraMs: pedida.entraMs, nombre: 'Carlos', uid: 'u3' }]);
+    assert.deepEqual(await solicitudesDe(nubeDe('u2'), { codigo: CODIGO, lugar: 'b' }), [{ lugar: 'a', mia: false, entraMs: pedida.entraMs, nombre: 'Carlos', uid: 'u3' }]);
 
     await aprobarSolicitud(nubeDe('u1'), alm1, 'a');
     assert.equal(miPareja(alm1), null);

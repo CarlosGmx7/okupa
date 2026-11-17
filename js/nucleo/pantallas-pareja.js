@@ -68,7 +68,8 @@ const fecha = (ms, opciones) => new Date(ms).toLocaleString('es-CO', opciones);
 const REVISION_MS = 60000;
 
 // Espera del celular nuevo: la solicitud ya está en la nube y este celular la tiene apuntada.
-// Escucha la pareja (una sola escucha, se corta al salir) y la revisa en cada cambio y cada minuto.
+// Escucha la pareja (una sola escucha, se corta al salir) y la revisa en cada cambio y cada minuto,
+// pero solo con la pantalla a la vista: oculta no consulta, y revisa al volver y al recuperar la red.
 function pintarEspera(zona, ctx, nube, alEnlazar) {
   zona.detenerEspera?.();
   const apuntada = solicitudApuntada(ctx.almacen);
@@ -77,10 +78,15 @@ function pintarEspera(zona, ctx, nube, alEnlazar) {
   let minuto = null;
   let revision = 0;
   let pintado = false;
+  let pintadoDe = null; // estado y fechas de lo que se ve: si no cambian, no se repinta
+  const oculta = () => document.hidden === true;
+  const alVolver = () => { if (vivo && !oculta()) revisar(); };
   const detener = () => {
     vivo = false;
     corte();
     clearInterval(minuto);
+    document.removeEventListener('visibilitychange', alVolver);
+    window.removeEventListener('online', alVolver);
     window.removeEventListener('hashchange', detener);
     if (zona.detenerEspera === detener) zona.detenerEspera = null;
   };
@@ -111,6 +117,12 @@ function pintarEspera(zona, ctx, nube, alEnlazar) {
   }
 
   function pintarEstado(s) {
+    // Mismo estado y mismas fechas (y el rechazo sin cambiar de «ya puede pedir»): se deja todo como está,
+    // para no borrar un mensaje de error ni cambiar el botón que la persona está usando.
+    const puede = s.estado === 'rechazada' && s.reintentoMs !== null && Date.now() >= s.reintentoMs;
+    const huella = JSON.stringify([s.estado, s.entraMs, s.reintentoMs, puede]);
+    if (pintado && huella === pintadoDe) return;
+    pintadoDe = huella;
     error.textContent = '';
     if (s.estado === 'pendiente') {
       pantalla('Esperando la aprobación', [
@@ -177,7 +189,9 @@ function pintarEspera(zona, ctx, nube, alEnlazar) {
   zona.replaceChildren(el('p', { clase: 'subtitulo', role: 'status' }, 'Revisando tu solicitud…'));
   if (!apuntada) { volver(); return; }
   corte = nube.escuchar(`parejas/${apuntada.codigo}`, () => { if (vivo) revisar(); });
-  minuto = setInterval(revisar, REVISION_MS);
+  minuto = setInterval(() => { if (!oculta()) revisar(); }, ctx.revisionMs ?? REVISION_MS);
+  document.addEventListener('visibilitychange', alVolver);
+  window.addEventListener('online', alVolver);
   revisar();
 }
 
@@ -258,7 +272,7 @@ export function pintarEnlace(zona, ctx, nube, alEnlazar) {
     });
     zona.replaceChildren(
       el('h1', { clase: 'titulo-pantalla' }, '¿Quién eres?'),
-      el('p', { clase: 'subtitulo' }, 'Tu celular anterior tendrá que aprobarlo. Si ya no lo tienes, podrás entrar en 7 días.'),
+      el('p', { clase: 'subtitulo' }, 'Tu celular anterior tendrá que aprobarlo. Si ya no lo tienes, podrás entrar en 7 días si nadie lo rechaza.'),
       el('div', { clase: 'enlace-acciones' }, opciones), error,
       el('button', { clase: 'boton-texto', type: 'button', onclick: inicio }, 'Volver'));
   }

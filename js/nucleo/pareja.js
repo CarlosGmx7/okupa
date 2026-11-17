@@ -250,17 +250,21 @@ export async function solicitudesDe(nube, pareja, ahoraMs = Date.now()) {
       mia: lugar === pareja.lugar,
       entraMs: (aMs(s.creada) ?? ahoraMs) + ESPERA_SOLICITUD_MS,
       nombre: parejaDoc?.nombres?.[lugar] ?? null,
+      uid: s.uid,
     }];
   });
 }
 
 // Solo el celular que tiene el lugar lo entrega al que lo pidió. Después este celular queda por fuera.
-export async function aprobarSolicitud(nube, almacen, lugar) {
+// `uidVisto` es el celular que la persona vio en pantalla: si mientras tanto la solicitud pasó a otro
+// celular, no se entrega (se avisa con 'solicitud-cambio').
+export async function aprobarSolicitud(nube, almacen, lugar, uidVisto = null) {
   const pareja = miPareja(almacen);
   if (!pareja) throw new ErrorPareja('sin-pareja');
   if (lugar !== pareja.lugar) throw new ErrorPareja('no-es-tu-lugar');
   const solicitud = await nube.leer(rutaSolicitud(pareja.codigo, lugar));
   if (!solicitud || solicitud.rechazada != null || typeof solicitud.uid !== 'string') throw new ErrorPareja('sin-solicitud');
+  if (uidVisto !== null && solicitud.uid !== uidVisto) throw new ErrorPareja('solicitud-cambio');
   // Se marca antes de escribir: al cambiar el lugar, la escucha de este celular ya debe saber que fue entregado.
   entregado = pareja.codigo;
   try {
@@ -394,6 +398,8 @@ export async function borrarTodo(nube, almacen, { cargarIdsTarjetas = idsTarjeta
   await borrarLugares(nube, base);
   await borrarMatch(nube, base, cargarIdsTarjetas);
   await borrarProbable(nube, base);
+  // Los miembros siempre pueden borrar las solicitudes de cambio de celular (si no, quedarían huérfanas).
+  for (const l of LUGARES) await nube.borrar(rutaSolicitud(pareja.codigo, l));
   for (const sub of SUBCOLECCIONES) {
     for (const { id } of await nube.listar(`${base}/${sub}`)) {
       // Las respuestas no se pueden listar (protegen lo del otro): se borran por su nombre fijo.

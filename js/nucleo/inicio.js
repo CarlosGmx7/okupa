@@ -181,7 +181,7 @@ export function pantallaInicio(contenedor, _params, ctx) {
     try { return m.accesosInicio?.(ctx) || []; }
     catch (e) { console.warn(`Okupa: el módulo "${m.id}" falló al pintar el inicio`, e); return []; }
   })) : null;
-  // Aviso de un celular nuevo que pide entrar; se lee al abrir y al volver a la app (no se repite al repintar).
+  // Aviso de un celular nuevo que pide entrar; se lee al abrir y al volver a la app (cada repintado monta una franja nueva; la anterior se suelta sola al salir de la página).
   const solicitudes = el('div', { clase: 'inicio-solicitudes' });
   contenedor.append(
     el('header', { clase: 'inicio-cabecera' },
