@@ -44,8 +44,61 @@ export function avatarDe(nombre) {
   return AVATARES.includes(primera) ? `iconos/mapa/${primera}.png` : null;
 }
 
-export async function guardarUbicacion(nube, pareja, { lat, lng }, { aproximada = false } = {}) {
+const PRECISION_BUENA_M = 30; // con esto ya se distingue la cuadra: no hace falta esperar más
+const PRECISION_VISIBLE_M = 100; // peor que esto se le cuenta a la pareja
+export const ESPERA_GPS_MS = 10000; // cuánto se le da al GPS para afinar antes de usar la mejor lectura
+export const LIMITE_GPS_MS = 25000; // sin ninguna lectura en este tiempo, se pasa a la ubicación por redes
+const ESPERA_REDES_MS = 10000;
+const SIN_PERMISO = 1;
+
+// Busca la ubicación con GPS y sin posiciones viejas: escucha varias lecturas y se queda con la más
+// precisa. Si el GPS no da nada (bajo techo, apagado), el plan B es la ubicación por redes.
+export function buscarUbicacion(geo = globalThis.navigator?.geolocation, { poner = setTimeout, quitar = clearTimeout } = {}) {
+  return new Promise((listo, fallo) => {
+    if (!geo) { fallo(new Error('sin-geolocalizacion')); return; }
+    const punto = (p) => ({ lat: p.coords.latitude, lng: p.coords.longitude, precision: Math.round(p.coords.accuracy) });
+    let mejor = null;
+    let cerrado = false;
+    let esperoDeMas = false;
+    const relojes = [];
+    let escucha = null;
+    const cerrar = () => {
+      cerrado = true;
+      relojes.forEach(quitar);
+      if (escucha !== null) geo.clearWatch(escucha);
+    };
+    const terminar = () => { cerrar(); listo(mejor); };
+    const porRedes = () => {
+      cerrar();
+      geo.getCurrentPosition((p) => listo(punto(p)), fallo,
+        { enableHighAccuracy: false, timeout: ESPERA_REDES_MS, maximumAge: 300000 });
+    };
+    escucha = geo.watchPosition((p) => {
+      if (cerrado) return;
+      const nuevo = punto(p);
+      if (!mejor || nuevo.precision < mejor.precision) mejor = nuevo;
+      if (mejor.precision <= PRECISION_BUENA_M || esperoDeMas) terminar();
+    }, (e) => {
+      if (cerrado) return;
+      if (e?.code === SIN_PERMISO) { cerrar(); fallo(e); return; }
+      if (mejor) terminar(); else porRedes();
+    }, { enableHighAccuracy: true, maximumAge: 0, timeout: LIMITE_GPS_MS });
+    if (cerrado) { geo.clearWatch(escucha); return; } // respondió antes de devolver el id
+    relojes.push(poner(() => { if (cerrado) return; if (mejor) terminar(); else esperoDeMas = true; }, ESPERA_GPS_MS));
+    relojes.push(poner(() => { if (!cerrado) porRedes(); }, LIMITE_GPS_MS));
+  });
+}
+
+// Lo que se le cuenta a la pareja junto a la hora: solo si la ubicación es aproximada o salió imprecisa.
+export function textoPrecision(ubicacion) {
+  if (ubicacion?.aproximada) return ' · aprox.';
+  const m = ubicacion?.precision;
+  return typeof m === 'number' && m > PRECISION_VISIBLE_M ? ` · ±${formatearDistancia(m / 1000)}` : '';
+}
+
+export async function guardarUbicacion(nube, pareja, { lat, lng, precision }, { aproximada = false } = {}) {
   const punto = aproximada ? redondearAproximada({ lat, lng }) : { lat, lng };
+  if (!aproximada && typeof precision === 'number') punto.precision = precision;
   await nube.escribir(`${rutaUbicaciones(pareja.codigo)}/${pareja.lugar}`, {
     ...punto, aproximada, horaMs: Date.now(), hora: nube.horaServidor(),
   });

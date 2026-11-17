@@ -1,7 +1,7 @@
 // Pantalla del mapa: la última ubicación de cada uno sobre el mapa Liberty de OpenFreeMap, unidos por la ruta.
 import { el } from '../../nucleo/ui.js';
 import { exigirPareja } from '../../nucleo/pantallas-pareja.js';
-import { guardarUbicacion, leerUbicaciones, formatearDistancia, haceCuanto, avatarDe } from './ubicacion.js';
+import { guardarUbicacion, leerUbicaciones, buscarUbicacion, textoPrecision, formatearDistancia, haceCuanto, avatarDe } from './ubicacion.js';
 import { calcularRuta } from './ruta.js';
 import { cargarMapLibre, crearMapa, marcador as ponerMarcador, dibujarLinea, encuadrar } from './motor.js';
 import { montarLugares } from './lugares-ui.js';
@@ -13,17 +13,6 @@ const CLAVE_CAPAS = 'okupa:mapa:capas';
 const ROJO_RUTA = '#e0292f';
 const COLOR_LUGAR = { a: '#c9a45c', b: '#a8344f' };
 
-function miUbicacion() {
-  return new Promise((listo, fallo) => {
-    if (!navigator.geolocation) { fallo(new Error('sin-geolocalizacion')); return; }
-    navigator.geolocation.getCurrentPosition(
-      (p) => listo({ lat: p.coords.latitude, lng: p.coords.longitude }),
-      (e) => fallo(e),
-      { enableHighAccuracy: false, timeout: 12000, maximumAge: 60000 },
-    );
-  });
-}
-
 function elementoPareja({ nombre, lugar, ubicacion }) {
   const avatar = avatarDe(nombre);
   const figura = avatar
@@ -33,7 +22,7 @@ function elementoPareja({ nombre, lugar, ubicacion }) {
   const contenido = el('div', { clase: 'marcador-pareja' },
     el('span', { clase: 'marcador-nombre' }, nombre || 'Tu pareja'),
     figura,
-    el('span', { clase: 'marcador-hora' }, `${haceCuanto(ubicacion.horaMs)}${ubicacion.aproximada ? ' · aprox.' : ''}`));
+    el('span', { clase: 'marcador-hora' }, `${haceCuanto(ubicacion.horaMs)}${textoPrecision(ubicacion)}`));
   contenido.style.setProperty('--color', COLOR_LUGAR[lugar]);
   contenido.title = nombre || 'Tu pareja';
   return contenido;
@@ -99,8 +88,11 @@ export function crearPantallasMapa() {
         el('button', { clase: 'boton', type: 'button', onclick: () => ctx.refrescar() }, 'Actualizar')));
 
     // 1) La mía (si da permiso), 2) las dos guardadas, 3) el mapa y la ruta.
+    // El mapa se va cargando mientras el GPS afina, para que la espera no se sienta.
+    const mapaListo = crearMapa(lienzo);
+    mapaListo.catch(() => {}); // el error se atiende más abajo, al esperarlo
     try {
-      const punto = await miUbicacion();
+      const punto = await buscarUbicacion();
       await guardarUbicacion(nube, pareja, punto, { aproximada: aproximada.checked });
       estado.textContent = '';
     } catch (e) {
@@ -113,9 +105,10 @@ export function crearPantallasMapa() {
     let mapaL;
     try {
       ubicaciones = await leerUbicaciones(nube, pareja);
-      ({ gl, mapa: mapaL } = await crearMapa(lienzo));
+      ({ gl, mapa: mapaL } = await mapaListo);
     } catch (e) {
       console.warn('Okupa: el mapa no cargó', e);
+      mapaListo.then(({ mapa: m }) => m.remove(), () => {}); // si alcanzó a crearse, no se deja vivo
       if (!vigente()) return;
       lienzo.replaceChildren(el('p', { clase: 'vacio' }, 'No se pudo cargar el mapa. Revisa la conexión.'),
         el('button', { clase: 'boton', type: 'button', onclick: () => ctx.refrescar() }, 'Reintentar'));
