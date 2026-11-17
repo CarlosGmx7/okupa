@@ -20,6 +20,7 @@ const PRECACHE = [
   "js/nucleo/pareja.js",
   "js/nucleo/esperando.js",
   "js/nucleo/pantallas-pareja.js",
+  "js/nucleo/solicitudes-ui.js",
   "js/nucleo/precalentar.js",
   "js/compartido/ingles.js",
   "js/modulos/mapa/modulo.js",

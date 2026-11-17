@@ -2,6 +2,7 @@
 // `exigirPareja` la usan las secciones en línea (Trivia, Diario) antes de mostrar lo suyo.
 import { el } from './ui.js';
 import { ErrorNube } from './nube.js';
+import { montarAvisoSolicitud } from './solicitudes-ui.js';
 import {
   crearPareja, unirse, lugaresDe, pedirLugar, miSolicitud, completarEntrada, entrarVencida, cancelarSolicitud,
   solicitudApuntada, vigilarLugar, cambiarNombre, salir, borrarTodo, miPareja, formatearCodigo, ErrorPareja,
@@ -302,11 +303,14 @@ function pintarEnlazados(zona, ctx, nube) {
     dejarDeEscuchar();
     pintarPerdido(zona, ctx, motivo);
   });
-  const cancelar = () => { dejarDeEscuchar(); dejarDeVigilar(); };
+  const solicitudes = el('div', { clase: 'inicio-solicitudes' });
+  const dejarDeAvisar = montarAvisoSolicitud(solicitudes, ctx);
+  const cancelar = () => { dejarDeEscuchar(); dejarDeVigilar(); dejarDeAvisar(); };
   alSalirDeRuta(cancelar);
 
   zona.replaceChildren(
     el('h1', { clase: 'titulo-pantalla' }, 'Nuestra pareja'),
+    solicitudes,
     el('p', { clase: 'subtitulo' }, 'Su código (para enlazar un celular nuevo):'),
     el('p', { clase: 'codigo-pareja' }, formatearCodigo(codigo)),
     el('p', { clase: 'campo-ayuda' }, 'Para pasar a otro celular vas a necesitar este para aprobarlo. Sin él (o si borras los datos del navegador) la espera es de 7 días.'),

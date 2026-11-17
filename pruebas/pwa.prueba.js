@@ -4,7 +4,7 @@ const ESPERADOS = [
   './', 'index.html', 'modulos.json', 'manifest.webmanifest',
   'css/base.css', 'css/componentes.css',
   'js/nucleo/app.js', 'js/nucleo/almacen.js', 'js/nucleo/rutas.js', 'js/nucleo/ui.js', 'js/nucleo/inicio.js',
-  'js/nucleo/nube.js', 'js/nucleo/nube-config.js', 'js/nucleo/pareja.js', 'js/nucleo/esperando.js', 'js/nucleo/pantallas-pareja.js', 'js/nucleo/precalentar.js',
+  'js/nucleo/nube.js', 'js/nucleo/nube-config.js', 'js/nucleo/pareja.js', 'js/nucleo/esperando.js', 'js/nucleo/pantallas-pareja.js', 'js/nucleo/solicitudes-ui.js', 'js/nucleo/precalentar.js',
   'js/compartido/ingles.js',
   'js/modulos/mapa/modulo.js', 'js/modulos/mapa/pantallas.js', 'js/modulos/mapa/ubicacion.js', 'js/modulos/mapa/ruta.js', 'js/modulos/mapa/motor.js', 'js/modulos/mapa/lugares.js', 'js/modulos/mapa/lugares-ui.js',
   'js/nucleo/portada.js', 'js/nucleo/ajustes.js', 'js/nucleo/tema.js', 'js/nucleo/iconos.js', 'js/nucleo/sonidos.js', 'js/nucleo/pantalla-ajustes.js', 'js/nucleo/avisos.js', 'js/nucleo/notificaciones.js',

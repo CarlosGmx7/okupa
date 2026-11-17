@@ -109,6 +109,20 @@
 }
 .inicio-enlazar-titulo { font-family: var(--serif); font-size: 1.125rem; }
 .inicio-enlazar-detalle { font-size: 0.875rem; color: var(--dorado); }
+
+/* Aviso de un celular nuevo que pide entrar (inicio y «Nuestra pareja») */
+.inicio-solicitudes { display: flex; flex-direction: column; gap: 0.625rem; }
+.inicio-solicitudes:not(:empty) { margin-top: 1.125rem; }
+.franja-solicitud {
+  padding: 0.75rem 1rem;
+  border-radius: var(--radio-chico);
+  border: 1px solid var(--dorado);
+  background: var(--superficie);
+  color: var(--crema);
+}
+.franja-solicitud-texto { margin: 0 0 0.5rem; font-size: 0.9375rem; line-height: 1.4; }
+.franja-solicitud .error-formulario { margin: 0 0 0.5rem; font-size: 0.875rem; }
+.franja-solicitud-acciones { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 .inicio-enlazar:focus-visible, .inicio-fila:focus-visible { outline: 2px solid var(--dorado); outline-offset: 2px; }
 .inicio-secciones { display: flex; flex-direction: column; gap: 22px; margin-top: 26px; }
 .inicio-seccion-titulo {

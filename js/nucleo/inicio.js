@@ -3,6 +3,7 @@ import { el } from './ui.js';
 import { icono, iconoLinea } from './iconos.js';
 import { miPareja } from './pareja.js';
 import { leerAjustes } from './ajustes.js';
+import { montarAvisoSolicitud } from './solicitudes-ui.js';
 import { PORTADA_ORIGINAL, fuentePortada, abrirEditorPortada } from './portada.js';
 
 // Las tres secciones del inicio, en este orden. Cada módulo se coloca con `accesoJuntos.seccion`
@@ -180,6 +181,8 @@ export function pantallaInicio(contenedor, _params, ctx) {
     try { return m.accesosInicio?.(ctx) || []; }
     catch (e) { console.warn(`Okupa: el módulo "${m.id}" falló al pintar el inicio`, e); return []; }
   })) : null;
+  // Aviso de un celular nuevo que pide entrar; se lee al abrir y al volver a la app (no se repite al repintar).
+  const solicitudes = el('div', { clase: 'inicio-solicitudes' });
   contenedor.append(
     el('header', { clase: 'inicio-cabecera' },
       el('a', { clase: 'engranaje', href: '#/ajustes', 'aria-label': 'Ajustes' }, iconoLinea('ajustes', 'engranaje-icono')),
@@ -189,6 +192,7 @@ export function pantallaInicio(contenedor, _params, ctx) {
       }, el('img', { clase: 'inicio-portada', src: fuentePortada(ctx.almacen), alt: '', onerror: (e) => { if (!e.target.src.endsWith(PORTADA_ORIGINAL)) e.target.src = PORTADA_ORIGINAL; } })),
       el('h1', { clase: 'logo' }, 'Okupa'),
       el('p', { clase: 'lema' }, 'Preguntas para conocerse de verdad')),
+    solicitudes,
     clasica ? tarjetaJuntos(ctx.almacen, ctx.modulos) : el('div', {}, ctx.almacen && miPareja(ctx.almacen) ? null : enlaceEnlazar()),
     el('div', { clase: 'inicio-tarjetas' }, tarjetas),
     clasica
@@ -200,6 +204,7 @@ export function pantallaInicio(contenedor, _params, ctx) {
     el('footer', { clase: 'inicio-pie' },
       el('a', { href: '#/acerca' }, 'Acerca de Okupa')),
   );
+  montarAvisoSolicitud(solicitudes, ctx);
 }
 
 // Botón de instalar si el navegador lo ofrece; si no, cómo hacerlo a mano.
