@@ -22,6 +22,7 @@ const ESPERADOS = [
   'js/modulos/diario/seleccion.js', 'js/modulos/diario/dia.js', 'js/modulos/diario/revelar.js',
   'js/modulos/diario/aprender.js', 'js/modulos/trivia/conoces.js',
   'js/modulos/probable/modulo.js', 'js/modulos/probable/pantallas.js', 'js/modulos/probable/logica.js', 'js/modulos/probable/sala.js', 'data/probable/frases.json',
+  'js/modulos/ruleta/logica.js', 'js/modulos/ruleta/pantallas.js', 'js/modulos/ruleta/modulo.js', 'data/ruleta/planes.json',
   'data/diario/temas.json', 'data/diario/rasgos.json', 'data/diario/preguntas.json', 'data/diario/perfil-inicial.json',
   'js/modulos/preguntas/modulo.js', 'js/modulos/preguntas/datos.js', 'js/modulos/preguntas/progreso.js',
   'js/modulos/preguntas/propio.js', 'js/modulos/preguntas/pantallas.js', 'js/modulos/preguntas/editor.js',
@@ -141,7 +142,7 @@ prueba('pwa: manifest con nombre, colores e íconos', async () => {
   verdadero(m.icons.some((i) => i.sizes === '192x192'), 'falta 192');
 });
 
-prueba('pwa: la caché de esta versión es okupa-v22', async () => {
+prueba('pwa: la caché de esta versión es okupa-v23', async () => {
   const texto = await (await fetch('sw.js')).text();
-  verdadero(texto.includes("const CACHE = 'okupa-v22';"), texto.split('\n').find((l) => l.startsWith('const CACHE')));
+  verdadero(texto.includes("const CACHE = 'okupa-v23';"), texto.split('\n').find((l) => l.startsWith('const CACHE')));
 });

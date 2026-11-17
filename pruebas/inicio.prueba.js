@@ -3,6 +3,8 @@ import { pantallaInicio, pantallaAcerca, SECCIONES } from '../js/nucleo/inicio.j
 import { el } from '../js/nucleo/ui.js';
 import { almacenEnMemoria } from './pareja.prueba.js';
 import { cambiarAjuste } from '../js/nucleo/ajustes.js';
+import ruletaModulo from '../js/modulos/ruleta/modulo.js';
+import capsulaModulo from '../js/modulos/capsula/modulo.js';
 
 // Las pruebas de las secciones son de la interfaz Simple; las de tarjetas usan ctxModerna (el defecto).
 const ctxModerna = (modulos, almacen = almacenEnMemoria()) => ({ modulos, almacen, ir() {}, refrescar() {} });
@@ -491,4 +493,28 @@ prueba('inicio clásica: Moderna y Simple no pintan la tarjeta Nuestra pareja ni
     pantallaInicio(div, {}, ctxModerna(modulosClasica(), almacen));
     igual(div.querySelectorAll('.juntos, nav.accesos').length, 0, v);
   }
+});
+
+// ---------- Ruleta: aparece en Nosotros después de Cápsula, en las tres interfaces ----------
+const conRuleta = () => [
+  mod('x', acceso('match', 'Match', { seccion: 'nosotros', orden: 1 })),
+  mod('m', acceso('mapa', 'Mapa', { seccion: 'nosotros', orden: 2 })),
+  mod('f', acceso('fechas', 'Fechas', { seccion: 'nosotros', orden: 3 })),
+  mod('r', { ...ruletaModulo.accesoJuntos }),
+  mod('c', { ...capsulaModulo.accesoJuntos }),
+];
+
+prueba('inicio: Ruleta sale en Nosotros después de Cápsula (Simple, Moderna y Clásica)', () => {
+  const almacen = almacenEnMemoria();
+  cambiarAjuste(almacen, 'inicio', 'simple');
+  navegar();
+  let div = document.createElement('div');
+  pantallaInicio(div, {}, ctxModerna(conRuleta(), almacen));
+  igual(textos(div, '.inicio-fila-nombre'), ['Match', 'Mapa', 'Fechas', 'Cápsula', 'Ruleta']);
+  cambiarAjuste(almacen, 'inicio', 'moderna');
+  div = pintarModerna(conRuleta(), almacen);
+  igual(div.querySelector('.tarjeta-seccion[data-seccion="nosotros"] .tarjeta-seccion-modos').textContent, 'Match · Mapa · Fechas · Cápsula · Ruleta');
+  const clasica = pintarClasica(conRuleta(), conPareja());
+  igual([...clasica.querySelectorAll('nav.juntos-accesos a.juntos-acceso')].map((a) => a.getAttribute('href')),
+    ['#/match', '#/mapa', '#/fechas', '#/capsula', '#/ruleta']);
 });
