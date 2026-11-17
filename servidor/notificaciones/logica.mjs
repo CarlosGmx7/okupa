@@ -45,6 +45,8 @@ const TEXTOS = {
   trivia: (n) => ({ titulo: `${n} te invitó a la Trivia`, texto: 'Te está esperando para jugar.', ruta: '#/trivia' }),
   probable: (n) => ({ titulo: `${n} te invita a jugar ¿Quién es más probable? 🤔`, texto: 'Te está esperando para jugar.', ruta: '#/probable' }),
   mapa: (n) => ({ titulo: `${n} agregó algo al mapa`, texto: 'Entra a verlo.', ruta: '#/mapa' }),
+  solicitud: (n) => ({ titulo: 'Okupa', texto: `Alguien pide entrar como ${n} desde otro celular. Si no eres tú, recházalo.`, ruta: '#/' }),
+  'solicitud-recordatorio': (n) => ({ titulo: 'Okupa', texto: `Mañana un celular nuevo entra como ${n} si nadie lo rechaza.`, ruta: '#/' }),
   recordatorio: () => ({ titulo: '¿Ya respondiste el Diario?', texto: 'Te falta tu parte de hoy.', ruta: '#/diario' }),
 };
 export function textoDe(tipo, nombre) {
@@ -67,6 +69,33 @@ export function destinatarios(dispositivos, parejaDoc, aviso) {
     enviar.push({ id, token: datos.token });
   }
   return { enviar, invalidos };
+}
+
+// Miembros actuales de la pareja con registro vigente: sin mirar los interruptores (es un aviso de seguridad).
+export function miembrosDe(dispositivos, parejaDoc) {
+  const enviar = [];
+  const invalidos = [];
+  for (const { id, datos } of dispositivos) {
+    if (registroVigente(datos, parejaDoc)) enviar.push({ id, token: datos.token });
+    else invalidos.push(id);
+  }
+  return { enviar, invalidos };
+}
+
+const DIA_MS = 24 * 60 * 60 * 1000;
+const RECORDAR_DIA = 6;
+const LIMPIAR_RECHAZADA_DIAS = 8;
+const aMs = (v) => v?.toMillis?.() ?? v ?? null;
+
+// Qué hacer con una solicitud de celular nuevo (`lugar` es el id del documento): 'avisar' | 'recordar' | 'borrar' | null.
+export function accionSolicitud(solicitud, parejaDoc, lugar, ahoraMs) {
+  if (!parejaDoc || parejaDoc.lugares?.[lugar] === solicitud.uid) return 'borrar';
+  const rechazada = aMs(solicitud.rechazada);
+  if (rechazada !== null) return ahoraMs - rechazada > LIMPIAR_RECHAZADA_DIAS * DIA_MS ? 'borrar' : null;
+  if (!solicitud.avisada) return 'avisar';
+  const creada = aMs(solicitud.creada);
+  if (!solicitud.recordada && creada !== null && ahoraMs - creada >= RECORDAR_DIA * DIA_MS) return 'recordar';
+  return null;
 }
 
 export function quiereRecordatorio(dispositivo, hoy, yaRespondio) {

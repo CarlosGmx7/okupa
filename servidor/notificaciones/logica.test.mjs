@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { fechaBogota, franjaDe, franjasPendientes, textoDe, vencido, destinatarios, quiereRecordatorio, fechaEnZona, momentoDeFranja } from './logica.mjs';
+import { fechaBogota, franjaDe, franjasPendientes, textoDe, vencido, destinatarios, quiereRecordatorio, fechaEnZona, momentoDeFranja, accionSolicitud, miembrosDe } from './logica.mjs';
 
 test('franjaDe redondea hacia abajo a 15 min en UTC', () => {
   assert.equal(franjaDe(new Date('2026-11-13T01:07:00Z')), '01:00');
@@ -89,4 +89,44 @@ test('fechaEnZona con zona inválida usa Bogotá y no lanza', () => {
   assert.equal(fechaEnZona(t, 'No/Existe'), '2026-03-09');
   assert.equal(fechaEnZona(t, undefined), '2026-03-09');
   assert.equal(fechaEnZona(t, ''), '2026-03-09');
+});
+
+// --- Solicitudes de celular nuevo ---
+const DIA = 24 * 3600e3;
+const AHORA_S = Date.parse('2026-11-20T12:00:00Z');
+const parejaS = { lugares: { a: 'u1', b: 'u2' }, nombres: { a: 'Carlos', b: 'Yuli' } };
+const sol = (extra = {}, diasAtras = 0) => ({ uid: 'u3', creada: AHORA_S - diasAtras * DIA, ...extra });
+
+test('accionSolicitud: pendiente sin avisada se avisa', () => {
+  assert.equal(accionSolicitud(sol(), parejaS, 'a', AHORA_S), 'avisar');
+});
+test('accionSolicitud: avisada hace 5 días no hace nada; hace 6 recuerda; ya recordada no', () => {
+  assert.equal(accionSolicitud(sol({ avisada: true }, 5), parejaS, 'a', AHORA_S), null);
+  assert.equal(accionSolicitud(sol({ avisada: true }, 6), parejaS, 'a', AHORA_S), 'recordar');
+  assert.equal(accionSolicitud(sol({ avisada: true, recordada: true }, 6), parejaS, 'a', AHORA_S), null);
+});
+test('accionSolicitud: aprobada, rechazada vieja o pareja inexistente se borran', () => {
+  assert.equal(accionSolicitud(sol({ uid: 'u1', avisada: true }), parejaS, 'a', AHORA_S), 'borrar');
+  assert.equal(accionSolicitud(sol({ avisada: true, rechazada: AHORA_S - 9 * DIA }, 10), parejaS, 'a', AHORA_S), 'borrar');
+  assert.equal(accionSolicitud(sol({ avisada: true, rechazada: AHORA_S - 2 * DIA }, 3), parejaS, 'a', AHORA_S), null);
+  assert.equal(accionSolicitud(sol(), null, 'a', AHORA_S), 'borrar');
+});
+test('accionSolicitud: una rechazada nunca se avisa ni se recuerda; lee Timestamps', () => {
+  assert.equal(accionSolicitud(sol({ rechazada: AHORA_S - DIA }, 6), parejaS, 'a', AHORA_S), null);
+  const ts = (ms) => ({ toMillis: () => ms });
+  assert.equal(accionSolicitud({ uid: 'u3', creada: ts(AHORA_S - 6 * DIA), avisada: true }, parejaS, 'a', AHORA_S), 'recordar');
+});
+
+test('textoDe solicitud y recordatorio', () => {
+  assert.deepEqual(textoDe('solicitud', 'Carlos'), { titulo: 'Okupa', texto: 'Alguien pide entrar como Carlos desde otro celular. Si no eres tú, recházalo.', ruta: '#/' });
+  assert.deepEqual(textoDe('solicitud-recordatorio', 'Carlos'), { titulo: 'Okupa', texto: 'Mañana un celular nuevo entra como Carlos si nadie lo rechaza.', ruta: '#/' });
+});
+
+test('miembrosDe: todos los registros vigentes sin mirar interruptores; los viejos son inválidos', () => {
+  const dispositivos = [
+    { id: 'da', datos: { uid: 'u1', lugar: 'a', token: 'ta', avisos: { diario: false, trivia: false } } },
+    { id: 'db', datos: { uid: 'u2', lugar: 'b', token: 'tb', avisos: {} } },
+    { id: 'viejo', datos: { uid: 'u9', lugar: 'b', token: 'tv' } },
+  ];
+  assert.deepEqual(miembrosDe(dispositivos, parejaS), { enviar: [{ id: 'da', token: 'ta' }, { id: 'db', token: 'tb' }], invalidos: ['viejo'] });
 });

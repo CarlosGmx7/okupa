@@ -234,3 +234,66 @@ test('capsula: sin cartas ni fechas no manda ni escribe ultimoFechas', async () 
   assert.deepEqual(m.enviados, []);
   assert.equal((await db.doc('dispositivos/db').get()).data().ultimoFechas, undefined);
 });
+
+// --- Solicitudes de celular nuevo ---
+const DIA = 24 * 3600e3;
+const solicitud = (diasAtras, extra = {}) => ({ uid: 'u3', creada: Timestamp.fromMillis(AHORA.getTime() - diasAtras * DIA), ...extra });
+const sinAvisos = { diario: false, trivia: false, mapa: false, recordatorio: false, fechas: false };
+const RUTA_S = 'parejas/K7PQ2M/solicitudes/a';
+
+test('solicitud: avisa a los dos celulares aunque tengan los avisos apagados y marca avisada', async () => {
+  await sembrar({ 'parejas/K7PQ2M': pareja, 'dispositivos/da': disp('u1', 'a', { avisos: sinAvisos }), 'dispositivos/db': disp('u2', 'b', { avisos: sinAvisos }),
+    [RUTA_S]: solicitud(0) });
+  const m = mandador();
+  await pasada({ db, mandar: m.mandar, ahora: AHORA });
+  assert.deepEqual(m.enviados.map((e) => e.token).sort(), ['t-a', 't-b']);
+  for (const e of m.enviados) assert.deepEqual(e.data, { titulo: 'Okupa', texto: 'Alguien pide entrar como Carlos desde otro celular. Si no eres tú, recházalo.', ruta: '#/', tipo: 'solicitud' });
+  assert.equal((await db.doc(RUTA_S).get()).data().avisada, true);
+  const m2 = mandador();
+  await pasada({ db, mandar: m2.mandar, ahora: AHORA });
+  assert.deepEqual(m2.enviados, []);
+});
+
+test('solicitud: al día 6 manda el recordatorio y marca recordada; no repite', async () => {
+  await sembrar({ 'parejas/K7PQ2M': pareja, 'dispositivos/da': disp('u1', 'a', { avisos: sinAvisos }), 'dispositivos/db': disp('u2', 'b'),
+    [RUTA_S]: solicitud(6, { avisada: true }) });
+  const m = mandador();
+  await pasada({ db, mandar: m.mandar, ahora: AHORA });
+  assert.equal(m.enviados.length, 2);
+  assert.equal(m.enviados[0].data.texto, 'Mañana un celular nuevo entra como Carlos si nadie lo rechaza.');
+  assert.equal(m.enviados[0].data.tipo, 'solicitud-recordatorio');
+  assert.equal((await db.doc(RUTA_S).get()).data().recordada, true);
+  const m2 = mandador();
+  await pasada({ db, mandar: m2.mandar, ahora: AHORA });
+  assert.deepEqual(m2.enviados, []);
+});
+
+test('solicitud: si no llegó a nadie no se marca avisada (se reintenta)', async () => {
+  await sembrar({ 'parejas/K7PQ2M': pareja, [RUTA_S]: solicitud(0) });
+  const m = mandador();
+  await pasada({ db, mandar: m.mandar, ahora: AHORA });
+  assert.equal((await db.doc(RUTA_S).get()).data().avisada, undefined);
+});
+
+test('solicitud: aprobada, rechazada hace 9 días o de pareja inexistente se borran sin mandar', async () => {
+  await sembrar({ 'parejas/K7PQ2M': pareja, 'dispositivos/da': disp('u1', 'a'),
+    [RUTA_S]: solicitud(1, { uid: 'u1' }),
+    'parejas/K7PQ2M/solicitudes/b': solicitud(10, { rechazada: Timestamp.fromMillis(AHORA.getTime() - 9 * DIA) }),
+    'parejas/ZZZZZZ/solicitudes/a': solicitud(0) });
+  const m = mandador();
+  await pasada({ db, mandar: m.mandar, ahora: AHORA });
+  assert.deepEqual(m.enviados, []);
+  for (const r of [RUTA_S, 'parejas/K7PQ2M/solicitudes/b', 'parejas/ZZZZZZ/solicitudes/a']) assert.equal(await existe(r), false);
+});
+
+test('solicitud: rechazada reciente se conserva sin avisar; token inválido y registro viejo se olvidan', async () => {
+  await sembrar({ 'parejas/K7PQ2M': pareja, 'dispositivos/db': disp('u2', 'b'), 'dispositivos/viejo': disp('u9', 'b'),
+    [RUTA_S]: solicitud(3, { rechazada: Timestamp.fromMillis(AHORA.getTime() - 2 * DIA) }),
+    'parejas/K7PQ2M/solicitudes/b': solicitud(0) });
+  const m = mandador({ fallar: { 't-b': 'messaging/registration-token-not-registered' } });
+  await pasada({ db, mandar: m.mandar, ahora: AHORA });
+  assert.equal(await existe(RUTA_S), true);
+  assert.equal(m.enviados.length, 1);
+  assert.equal(await existe('dispositivos/viejo'), false);
+  assert.equal(await existe('dispositivos/db'), false);
+});

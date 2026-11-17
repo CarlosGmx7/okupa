@@ -1,10 +1,11 @@
 // Una pasada de notificaciones: vacía la bandeja de avisos, manda los recordatorios del Diario y los avisos de fechas.
 // `db` es Firestore de firebase-admin; `mandar(mensajes)` envía y responde [{ ok, codigo }] en orden.
-import { fechaBogota, fechaEnZona, momentoDeFranja, franjasPendientes, textoDe, vencido, destinatarios, quiereRecordatorio, registroVigente } from './logica.mjs';
+import { fechaBogota, fechaEnZona, momentoDeFranja, franjasPendientes, textoDe, vencido, destinatarios, quiereRecordatorio, registroVigente, accionSolicitud, miembrosDe } from './logica.mjs';
 import { notificacionDelDia } from '../../js/modulos/fechas/calendario.js';
 import { avisosCapsulas, unirAvisos } from '../../js/modulos/capsula/logica.js';
 
 const MAX_NOTAS = 500;
+const MAX_SOLICITUDES = 200;
 // Solo errores que dicen que el token ya no sirve. 'invalid-argument' no: puede ser un error del mensaje
 // y borraría los registros de todos.
 const TOKEN_INVALIDO = new Set([
@@ -74,7 +75,8 @@ export async function pasada({ db, mandar, ahora = new Date() }) {
     const aviso = n.data();
     const creadoMs = aviso.creado?.toMillis?.() ?? 0;
     const pareja = codigo ? await leerPareja(codigo) : null;
-    if (!pareja || !textoDe(aviso.tipo) || vencido(aviso.tipo, creadoMs, ahora.getTime())) {
+    // Los avisos de solicitud solo los manda el servidor; uno en la bandeja se descarta.
+    if (!pareja || String(aviso.tipo).startsWith('solicitud') || !textoDe(aviso.tipo) || vencido(aviso.tipo, creadoMs, ahora.getTime())) {
       await n.ref.delete();
       resumen.descartados++;
       continue;
@@ -83,6 +85,22 @@ export async function pasada({ db, mandar, ahora = new Date() }) {
     for (const id of invalidos) await olvidar(id);
     await enviarA(enviar, { ...textoDe(aviso.tipo, pareja.nombres?.[aviso.de]), tipo: aviso.tipo });
     await n.ref.delete();
+  }
+
+  // 1b. Solicitudes de celular nuevo: aviso, recordatorio del día 6 y limpieza. Llegan a los dos celulares sin mirar interruptores.
+  const solicitudes = await db.collectionGroup('solicitudes').limit(MAX_SOLICITUDES).get();
+  for (const s of solicitudes.docs) {
+    const codigo = s.ref.parent.parent?.id;
+    const solicitud = s.data();
+    const parejaDoc = codigo ? await leerPareja(codigo) : null;
+    const accion = accionSolicitud(solicitud, parejaDoc, s.id, ahora.getTime());
+    if (accion === 'borrar') { await s.ref.delete(); continue; }
+    if (!accion) continue;
+    const tipo = accion === 'avisar' ? 'solicitud' : 'solicitud-recordatorio';
+    const { enviar, invalidos } = miembrosDe(await dispositivosDe(codigo), parejaDoc);
+    for (const id of invalidos) await olvidar(id);
+    const llegaron = await enviarA(enviar, { ...textoDe(tipo, parejaDoc.nombres?.[s.id]), tipo });
+    if (llegaron) await s.ref.update(accion === 'avisar' ? { avisada: true } : { recordada: true });
   }
 
   // 2. Recordatorios del Diario de las franjas que tocan (y las que GitHub se saltó).
