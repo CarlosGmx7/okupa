@@ -6,7 +6,7 @@ import { pasada } from './pasada.mjs';
 
 const crudo = process.env.FIREBASE_CUENTA_SERVICIO;
 if (!crudo) {
-  // Aún no configurado: se sale sin error para que GitHub no mande correos de falla cada 15 min.
+  // Aún no configurado: se sale sin error para que GitHub no mande correos de falla cada 5 min.
   console.log('Notificaciones aún no configuradas: falta el secreto FIREBASE_CUENTA_SERVICIO.');
   process.exit(0);
 }

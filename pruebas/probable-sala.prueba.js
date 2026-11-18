@@ -230,3 +230,24 @@ prueba('probable-sala: cancelarSiSigueEsperando no toca una sala a la que el otr
   igual(await cancelarSiSigueEsperando(a.nube, a.pareja, id), false);
   igual((await leer(a, id)).estado, 'jugando');
 });
+prueba('probable-sala: unirse devuelve true y deja el aviso «aceptó» para el anfitrión', async () => {
+  const { a, b } = await dosCelulares();
+  const id = await crearSala(a.nube, a.pareja, { tema: 'divertidas', frases: frases(5) });
+  igual(await unirse(b.nube, b.pareja, id), true);
+  const n = await a.nube.leer(`parejas/${a.pareja.codigo}/avisos/acepto_${id}`);
+  igual([n.tipo, n.de], ['probable-acepto', 'b']);
+});
+
+prueba('probable-sala: unirse a una sala cancelada o ya en juego devuelve false y no avisa', async () => {
+  const { a, b } = await dosCelulares();
+  const cancelada = await crearSala(a.nube, a.pareja, { tema: 'divertidas', frases: frases(5) });
+  await cancelarSala(a.nube, a.pareja, cancelada);
+  igual(await unirse(b.nube, b.pareja, cancelada), false);
+  igual(await a.nube.leer(`parejas/${a.pareja.codigo}/avisos/acepto_${cancelada}`), null);
+  const viva = await crearSala(a.nube, a.pareja, { tema: 'divertidas', frases: frases(5) });
+  igual(await unirse(b.nube, b.pareja, viva), true);
+  await a.nube.borrar(`parejas/${a.pareja.codigo}/avisos/acepto_${viva}`);
+  igual(await unirse(b.nube, b.pareja, viva), false);
+  igual(await a.nube.leer(`parejas/${a.pareja.codigo}/avisos/acepto_${viva}`), null);
+  igual(await unirse(b.nube, b.pareja, 'q-noexiste'), false);
+});

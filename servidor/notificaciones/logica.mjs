@@ -2,9 +2,9 @@
 
 const QUINCE_MIN = 15 * 60 * 1000;
 const MAX_FRANJAS = 8; // 2 h hacia atrás si GitHub se retrasa
-const VIGENCIA_MS = { trivia: 30 * 60 * 1000, probable: 30 * 60 * 1000 };
+const VIGENCIA_MS = { trivia: 30 * 60 * 1000, probable: 30 * 60 * 1000, 'trivia-acepto': 30 * 60 * 1000, 'probable-acepto': 30 * 60 * 1000 };
 // Avisos que comparten el interruptor de otro tipo.
-const PREFERENCIA = { probable: 'trivia' };
+const PREFERENCIA = { probable: 'trivia', 'trivia-acepto': 'trivia', 'probable-acepto': 'trivia' };
 const VIGENCIA_GENERAL_MS = 24 * 60 * 60 * 1000;
 
 const FORMATO_BOGOTA = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Bogota', year: 'numeric', month: '2-digit', day: '2-digit' });
@@ -44,6 +44,8 @@ const TEXTOS = {
   diario: (n) => ({ titulo: `${n} respondió el Diario`, texto: 'Entra a ver qué respondieron.', ruta: '#/diario' }),
   trivia: (n) => ({ titulo: `${n} te invitó a la Trivia`, texto: 'Te está esperando para jugar.', ruta: '#/trivia' }),
   probable: (n) => ({ titulo: `${n} te invita a jugar ¿Quién es más probable? 🤔`, texto: 'Te está esperando para jugar.', ruta: '#/probable' }),
+  'trivia-acepto': (n) => ({ titulo: 'Okupa', texto: `${n} aceptó tu juego. ¡Entra ya!`, ruta: '#/trivia' }),
+  'probable-acepto': (n) => ({ titulo: 'Okupa', texto: `${n} aceptó tu juego. ¡Entra ya!`, ruta: '#/probable' }),
   mapa: (n) => ({ titulo: `${n} agregó algo al mapa`, texto: 'Entra a verlo.', ruta: '#/mapa' }),
   solicitud: (n) => ({ titulo: 'Okupa', texto: `Alguien pide entrar como ${n} desde otro celular. Si no eres tú, recházalo.`, ruta: '#/' }),
   // Para el celular de la pareja (no el que tiene ese lugar): no dice «como yo».

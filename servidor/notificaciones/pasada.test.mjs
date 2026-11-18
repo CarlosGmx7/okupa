@@ -315,3 +315,39 @@ test('solicitud: rechazada hace menos de 25 h se conserva sin avisar; token inv�
   assert.equal(await existe('dispositivos/viejo'), false);
   assert.equal(await existe('dispositivos/db'), false);
 });
+
+test('«aceptó»: llega solo al anfitrión (no a quien entró), con el nombre de quien entró, y se borra', async () => {
+  await sembrar({ 'parejas/K7PQ2M': pareja, 'dispositivos/da': disp('u1', 'a'), 'dispositivos/db': disp('u2', 'b'),
+    'parejas/K7PQ2M/avisos/acepto_q-abcd': nota('probable-acepto', 'b'),
+    'parejas/K7PQ2M/avisos/acepto_p-abc1': nota('trivia-acepto', 'b') });
+  const m = mandador();
+  const r = await pasada({ db, mandar: m.mandar, ahora: AHORA });
+  const datos = (ruta, tipo) => ({ token: 't-a', data: { titulo: 'Okupa', texto: 'Yuli aceptó tu juego. ¡Entra ya!', ruta, tipo } });
+  assert.equal(m.enviados.length, 2);
+  assert.deepEqual(m.enviados.find((e) => e.data.tipo === 'probable-acepto'), datos('#/probable', 'probable-acepto'));
+  assert.deepEqual(m.enviados.find((e) => e.data.tipo === 'trivia-acepto'), datos('#/trivia', 'trivia-acepto'));
+  assert.equal(r.enviados, 2);
+  assert.equal(await existe('parejas/K7PQ2M/avisos/acepto_q-abcd'), false);
+  assert.equal(await existe('parejas/K7PQ2M/avisos/acepto_p-abc1'), false);
+});
+
+test('«aceptó»: con el interruptor de Trivia apagado no se manda; vencido a los 30 min se descarta', async () => {
+  await sembrar({ 'parejas/K7PQ2M': pareja, 'dispositivos/da': disp('u1', 'a', { avisos: { ...avisosOn, trivia: false } }), 'dispositivos/db': disp('u2', 'b'),
+    'parejas/K7PQ2M/avisos/acepto_q-abcd': nota('probable-acepto', 'b'),
+    'parejas/K7PQ2M/avisos/acepto_p-abc1': nota('trivia-acepto', 'b', 45) });
+  const m = mandador();
+  const r = await pasada({ db, mandar: m.mandar, ahora: AHORA });
+  assert.deepEqual(m.enviados, []);
+  assert.equal(r.descartados, 1);
+});
+
+test('pasadas cada 5 min en la misma franja: el recordatorio del Diario sale una sola vez', async () => {
+  await sembrar({ 'parejas/K7PQ2M': pareja, 'dispositivos/da': disp('u1', 'a'),
+    'sistema/notificaciones': { ultimaFranja: '2026-11-14T00:45:00.000Z' } });
+  const m = mandador();
+  await pasada({ db, mandar: m.mandar, ahora: new Date('2026-11-14T01:01:00Z') });
+  await pasada({ db, mandar: m.mandar, ahora: new Date('2026-11-14T01:06:00Z') });
+  await pasada({ db, mandar: m.mandar, ahora: new Date('2026-11-14T01:11:00Z') });
+  assert.equal(m.enviados.length, 1);
+  assert.equal((await db.doc('sistema/notificaciones').get()).data().ultimaFranja, '2026-11-14T01:00:00.000Z');
+});

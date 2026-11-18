@@ -133,3 +133,24 @@ describe('avisos (bandeja)', () => {
     await assertFails(aviso('u1', 'diario_2026-11-13_a', nota()));
   });
 });
+
+describe('avisos «aceptó»', () => {
+  it('un miembro crea acepto_<id> de Trivia y de Probable con su lugar', async () => {
+    await assertSucceeds(aviso('u2', 'acepto_p-abc1', nota({ tipo: 'trivia-acepto', de: 'b' })));
+    await assertSucceeds(aviso('u1', 'acepto_q-abcd', nota({ tipo: 'probable-acepto' })));
+  });
+  it('tipo desconocido, id que no corresponde, de ajeno o campo extra fallan', async () => {
+    await assertFails(aviso('u1', 'acepto_q-abcd', nota({ tipo: 'otro-acepto' })));
+    await assertFails(aviso('u1', 'acepto_q-abcd', nota({ tipo: 'trivia-acepto-x' })));
+    await assertFails(aviso('u1', 'acepto_x', nota({ tipo: 'probable-acepto' })));
+    await assertFails(aviso('u1', 'acepto_q-ab', nota({ tipo: 'probable-acepto' })));
+    await assertFails(aviso('u1', 'probable_q-abcd', nota({ tipo: 'probable-acepto' })));
+    await assertFails(aviso('u1', 'acepto_q-abcd', nota({ tipo: 'probable-acepto', de: 'b' })));
+    await assertFails(aviso('u1', 'acepto_q-abcd', nota({ tipo: 'probable-acepto', extra: 1 })));
+  });
+  it('un no miembro no lo crea, y el mismo id no se crea dos veces', async () => {
+    await assertFails(aviso('u3', 'acepto_q-abcd', nota({ tipo: 'probable-acepto' })));
+    await sembrar({ [`${RUTA}/avisos/acepto_q-abcd`]: { tipo: 'probable-acepto', de: 'a', creado: 1 } });
+    await assertFails(aviso('u1', 'acepto_q-abcd', nota({ tipo: 'probable-acepto' })));
+  });
+});

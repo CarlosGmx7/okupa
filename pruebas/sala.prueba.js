@@ -127,3 +127,25 @@ prueba('sala: latir escribe la señal de este lugar y detener la apaga', async (
   await esperar(60);
   igual((await leer(a, id)).senal.b, primera, 'siguió latiendo después de detener');
 });
+
+prueba('sala: unirse devuelve true y deja el aviso «aceptó» para el anfitrión', async () => {
+  const { a, b } = await dosCelulares();
+  const id = await crearSala(a.nube, a.pareja, { preguntas: PREGUNTAS });
+  igual(await unirse(b.nube, b.pareja, id), true);
+  const n = await a.nube.leer(`parejas/${a.pareja.codigo}/avisos/acepto_${id}`);
+  igual([n.tipo, n.de], ['trivia-acepto', 'b']);
+});
+
+prueba('sala: unirse a una sala cancelada o ya en juego devuelve false y no avisa', async () => {
+  const { a, b } = await dosCelulares();
+  const cancelada = await crearSala(a.nube, a.pareja, { preguntas: PREGUNTAS });
+  await cancelarSala(a.nube, a.pareja, cancelada);
+  igual(await unirse(b.nube, b.pareja, cancelada), false);
+  igual(await a.nube.leer(`parejas/${a.pareja.codigo}/avisos/acepto_${cancelada}`), null);
+  const viva = await crearSala(a.nube, a.pareja, { preguntas: PREGUNTAS });
+  igual(await unirse(b.nube, b.pareja, viva), true);
+  await a.nube.borrar(`parejas/${a.pareja.codigo}/avisos/acepto_${viva}`); // como si el servidor ya lo hubiera recogido
+  igual(await unirse(b.nube, b.pareja, viva), false);
+  igual(await a.nube.leer(`parejas/${a.pareja.codigo}/avisos/acepto_${viva}`), null);
+  igual(await unirse(b.nube, b.pareja, 'p-noexiste'), false);
+});

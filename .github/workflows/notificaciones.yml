@@ -1,10 +1,10 @@
-# Notificaciones de Okupa: cada 15 minutos vacía la bandeja de avisos y manda los recordatorios del Diario y los avisos de fechas.
+# Notificaciones de Okupa: cada 5 minutos vacía la bandeja de avisos (así «aceptó tu juego» llega rápido) y, en cada franja de 15 minutos, manda los recordatorios del Diario y los avisos de fechas.
 # Necesita el secreto FIREBASE_CUENTA_SERVICIO (ver LEEME.md → Notificaciones). Sin él, termina sin hacer nada.
 name: Notificaciones
 
 on:
   schedule:
-    - cron: '*/15 * * * *'
+    - cron: '*/5 * * * *'
   workflow_dispatch:
 
 concurrency:

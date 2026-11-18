@@ -350,7 +350,9 @@ service cloud.firestore {
             && ((d.tipo == 'diario' && id.matches('^diario_[0-9]{4}-[0-9]{2}-[0-9]{2}_' + yo + '$'))
               || (d.tipo == 'trivia' && id.matches('^trivia_[A-Za-z0-9-]{1,60}$'))
               || (d.tipo == 'probable' && id.matches('^probable_q-[a-z0-9]{4,30}$'))
-              || (d.tipo == 'mapa' && id.matches('^mapa_[A-Za-z0-9-]{1,60}_' + yo + '_(nuevo|version)$')));
+              || (d.tipo == 'mapa' && id.matches('^mapa_[A-Za-z0-9-]{1,60}_' + yo + '_(nuevo|version)$'))
+              || (d.tipo == 'trivia-acepto' && id.matches('^acepto_[A-Za-z0-9-]{1,60}$'))
+              || (d.tipo == 'probable-acepto' && id.matches('^acepto_q-[a-z0-9]{4,30}$')));
         }
         allow create: if esMiembro(codigo) && avisoValido();
         allow read, update, delete: if false;

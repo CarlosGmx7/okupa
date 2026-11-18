@@ -229,7 +229,7 @@ círculo y guardarla **solo en ese celular**; "Volver a la foto original" deja l
 
 Okupa avisa a cada celular con notificaciones: el recordatorio del Diario (a la hora que cada uno elige y solo si
 falta responder) y cuando la pareja respondió el Diario, invitó a la Trivia o agregó algo al mapa. Cada uno las
-enciende en **Ajustes → Notificaciones**. Llegan con 5 a 30 minutos de retraso: las manda GitHub cada 15 minutos.
+enciende en **Ajustes → Notificaciones**. Llegan con 5 a 30 minutos de retraso: las manda GitHub cada 5 minutos (cuando puede).
 En iPhone solo funcionan con Okupa instalada en la pantalla de inicio (iOS 16.4 o más nuevo).
 
 Cómo funciona: cuando alguien hace algo, su celular deja una nota en `parejas/{código}/avisos`; cada celular con
@@ -254,7 +254,7 @@ día se pasa a Firebase Functions, solo cambia quién vacía la bandeja.
 4. **Reglas.** Firebase → Firestore Database → **Reglas** → pega el contenido de `firebase/firestore.rules` →
    **Publicar**. Hazlo antes de publicar la versión nueva de la app.
 5. **Probar.** En GitHub → pestaña **Actions** → **Notificaciones** → **Run workflow**. Debe terminar en verde y en
-   el registro decir `Notificaciones: {"enviados":…}`. Luego corre solo cada 15 minutos.
+   el registro decir `Notificaciones: {"enviados":…}`. Luego corre solo cada 5 minutos.
 
 Cuidados:
 - GitHub **apaga las tareas programadas** si el repositorio pasa 60 días sin cambios (te avisa por correo). Si las notificaciones dejan de llegar, entra a **Actions → Notificaciones** y toca **Enable workflow**, o sube cualquier cambio.

@@ -137,3 +137,39 @@ test('miembrosDe: todos los registros vigentes sin mirar interruptores; los viej
   ];
   assert.deepEqual(miembrosDe(dispositivos, parejaS), { enviar: [{ id: 'da', token: 'ta', lugar: 'a' }, { id: 'db', token: 'tb', lugar: 'b' }], invalidos: ['viejo'] });
 });
+
+test('textoDe: «aceptó tu juego» de Trivia y de Probable', () => {
+  assert.deepEqual(textoDe('probable-acepto', 'Yuli'), { titulo: 'Okupa', texto: 'Yuli aceptó tu juego. ¡Entra ya!', ruta: '#/probable' });
+  assert.deepEqual(textoDe('trivia-acepto', 'Yuli'), { titulo: 'Okupa', texto: 'Yuli aceptó tu juego. ¡Entra ya!', ruta: '#/trivia' });
+  assert.equal(textoDe('trivia-acepto', null).texto, 'Tu pareja aceptó tu juego. ¡Entra ya!');
+});
+
+test('vencido: el aviso «aceptó» dura 30 min', () => {
+  const t = Date.parse('2026-11-13T00:00:00Z');
+  for (const tipo of ['trivia-acepto', 'probable-acepto']) {
+    assert.equal(vencido(tipo, t, t + 31 * 60e3), true);
+    assert.equal(vencido(tipo, t, t + 29 * 60e3), false);
+  }
+});
+
+test('destinatarios: «aceptó» no llega a quien entró (de) y respeta el interruptor de Trivia', () => {
+  const pareja = { lugares: { a: 'u1', b: 'u2' } };
+  const dispositivos = (avisosA) => [
+    { id: 'da', datos: { uid: 'u1', lugar: 'a', token: 'ta', avisos: avisosA } },
+    { id: 'db', datos: { uid: 'u2', lugar: 'b', token: 'tb', avisos: { trivia: true } } },
+  ];
+  for (const tipo of ['trivia-acepto', 'probable-acepto']) {
+    assert.deepEqual(destinatarios(dispositivos({ trivia: true }), pareja, { tipo, de: 'b' }).enviar, [{ id: 'da', token: 'ta' }]);
+    assert.deepEqual(destinatarios(dispositivos({ trivia: false }), pareja, { tipo, de: 'b' }).enviar, []);
+    assert.deepEqual(destinatarios(dispositivos({ trivia: true, probable: false }), pareja, { tipo, de: 'b' }).enviar, [{ id: 'da', token: 'ta' }]);
+  }
+});
+
+test('franjasPendientes: pasadas cada 5 min dentro de la misma franja no repiten franja', () => {
+  const primera = franjasPendientes('2026-11-14T00:45:00.000Z', new Date('2026-11-14T01:05:00Z'));
+  assert.deepEqual(primera.franjas, ['01:00']);
+  for (const minuto of ['01:10', '01:14', '01:00']) {
+    assert.deepEqual(franjasPendientes(primera.nuevaUltima, new Date(`2026-11-14T${minuto}:00Z`)).franjas, []);
+  }
+  assert.deepEqual(franjasPendientes(primera.nuevaUltima, new Date('2026-11-14T01:15:00Z')).franjas, ['01:15']);
+});

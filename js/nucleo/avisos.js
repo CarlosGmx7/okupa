@@ -6,6 +6,9 @@ const ARMAR = {
   trivia: ({ idPartida }) => `trivia_${idPartida}`,
   probable: ({ idSala }) => `probable_${idSala}`,
   mapa: ({ idLugar, lugar, clase }) => `mapa_${idLugar}_${lugar}_${clase}`,
+  // Para el anfitrión: la otra persona entró a su juego.
+  'trivia-acepto': ({ idSala }) => `acepto_${idSala}`,
+  'probable-acepto': ({ idSala }) => `acepto_${idSala}`,
 };
 
 // Id fijo por evento: si ya existe, las reglas no dejan crearlo otra vez (no se avisa dos veces).

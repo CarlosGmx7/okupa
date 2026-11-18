@@ -43,11 +43,16 @@ export async function partidaPendiente(nube, pareja) {
 export const cancelarSala = (nube, pareja, id) =>
   nube.escribir(rutaPartida(pareja, id), { estado: 'cancelada' }, { combinar: true });
 
+// Devuelve true solo si esta llamada pasó la partida de esperando a jugando; solo entonces se avisa al anfitrión.
 export async function unirse(nube, pareja, id) {
-  await nube.transaccion(async (tx) => {
+  const entro = await nube.transaccion(async (tx) => {
     const p = await tx.leer(rutaPartida(pareja, id));
-    if (p?.estado === 'esperando') tx.escribir(rutaPartida(pareja, id), { estado: 'jugando' }, { combinar: true });
+    if (p?.estado !== 'esperando') return false;
+    tx.escribir(rutaPartida(pareja, id), { estado: 'jugando' }, { combinar: true });
+    return true;
   });
+  if (entro) await avisar(nube, pareja, 'trivia-acepto', idAviso('trivia-acepto', { idSala: id }));
+  return entro;
 }
 
 // Solo cuenta la primera respuesta: la transacción lee y decide con `responder`.

@@ -5,7 +5,7 @@ App para parejas (PWA y APK Android): Preguntas, Trivia, ¿Quién es más probab
 - HTML/CSS/JS con módulos ES, sin compilación (módulos activos en `modulos.json`) — se publica fácil en GitHub Pages.
 - Español colombiano con tuteo. A Carlos se le pregunta con opciones (AskUserQuestion) y espacio para "otra cosa".
 - Firebase gratis (Firestore, acceso anónimo, FCM), sin Blaze — a Carlos le falla el pago. La privacidad la garantizan las reglas.
-- Avisos: notas en `parejas/{c}/avisos`; GitHub Actions (`servidor/notificaciones/`) las manda cada 15 min.
+- Avisos: notas en `parejas/{c}/avisos`; GitHub Actions (`servidor/notificaciones/`) las manda cada 5 min (los recordatorios del Diario y de fechas siguen por franjas de 15 min).
 - Cada versión en su rama y worktree (`../okupa-vNN`). Carlos permite commits y push de la rama sin preguntar; publicar en Pages y pegar reglas siguen siendo suyos.
 - Cambio de celular (v22): solicitud en `parejas/{c}/solicitudes/{a|b}`. Solo el celular viejo aprueba; sin él, entra a los 7 días si nadie rechaza; cualquiera de los dos rechaza; freno de 24 h tras un rechazo; quien pide no puede cancelar una ya avisada hasta 24 h después; el servidor avisa (texto distinto al dueño y a la pareja), recuerda el día 6 y limpia rechazadas a las 25 h.
 - App Check con reCAPTCHA Enterprise (Google Cloud Fraud Defense) — la consola ya no deja guardar reCAPTCHA v3 clásico. Gratis hasta 10.000 verificaciones/mes. Clave del sitio `6Lfb8SQu…` en `js/nucleo/nube-config.js`, ya guardada en Firebase con token de 1 día. La clave secreta no se usa.

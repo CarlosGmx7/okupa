@@ -58,11 +58,16 @@ export async function salaPendiente(nube, pareja) {
   return abierta(s) ? { ...s, id: uso.probableAbierta } : null;
 }
 
+// Devuelve true solo si esta llamada pasó la sala de esperando a jugando; solo entonces se avisa al anfitrión.
 export async function unirse(nube, pareja, id) {
-  await nube.transaccion(async (tx) => {
+  const entro = await nube.transaccion(async (tx) => {
     const s = await tx.leer(rutaSala(pareja.codigo, id));
-    if (s?.estado === 'esperando') tx.escribir(rutaSala(pareja.codigo, id), { estado: 'jugando' }, { combinar: true });
+    if (s?.estado !== 'esperando') return false;
+    tx.escribir(rutaSala(pareja.codigo, id), { estado: 'jugando' }, { combinar: true });
+    return true;
   });
+  if (entro) await avisar(nube, pareja, 'probable-acepto', idAviso('probable-acepto', { idSala: id }));
+  return entro;
 }
 
 export const cancelarSala = (nube, pareja, id) =>
