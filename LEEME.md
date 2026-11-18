@@ -229,7 +229,7 @@ círculo y guardarla **solo en ese celular**; "Volver a la foto original" deja l
 
 Okupa avisa a cada celular con notificaciones: el recordatorio del Diario (a la hora que cada uno elige y solo si
 falta responder) y cuando la pareja respondió el Diario, invitó a la Trivia o agregó algo al mapa. Cada uno las
-enciende en **Ajustes → Notificaciones**. Llegan con 5 a 30 minutos de retraso: las manda GitHub cada 5 minutos (cuando puede).
+enciende en **Ajustes → Notificaciones**. Las invitaciones y el «aceptó» llegan en unos 5 a 10 minutos (GitHub puede retrasarse); los recordatorios salen por franjas de 15 minutos.
 En iPhone solo funcionan con Okupa instalada en la pantalla de inicio (iOS 16.4 o más nuevo).
 
 Cómo funciona: cuando alguien hace algo, su celular deja una nota en `parejas/{código}/avisos`; cada celular con
@@ -258,7 +258,7 @@ día se pasa a Firebase Functions, solo cambia quién vacía la bandeja.
 
 Cuidados:
 - GitHub **apaga las tareas programadas** si el repositorio pasa 60 días sin cambios (te avisa por correo). Si las notificaciones dejan de llegar, entra a **Actions → Notificaciones** y toca **Enable workflow**, o sube cualquier cambio.
-- El repositorio debe seguir siendo **público**: así los minutos de GitHub Actions son gratis (en uno privado, 96 pasadas al día superan los 2.000 minutos gratis del mes).
+- El repositorio debe seguir siendo **público**: así los minutos de GitHub Actions son gratis (en uno privado, 288 pasadas al día superan los 2.000 minutos gratis del mes).
 - Si algún día restringes la clave web de Firebase en Google Cloud, deja permitidas **Firebase Installations API** y **FCM Registration API**; si no, los celulares no pueden registrarse.
 
 Si la llave se filtra: en Firebase → Configuración → **Cuentas de servicio** → **Administrar los permisos de la

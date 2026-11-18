@@ -2,9 +2,12 @@
 
 La APK no se actualiza sola. Okupa avisa dentro de la app («Hay una versión nueva de la app») cuando `data/apk.json` trae un `versionCode` mayor que el de la APK instalada. Sigue los pasos en este orden.
 
-1. En `okupa-apk/twa-manifest.json` sube `appVersionCode` (por ejemplo de 1 a 2) y `appVersionName` (por ejemplo de `1.0.0` a `1.0.1`).
+**Antes de publicar nada:** si esta versión de la app trae reglas nuevas de Firestore (cambios en `firebase/firestore.rules`), pega primero las reglas en Firebase → Firestore Database → **Reglas** → **Publicar**, y solo después publica la app. Con la app nueva sobre reglas viejas, algunas funciones fallan.
+
+1. En `okupa-apk/twa-manifest.json` sube `appVersionCode` (por ejemplo de 1 a 2) y `appVersionName` (por ejemplo de `1.0.0` a `1.0.1`). Sube también el campo antiguo `appVersion` al mismo valor que `appVersionName` (Bubblewrap todavía lo lee).
 2. En el mismo archivo pon `startUrl` con el mismo número: `/okupa/?apk=<appVersionCode>` (por ejemplo `/okupa/?apk=2`). Así la app sabe qué versión es.
-3. Construye la APK con `construir.ps1`, usando la misma llave (`android.keystore`, alias `okupa`). Si cambias de llave, el celular no deja actualizar encima.
+3. Abre PowerShell en la carpeta `okupa-apk` y construye la APK con `.\construir.ps1`, usando la misma llave (`android.keystore`, alias `okupa`). Si cambias de llave, el celular no deja actualizar encima.
+   Cuando termine, revisa que `okupa-apk/app/build.gradle` tenga el `versionCode` nuevo y el `launchUrl` con `?apk=<número>`. Si siguen con los valores viejos, Bubblewrap no regeneró el proyecto: corre `bubblewrap update` en esa carpeta y vuelve a construir con `.\construir.ps1`.
 4. Sube el `.apk` a GitHub Releases del repositorio `CarlosGmx7/okupa` y publica el release como el más reciente (la dirección `releases/latest` debe llevar a él).
 5. Por último, en `data/apk.json` sube `versionCode` y `version` a los mismos valores del paso 1 y publica la app. Hazlo al final: en cuanto este archivo se publica, los celulares con la APK vieja ven el aviso.
 
