@@ -8,7 +8,8 @@ export const MAX_GUARDADAS = 100;
 const LUGARES = ['a', 'b'];
 const rutaMarca = (codigo, id) => `parejas/${codigo}/probable_guardadas/${id}`;
 const eleccion = (v) => (v === 'a' || v === 'b' || v === 'todos' ? v : null);
-const esRonda = (r) => r !== null && typeof r === 'object' && typeof r.id === 'string' && Array.isArray(r.frases);
+const esFrase = (f) => f !== null && typeof f === 'object' && !Array.isArray(f) && typeof f.texto === 'string';
+const esRonda = (r) => r !== null && typeof r === 'object' && typeof r.id === 'string' && Array.isArray(r.frases) && r.frases.every(esFrase);
 
 // `votos` es { [indice de la frase]: { a, b } }. Solo cuentan las frases que los dos ya votaron (reveladas).
 export function rondaParaGuardar(sala, votos, nombres, ahoraMs) {

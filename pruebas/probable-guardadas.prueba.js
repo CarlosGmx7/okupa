@@ -86,6 +86,17 @@ prueba('probable guardadas: un valor corrupto da lista vacía', () => {
   igual(leerGuardadas(alm).map((r) => r.id), ['q-dos22']);
 });
 
+prueba('probable guardadas: una ronda con frases mal formadas se descarta (no rompe el detalle)', () => {
+  const alm = almacenEnMemoria();
+  const mala = (frases) => ({ ...ronda('q-mala11'), frases });
+  alm.escribir(CLAVE_GUARDADAS, [
+    ronda('q-buena1'), mala([null]), mala(['texto suelto']), mala([{ texto: 5 }]), mala([{ a: 'a' }]), mala([[]]), mala('no'),
+  ]);
+  igual(leerGuardadas(alm).map((r) => r.id), ['q-buena1']);
+  alm.escribir(CLAVE_GUARDADAS, [mala([])]);
+  igual(leerGuardadas(alm).length, 1);
+});
+
 prueba('probable guardadas: viajan en el respaldo (no son «de este celular»)', () => {
   const alm = almacenEnMemoria();
   guardarRonda(alm, ronda('q-uno11', 1));
