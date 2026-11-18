@@ -91,7 +91,18 @@ function unirPorId(local = [], importado = []) {
   return [...mapa.values()];
 }
 
-function combinarValor(local, importado) {
+// Las rondas guardadas de «¿Quién es más probable?»: se juntan por id (gana la importada), la más nueva primero.
+const CLAVE_PROBABLE_GUARDADAS = 'okupa:probable:guardadas';
+const MAX_PROBABLE_GUARDADAS = 100;
+const fechaDe = (r) => (typeof r?.fecha === 'number' ? r.fecha : 0);
+
+function combinarGuardadas(local, importado) {
+  const lista = (v) => (Array.isArray(v) ? v.filter((x) => typeof x?.id === 'string') : []);
+  return unirPorId(lista(local), lista(importado)).sort((x, y) => fechaDe(y) - fechaDe(x)).slice(0, MAX_PROBABLE_GUARDADAS);
+}
+
+function combinarValor(local, importado, clave) {
+  if (clave === CLAVE_PROBABLE_GUARDADAS && (Array.isArray(local) || Array.isArray(importado))) return combinarGuardadas(local, importado);
   if (!esObjeto(local) || !esObjeto(importado)) return importado;
   const resultado = { ...local, ...importado };
   for (const lista of LISTAS_POR_ID) {
@@ -119,7 +130,7 @@ export function importarRespaldo(alm, respaldo, modo = 'reemplazar', validadores
   if (modo === 'reemplazar') borrarLoCopiable();
   for (const [clave, valor] of Object.entries(respaldo.datos)) {
     if (esDeEsteCelular(clave)) continue;
-    const final = modo === 'combinar' ? combinarValor(alm.leer(clave), valor) : valor;
+    const final = modo === 'combinar' ? combinarValor(alm.leer(clave), valor, clave) : valor;
     if (!alm.escribir(clave, final)) {
       restaurar();
       return { ok: false, error: 'No se pudo guardar la copia (¿el celular no tiene espacio?). Sus datos quedaron como estaban.' };

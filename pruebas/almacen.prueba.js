@@ -132,6 +132,21 @@ prueba('respaldo: combinar une listas por id y gana lo importado', () => {
   igual(p.ocultas.sort(), ['a', 'b']);
 });
 
+prueba('respaldo: combinar junta las rondas guardadas de probable por id, de la más nueva a la más vieja y máximo 100', () => {
+  const alm = crearAlmacen(storageFalso());
+  const clave = 'okupa:probable:guardadas';
+  alm.escribir(clave, [{ id: 'q-1', fecha: 100, frases: [], tema: 'local' }, { id: 'q-2', fecha: 300, frases: [] }]);
+  const copia = (lista) => ({ app: 'okupa', version: 1, fecha: '', datos: { [clave]: lista } });
+  importarRespaldo(alm, copia([{ id: 'q-1', fecha: 100, frases: [], tema: 'importada' }, { id: 'q-3', fecha: 200, frases: [] }]), 'combinar');
+  igual(alm.leer(clave).map((r) => `${r.id}:${r.fecha}:${r.tema ?? ''}`), ['q-2:300:', 'q-3:200:', 'q-1:100:importada']);
+  const muchas = Array.from({ length: 120 }, (_, i) => ({ id: `m-${i}`, fecha: 1000 + i, frases: [] }));
+  importarRespaldo(alm, copia(muchas), 'combinar');
+  const final = alm.leer(clave);
+  igual(final.length, 100);
+  igual(final[0].id, 'm-119');
+  igual(final.every((r, i) => i === 0 || final[i - 1].fecha >= r.fecha), true);
+});
+
 // v18: la copia no lleva la pareja, el registro de avisos ni la marca de bienvenida.
 const DE_ESTE_CELULAR = ['okupa:pareja:actual', 'okupa:pareja:nombres', 'okupa:dispositivo', 'okupa:dispositivo:borrar', 'okupa:notificaciones', 'okupa:bienvenida', 'okupa:fechas', 'okupa:apk:descartada'];
 
