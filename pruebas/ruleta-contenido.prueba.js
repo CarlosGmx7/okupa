@@ -64,3 +64,19 @@ prueba('ruleta contenido: ningún plan es una frase genérica', async () => {
     verdadero(!GENERICAS.includes(normalizar(p.texto)), `${p.id} es genérico: ${p.texto}`);
   }
 });
+
+prueba('ruleta contenido: En casa · Darnos un gusto se puede hacer esta misma noche', async () => {
+  const lista = await crudos();
+  for (const p of lista.filter((x) => x.lugar === 'casa' && x.presupuesto === 'grande')) {
+    verdadero(!/para el (s[aá]bado|domingo|lunes|martes|mi[eé]rcoles|jueves|viernes)|chef a domicilio|bartender|grabado/i.test(p.texto), `${p.id} necesita días: ${p.texto}`);
+  }
+});
+
+prueba('ruleta contenido: sin «club campestre», sin «Dibujen una foto» y sin planes que dependan del clima', async () => {
+  const lista = await crudos();
+  for (const p of lista) {
+    verdadero(!/club campestre/i.test(p.texto), `${p.id}: ${p.texto}`);
+    verdadero(!/dibujen una foto/i.test(p.texto), `${p.id}: ${p.texto}`);
+    verdadero(!/si est[aá] llovizn/i.test(p.texto), `${p.id}: ${p.texto}`);
+  }
+});

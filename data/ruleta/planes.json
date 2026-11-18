@@ -290,7 +290,7 @@
     "id": "cas-nul-042",
     "presupuesto": "nulo",
     "lugar": "casa",
-    "texto": "Dibujen una foto de los dos en un cartón, córtenlo en veinte pedazos y ármenlo contra reloj. Luego lo arma el otro y comparan tiempos.",
+    "texto": "Dibujen un retrato de los dos en un cartón, córtenlo en veinte pedazos y ármenlo contra reloj. Luego lo arma el otro y comparan tiempos.",
     "tipo": "juego"
   },
   {
@@ -598,14 +598,14 @@
     "id": "cas-gra-002",
     "presupuesto": "grande",
     "lugar": "casa",
-    "texto": "Contraten un chef a domicilio por una noche y siéntense como clientes; pregúntenle todo y aprendan su plato estrella.",
+    "texto": "Compren hoy ingredientes finos, como lomo fino o langostinos, y cocinen juntos un menú de tres tiempos con vino, sirviéndose como en restaurante de lujo.",
     "tipo": "romantico"
   },
   {
     "id": "cas-gra-003",
     "presupuesto": "grande",
     "lugar": "casa",
-    "texto": "Contraten un bartender a domicilio por dos horas para que les enseñe tres cócteles, y cierren la noche con su favorito a la luz de las velas.",
+    "texto": "Compren hoy un buen queso, jamón serrano, aceitunas y dos botellas de vino, y hagan una noche de tapas viendo un documental de un lugar que quieran visitar.",
     "tipo": "cultura"
   },
   {
@@ -738,7 +738,7 @@
     "id": "cas-gra-022",
     "presupuesto": "grande",
     "lugar": "casa",
-    "texto": "Encarguen entre los dos un detalle para la casa grabado con la fecha en que empezaron, y destápenlo juntos en una cena a la luz de las velas.",
+    "texto": "Compren hoy un detalle fino para la casa, como una lámpara de diseño, escríbanle a mano la fecha en que empezaron y estrénenlo en una cena con velas.",
     "tipo": "romantico"
   },
   {
@@ -787,7 +787,7 @@
     "id": "cas-gra-029",
     "presupuesto": "grande",
     "lugar": "casa",
-    "texto": "Mándense a imprimir un álbum con las mejores fotos de su historia y ábranlo juntos esta noche con una botella de vino.",
+    "texto": "Impriman hoy en un laboratorio fotográfico 40 fotos grandes, compren un álbum fino y una botella de vino, y armen la historia de los dos esta noche.",
     "tipo": "romantico"
   },
   {
@@ -843,14 +843,14 @@
     "id": "cas-gra-037",
     "presupuesto": "grande",
     "lugar": "casa",
-    "texto": "Encarguen para el sábado un desayuno sorpresa a domicilio con frutas, flores y globos, y desayunen en la cama planeando el día.",
+    "texto": "Pidan a domicilio una cena sorpresa con mariscos, flores y globos, y cenen en el piso con velas, planeando su próximo viaje.",
     "tipo": "romantico"
   },
   {
     "id": "cas-gra-038",
     "presupuesto": "grande",
     "lugar": "casa",
-    "texto": "Pidan comida de restaurante, compren crispetas gourmet y una cobija nueva para los dos, y vean de corrido una trilogía completa.",
+    "texto": "Compren hoy un traje o vestido nuevo para cada uno, arréglense como para una gala y cenen en casa con mantel largo, velas y música de orquesta.",
     "tipo": "romantico"
   },
   {
@@ -878,7 +878,7 @@
     "id": "cas-gra-042",
     "presupuesto": "grande",
     "lugar": "casa",
-    "texto": "Pidan un brunch de lujo a domicilio para el domingo y hablen sin afán, en pijama, de cómo sería su casa ideal.",
+    "texto": "Pidan a domicilio un desayuno de lujo para cenar, con jugos y pastelería fina, y hablen sin afán, en pijama, de cómo sería su casa ideal.",
     "tipo": "conversacion"
   },
   {
@@ -1158,7 +1158,7 @@
     "id": "sal-nul-040",
     "presupuesto": "nulo",
     "lugar": "salir",
-    "texto": "Si está lloviznando, salgan a caminar una cuadra sin sombrilla y vuelvan mojados a la casa. Lo que pase después es asunto suyo.",
+    "texto": "Salgan a caminar sin rumbo por su barrio, tomados de la mano, y en la esquina más oscura dense un beso largo y de película. Lo demás es asunto suyo.",
     "tipo": "picante"
   },
   {
@@ -1494,7 +1494,7 @@
     "id": "sal-gra-002",
     "presupuesto": "grande",
     "lugar": "salir",
-    "texto": "Paguen un recorrido guiado en bicicleta por la ciudad o sus alrededores, con bicis buenas alquiladas, y terminen con almuerzo de restaurante.",
+    "texto": "Paguen un paseo en lancha o velero por la bahía o el embalse más cercano, con almuerzo a bordo, y vean el atardecer desde el agua.",
     "tipo": "aventura"
   },
   {
@@ -1746,7 +1746,7 @@
     "id": "sal-gra-038",
     "presupuesto": "grande",
     "lugar": "salir",
-    "texto": "Pasen un domingo en una finca de recreo o, si no hay, en el club campestre más cercano: piscina, almuerzo de leña y hamaca.",
+    "texto": "Pasen un domingo en una finca de recreo o, si no hay, en un hotel campestre con pasadía: piscina, almuerzo de leña y hamaca.",
     "tipo": "aire-libre"
   },
   {
