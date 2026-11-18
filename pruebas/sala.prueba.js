@@ -128,12 +128,35 @@ prueba('sala: latir escribe la señal de este lugar y detener la apaga', async (
   igual((await leer(a, id)).senal.b, primera, 'siguió latiendo después de detener');
 });
 
+// El aviso «aceptó» se deja sin esperarlo: las pruebas esperan a que la escritura llegue.
+async function esperarAviso(cel, id) {
+  const ruta = `parejas/${cel.pareja.codigo}/avisos/acepto_${id}`;
+  for (let t = 0; t < 1000; t += 10) {
+    const n = await cel.nube.leer(ruta);
+    if (n) return n;
+    await esperar(10);
+  }
+  return null;
+}
+
 prueba('sala: unirse devuelve true y deja el aviso «aceptó» para el anfitrión', async () => {
   const { a, b } = await dosCelulares();
   const id = await crearSala(a.nube, a.pareja, { preguntas: PREGUNTAS });
   igual(await unirse(b.nube, b.pareja, id), true);
-  const n = await a.nube.leer(`parejas/${a.pareja.codigo}/avisos/acepto_${id}`);
+  const n = await esperarAviso(a, id);
   igual([n.tipo, n.de], ['trivia-acepto', 'b']);
+});
+
+prueba('sala: unirse no espera a que se escriba el aviso «aceptó»', async () => {
+  const { a, b } = await dosCelulares();
+  const id = await crearSala(a.nube, a.pareja, { preguntas: PREGUNTAS });
+  let soltar;
+  const puerta = new Promise((r) => { soltar = r; });
+  const lenta = { ...b.nube, escribir: (r, ...resto) => (r.includes('/avisos/') ? puerta.then(() => b.nube.escribir(r, ...resto)) : b.nube.escribir(r, ...resto)) };
+  const resultado = await Promise.race([unirse(lenta, b.pareja, id), esperar(300).then(() => 'se quedó esperando')]);
+  igual(resultado, true);
+  soltar();
+  verdadero(await esperarAviso(a, id), 'el aviso debía llegar después');
 });
 
 prueba('sala: unirse a una sala cancelada o ya en juego devuelve false y no avisa', async () => {
@@ -144,6 +167,7 @@ prueba('sala: unirse a una sala cancelada o ya en juego devuelve false y no avis
   igual(await a.nube.leer(`parejas/${a.pareja.codigo}/avisos/acepto_${cancelada}`), null);
   const viva = await crearSala(a.nube, a.pareja, { preguntas: PREGUNTAS });
   igual(await unirse(b.nube, b.pareja, viva), true);
+  await esperarAviso(a, viva);
   await a.nube.borrar(`parejas/${a.pareja.codigo}/avisos/acepto_${viva}`); // como si el servidor ya lo hubiera recogido
   igual(await unirse(b.nube, b.pareja, viva), false);
   igual(await a.nube.leer(`parejas/${a.pareja.codigo}/avisos/acepto_${viva}`), null);
