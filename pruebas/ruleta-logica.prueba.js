@@ -153,3 +153,39 @@ prueba('ruleta: cargarPlanes falla si la respuesta no es ok', async () => {
   try { await cargarPlanes(async () => ({ ok: false, status: 404, json: async () => [] })); } catch { fallo = true; }
   verdadero(fallo, 'debería lanzar');
 });
+
+prueba('ruleta: la racha guarda lo ya mostrado y en otra visita sigue sin repetir', () => {
+  const alm = crearAlmacen(storageFalso());
+  const primera = crearRacha(banco(), semilla(5), alm);
+  const a = [primera.siguiente('nulo', 'casa').id, primera.siguiente('nulo', 'casa').id];
+  igual(alm.leer(CLAVE_RULETA, null).vistos['nulo|casa'], a);
+  const segunda = crearRacha(banco(), semilla(99), alm); // otra visita: racha nueva, mismo almacén
+  const b = Array.from({ length: 3 }, () => segunda.siguiente('nulo', 'casa').id);
+  igual([...a, ...b].sort(), ['n0', 'n1', 'n2', 'n3', 'n4']);
+  const sexto = segunda.siguiente('nulo', 'casa'); // agotada: rebaraja sin empezar por el último
+  verdadero(sexto.id !== b[2], 'el primero tras rebarajar repite al último');
+  igual(alm.leer(CLAVE_RULETA, null).vistos['nulo|casa'], [sexto.id]);
+});
+
+prueba('ruleta: guardar la elección conserva lo ya mostrado y el valor viejo sigue valiendo', () => {
+  const alm = crearAlmacen(storageFalso());
+  alm.escribir(CLAVE_RULETA, { presupuesto: 'nulo', lugar: 'casa' }); // formato anterior, sin vistos
+  const racha = crearRacha(banco(), semilla(2), alm);
+  const primero = racha.siguiente('nulo', 'casa').id;
+  guardarEleccion(alm, { presupuesto: 'grande', lugar: 'salir' });
+  igual(leerEleccion(alm), { presupuesto: 'grande', lugar: 'salir' });
+  igual(alm.leer(CLAVE_RULETA, null).vistos, { 'nulo|casa': [primero] });
+});
+
+prueba('ruleta: vistos corruptos o con ids desconocidos se ignoran', () => {
+  for (const vistos of ['texto', 7, null, [], { 'nulo|casa': 'n1' }, { 'nulo|casa': [5, null] }]) {
+    const alm = crearAlmacen(storageFalso());
+    alm.escribir(CLAVE_RULETA, { presupuesto: 'nulo', lugar: 'casa', vistos });
+    igual(leerEleccion(alm), { presupuesto: 'nulo', lugar: 'casa' });
+    const ids = Array.from({ length: 5 }, () => crearRacha(banco(), semilla(4), alm).siguiente('nulo', 'casa').id);
+    verdadero(ids.every((id) => /^n\d$/.test(id)), 'dio algo raro');
+  }
+  const alm = crearAlmacen(storageFalso());
+  alm.escribir(CLAVE_RULETA, { presupuesto: 'nulo', lugar: 'casa', vistos: { 'nulo|casa': ['fantasma', 'n0', 'n1', 'n2', 'n3'] } });
+  igual(crearRacha(banco(), semilla(4), alm).siguiente('nulo', 'casa').id, 'n4', 'ignora el id desconocido y sigue con el que falta');
+});

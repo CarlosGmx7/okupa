@@ -45,7 +45,7 @@ export function crearPantallasRuleta({
       return;
     }
 
-    const racha = crearRacha(planes, azar);
+    const racha = crearRacha(planes, azar, ctx.almacen);
     let eleccion = leerEleccion(ctx.almacen);
     let girando = false;
     let angulo = 0;
@@ -101,7 +101,9 @@ export function crearPantallasRuleta({
         otra = el('button', { clase: 'boton', type: 'button', onclick: () => girar() }, 'Girar otra vez'),
         el('button', {
           clase: 'boton boton-principal', type: 'button',
-          onclick: () => acciones.replaceChildren(el('p', { clase: 'ruleta-disfruten', role: 'status' }, '¡Disfruten!')),
+          onclick: () => acciones.replaceChildren(
+            el('p', { clase: 'ruleta-disfruten', role: 'status' }, '¡Disfruten!'),
+            el('button', { clase: 'boton ruleta-otra', type: 'button', onclick: () => girar() }, 'Girar otra vez')),
         }, '¡Hagámoslo!'));
       resultado.replaceChildren(el('article', { clase: 'ruleta-plan' },
         el('span', { clase: 'ruleta-plan-icono', 'aria-hidden': 'true' }, tipo.icono),
@@ -111,7 +113,7 @@ export function crearPantallasRuleta({
       resultado.scrollIntoView?.({ block: 'nearest', behavior: movimientoReducido() ? 'auto' : 'smooth' });
     }
 
-    // Lleva la rueda hacia delante hasta dejar el tipo del plan bajo el puntero (siempre ≥ 3 vueltas nuevas).
+    // Lleva la rueda hacia delante hasta dejar el tipo del plan bajo el puntero (siempre más de 2 vueltas nuevas).
     function apuntar(plan) {
       const i = Math.max(0, TIPOS.findIndex((t) => t.id === plan.tipo));
       const inicio = (Math.floor(angulo / 360) + VUELTAS + 1) * 360;
@@ -139,7 +141,10 @@ export function crearPantallasRuleta({
       rueda.classList.add('girando');
       rueda.style.transitionDuration = `${T.giro}ms`;
       apuntar(plan);
+      const estabaEnPantalla = zona.isConnected;
       setTimeout(() => {
+        // Si se salió de la Ruleta a mitad del giro, no se toca una pantalla que ya no existe.
+        if (estabaEnPantalla && !zona.isConnected) return;
         girando = false;
         rueda.classList.remove('girando');
         todasLasPildoras().forEach((b) => { b.disabled = false; });

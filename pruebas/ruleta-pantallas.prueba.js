@@ -239,3 +239,45 @@ prueba('ruleta módulo: se registra en Nosotros después de Cápsula, sin aviso 
   const lista = await (await fetch('modulos.json')).json();
   igual(lista[lista.length - 1], 'ruleta');
 });
+
+prueba('ruleta pantalla: al volver a abrirla con el mismo almacén no repite un plan ya visto', async () => {
+  const almacen = almacenEnMemoria();
+  const a = nueva({ almacen });
+  await a.abrir();
+  boton(a.div, 'Girar').click();
+  await hasta(() => plan(a.div));
+  const visto = plan(a.div);
+  const b = nueva({ almacen, azar: () => 0 }); // otra visita
+  await b.abrir();
+  boton(b.div, 'Girar').click();
+  await hasta(() => plan(b.div));
+  verdadero(plan(b.div) !== visto, 'repitió el plan de la visita anterior');
+});
+
+prueba('ruleta pantalla: tras «¡Hagámoslo!» se puede seguir girando', async () => {
+  const r = nueva();
+  await r.abrir();
+  boton(r.div, 'Girar').click();
+  await hasta(() => plan(r.div));
+  const primero = plan(r.div);
+  boton(r.div, '¡Hagámoslo!').click();
+  verdadero(r.div.textContent.includes('¡Disfruten!'), 'dice ¡Disfruten!');
+  verdadero(boton(r.div, 'Girar otra vez'), 'falta «Girar otra vez» tras ¡Disfruten!');
+  boton(r.div, 'Girar otra vez').click();
+  await hasta(() => plan(r.div) && plan(r.div) !== primero);
+  verdadero(boton(r.div, '¡Hagámoslo!'), 'vuelven los dos botones');
+});
+
+prueba('ruleta pantalla: si se sale a mitad del giro, al terminar no se pinta ni se guarda nada', async () => {
+  const r = nueva({ giro: 40 });
+  document.body.append(r.div);
+  try {
+    await r.abrir();
+    boton(r.div, 'Girar').click();
+    r.div.remove(); // se fue a otra pantalla mientras giraba
+    await esperar(120);
+    verdadero(!plan(r.div), 'pintó el plan en una pantalla que ya no está');
+  } finally {
+    r.div.remove();
+  }
+});
