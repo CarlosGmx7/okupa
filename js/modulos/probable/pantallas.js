@@ -3,7 +3,7 @@ import { el } from '../../nucleo/ui.js';
 import { exigirPareja } from '../../nucleo/pantallas-pareja.js';
 import { guardarEsperando, sigueEsperando } from '../../nucleo/esperando.js';
 import { TEMAS, LARGOS, elegirFrases, opcionesVoto, votaronTodos, coincidieron, resumen } from './logica.js';
-import { rondaParaGuardar, guardarRonda, leerGuardadas, borrarGuardada, marcarGuardada, leerMarcas } from './guardadas.js';
+import { rondaParaGuardar, guardarRonda, leerGuardadas, borrarGuardada, marcarGuardada, leerMarcas, recordarMarcas } from './guardadas.js';
 import {
   crearSala, salaPendiente, unirse, cancelarSala, votar, leerVotos, intentarAvanzar, cerrarSala, leerVistas,
   escucharSala, latir, listarPropias, crearPropia, borrarPropia, ErrorSalaAjena, cancelarSiSigueEsperando, cancelarSiAbierta, rutaSala,
@@ -443,7 +443,11 @@ export function crearPantallasProbable({ cargar, ahora = () => performance.now()
     const boton = el('button', { clase: 'boton', type: 'button', disabled: yaEsta }, yaEsta ? 'Guardada ✓' : 'Guardar ronda');
     boton.addEventListener('click', () => {
       boton.disabled = true;
-      guardarRonda(ctx.almacen, ronda);
+      try { guardarRonda(ctx.almacen, ronda); } catch (e) {
+        console.warn('Okupa: no se pudo guardar la ronda', e);
+        boton.disabled = false;
+        return;
+      }
       boton.textContent = 'Guardada ✓';
       marcarGuardada(nube, pareja, ronda.id).catch((e) => console.warn('Okupa: no se pudo marcar la ronda guardada', e));
     });
@@ -462,7 +466,7 @@ export function crearPantallasProbable({ cargar, ahora = () => performance.now()
     const { nube, pareja } = r;
     const otro = otroLugar(pareja.lugar);
     const nombreOtro = pareja.nombres[otro] || 'Tu pareja';
-    let marcas = {};
+    let marcas = Object.fromEntries(leerGuardadas(ctx.almacen).map((x) => [x.id, x.marcas ?? {}]));
     const lista = el('ul', { clase: 'lista rondas-guardadas' });
 
     function pintar() {
@@ -487,12 +491,19 @@ export function crearPantallasProbable({ cargar, ahora = () => performance.now()
       lista);
     pintar();
     try {
-      const ids = leerGuardadas(ctx.almacen).map((x) => x.id);
-      marcas = await leerMarcas(nube, pareja, ids);
+      // Solo se leen las rondas que aún no tienen las dos marcas; las ya vistas quedan en el celular.
+      const porLeer = Object.keys(marcas).filter((id) => !(marcas[id].a && marcas[id].b));
+      const fallidas = new Set();
+      const leidas = await leerMarcas(nube, pareja, porLeer, fallidas);
+      for (const id of porLeer) if (!fallidas.has(id)) marcas[id] = { ...marcas[id], ...leidas[id] };
+      recordarMarcas(ctx.almacen, marcas);
       pintar();
-      // Las rondas cuya marca no llegó a la nube se reintentan al abrir esta pantalla.
-      const faltan = ids.filter((id) => !marcas[id]?.[pareja.lugar]);
-      await Promise.allSettled(faltan.map((id) => marcarGuardada(nube, pareja, id)));
+      // Las rondas cuya marca propia no llegó a la nube se reintentan (solo si su lectura funcionó).
+      const faltan = porLeer.filter((id) => !fallidas.has(id) && !marcas[id][pareja.lugar]);
+      await Promise.allSettled(faltan.map((id) => marcarGuardada(nube, pareja, id).then(() => {
+        marcas[id] = { ...marcas[id], [pareja.lugar]: true };
+        recordarMarcas(ctx.almacen, marcas);
+      })));
     } catch (e) {
       console.warn('Okupa: no se pudieron leer las marcas', e);
     }

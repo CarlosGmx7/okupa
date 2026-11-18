@@ -48,10 +48,25 @@ export function borrarGuardada(almacen, id) {
 export const marcarGuardada = (nube, pareja, salaId) =>
   nube.escribir(rutaMarca(pareja.codigo, salaId), { [pareja.lugar]: true }, { combinar: true });
 
-// Un fallo al leer una marca se toma como «sin marcas»: la lista sigue sirviendo sin internet.
-export async function leerMarcas(nube, pareja, ids) {
+// Anota en cada ronda guardada las marcas ya vistas (`marcas: { a?, b? }`) sin cambiar su orden: las
+// marcas nunca se quitan, así que no hace falta volver a leer una ronda que ya tiene las dos.
+export function recordarMarcas(almacen, vistas) {
+  const lista = leerGuardadas(almacen);
+  let cambio = false;
+  const nueva = lista.map((r) => {
+    const nuevas = LUGARES.filter((l) => vistas[r.id]?.[l] === true && r.marcas?.[l] !== true);
+    if (nuevas.length === 0) return r;
+    cambio = true;
+    return { ...r, marcas: { ...r.marcas, ...Object.fromEntries(nuevas.map((l) => [l, true])) } };
+  });
+  if (cambio) almacen.escribir(CLAVE_GUARDADAS, nueva);
+}
+
+// Un fallo al leer una marca se toma como «sin marcas» (la lista sigue sirviendo sin internet); si se pasa
+// `fallidas` (un Set), ahí quedan los ids cuya lectura falló.
+export async function leerMarcas(nube, pareja, ids, fallidas = new Set()) {
   const pares = await Promise.all(ids.map(async (id) => {
-    const marca = await nube.leer(rutaMarca(pareja.codigo, id)).catch(() => null);
+    const marca = await nube.leer(rutaMarca(pareja.codigo, id)).catch(() => { fallidas.add(id); return null; });
     return [id, Object.fromEntries(LUGARES.filter((l) => marca?.[l] === true).map((l) => [l, true]))];
   }));
   return Object.fromEntries(pares);

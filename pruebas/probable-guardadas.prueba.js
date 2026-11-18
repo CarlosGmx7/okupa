@@ -265,3 +265,63 @@ prueba('probable guardadas: sin rondas la lista lo dice sin errores', async () =
   await hasta(() => detalle.textContent.includes('no está'));
   salir();
 });
+
+// Cuenta lecturas y escrituras de marcas en la nube falsa.
+function contada(nube, cuenta, { falla = false } = {}) {
+  return {
+    ...nube,
+    leer: async (ruta) => { if (ruta.includes('probable_guardadas')) { cuenta.lecturas++; if (falla) throw new Error('sin red'); } return nube.leer(ruta); },
+    escribir: async (ruta, ...resto) => { if (ruta.includes('probable_guardadas')) cuenta.escrituras++; return nube.escribir(ruta, ...resto); },
+  };
+}
+
+prueba('probable guardadas: las marcas ya conocidas no se vuelven a leer', async () => {
+  const { mundo, celular, a, b, id } = await conSalaTerminada();
+  guardarRonda(a.ctx.almacen, ronda(id, 5));
+  guardarRonda(a.ctx.almacen, ronda('q-otra1', 6));
+  await marcarGuardada(a.nube, a.pareja, id);
+  await marcarGuardada(b.nube, b.pareja, id);
+  const cuenta = { lecturas: 0, escrituras: 0 };
+  const c = celular('u1', a.ctx.almacen, 'a', contada(mundo.nube('u1'), cuenta));
+  const abrir = async () => {
+    const div = document.createElement('div');
+    await c.pantallas.guardadas(div, {}, c.ctx);
+    await esperar(150);
+    salir();
+    return div;
+  };
+  const div1 = await abrir();
+  igual(cuenta.lecturas, 2); // la primera vez se leen las dos
+  verdadero(div1.textContent.includes('✓ Yuli también la guardó'), div1.textContent);
+  const antes = cuenta.lecturas;
+  const div2 = await abrir();
+  igual(cuenta.lecturas - antes, 1); // solo la que aún no tiene las dos marcas
+  verdadero(div2.textContent.includes('✓ Yuli también la guardó'), div2.textContent);
+});
+
+prueba('probable guardadas: si la lectura falla no se escribe ninguna marca', async () => {
+  const { mundo, celular, a, id } = await conSalaTerminada();
+  guardarRonda(a.ctx.almacen, ronda(id, 5));
+  guardarRonda(a.ctx.almacen, ronda('q-otra1', 6));
+  const cuenta = { lecturas: 0, escrituras: 0 };
+  const c = celular('u1', a.ctx.almacen, 'a', contada(mundo.nube('u1'), cuenta, { falla: true }));
+  const div = document.createElement('div');
+  await c.pantallas.guardadas(div, {}, c.ctx);
+  await esperar(150);
+  igual(cuenta.escrituras, 0);
+  verdadero(div.textContent.includes('Coincidieron en'), div.textContent);
+  salir();
+});
+
+prueba('probable guardadas: si falla guardar en el celular el botón vuelve a estar activo', async () => {
+  const { a, id } = await conSalaTerminada();
+  const roto = { ...a.ctx.almacen, escribir: (k, v) => { if (k === CLAVE_GUARDADAS) throw new Error('lleno'); return a.ctx.almacen.escribir(k, v); } };
+  const ctx = { ...a.ctx, almacen: roto };
+  await a.pantallas.juego(a.div, { id }, ctx);
+  await hasta(() => boton(a.div, 'Guardar ronda'));
+  boton(a.div, 'Guardar ronda').click();
+  await esperar(50);
+  verdadero(!boton(a.div, 'Guardar ronda').disabled, 'botón activo');
+  verdadero(!a.div.textContent.includes('Guardada ✓'), a.div.textContent);
+  salir();
+});
