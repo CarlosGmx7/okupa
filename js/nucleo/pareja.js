@@ -386,7 +386,10 @@ async function borrarProbable(nube, base) {
     await nube.borrar(`${base}/probable/${id}`);
   }
   for (const { id } of await nube.listar(`${base}/probable_frases`)) await nube.borrar(`${base}/probable_frases/${id}`);
-  for (const { id } of await nube.listar(`${base}/probable_guardadas`)) await nube.borrar(`${base}/probable_guardadas/${id}`);
+  // Con las reglas viejas esta colección no se puede listar: eso nunca debe impedir borrar todo.
+  try {
+    for (const { id } of await nube.listar(`${base}/probable_guardadas`)) await nube.borrar(`${base}/probable_guardadas/${id}`);
+  } catch { /* reglas viejas: se ignora */ }
 }
 
 // Borra para los dos todo lo que la pareja tiene en la nube. Los avisos pendientes no se pueden

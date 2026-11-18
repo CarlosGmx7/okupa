@@ -288,3 +288,14 @@ prueba('pareja: borrarTodo borra los votos de probable en tandas, no uno por uno
   await borrarTodo(espia, alm1, { cargarIdsTarjetas: async () => [] });
   verdadero(maximo > 1, `máximo en paralelo: ${maximo}`);
 });
+
+prueba('pareja: borrarTodo no falla si las reglas viejas niegan listar probable_guardadas', async () => {
+  const { mundo, codigo, alm1 } = await parejaCompleta();
+  const nube = mundo.nube('u1');
+  const espia = { ...nube, listar: async (r) => {
+    if (r.endsWith('/probable_guardadas')) throw new Error('permission-denied');
+    return nube.listar(r);
+  } };
+  await borrarTodo(espia, alm1, { cargarIdsTarjetas: async () => [] });
+  igual(await nube.leer(`parejas/${codigo}`), null);
+});
