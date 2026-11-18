@@ -132,6 +132,30 @@ prueba('apk: sin internet o con apk.json roto no sale franja ni error', async ()
   }
 });
 
+prueba('apk: dos montajes seguidos piden apk.json una sola vez; un fallo no se guarda', async () => {
+  let pedidos = 0;
+  const leer = async () => { pedidos++; return ultima(2); };
+  const montar = async () => {
+    const div = document.createElement('div');
+    montarAvisoApk(div, { almacen: almacenEnMemoria() }, { detectado: { enApk: true, versionCode: 1 }, leer });
+    await hasta(() => div.querySelector('.franja-apk'));
+  };
+  await montar();
+  await montar();
+  igual(pedidos, 1);
+  // Si falló (null), el siguiente montaje vuelve a intentar y puede lograrlo.
+  let intentos = 0;
+  const flojo = async () => (++intentos === 1 ? null : ultima(2));
+  const a = document.createElement('div');
+  montarAvisoApk(a, { almacen: almacenEnMemoria() }, { detectado: { enApk: true, versionCode: 1 }, leer: flojo });
+  await esperar(60);
+  igual(a.children.length, 0);
+  const b = document.createElement('div');
+  montarAvisoApk(b, { almacen: almacenEnMemoria() }, { detectado: { enApk: true, versionCode: 1 }, leer: flojo });
+  await hasta(() => b.querySelector('.franja-apk'));
+  igual(intentos, 2);
+});
+
 prueba('apk: el inicio lleva la franja arriba en las tres interfaces', async () => {
   const original = globalThis.fetch;
   globalThis.fetch = async (u, o) => (String(u).includes('data/apk.json') ? new Response(JSON.stringify(ultima(2))) : original(u, o));
@@ -148,6 +172,10 @@ prueba('apk: el inicio lleva la franja arriba en las tres interfaces', async () 
       verdadero(cabecera.compareDocumentPosition(franja) & Node.DOCUMENT_POSITION_FOLLOWING, `${interfaz}: la franja va después de la cabecera`);
       const resto = div.querySelector('.inicio-tarjetas');
       verdadero(franja.compareDocumentPosition(resto) & Node.DOCUMENT_POSITION_FOLLOWING, `${interfaz}: la franja va antes de las tarjetas`);
+      // La franja de solicitudes (celular nuevo) va por encima de la de la APK.
+      const [deSolicitudes, deApk] = div.querySelectorAll('.inicio-solicitudes');
+      verdadero(deApk?.contains(franja) && !deSolicitudes.contains(franja), `${interfaz}: la franja de la APK va debajo de la de solicitudes`);
+      verdadero(deSolicitudes.compareDocumentPosition(deApk) & Node.DOCUMENT_POSITION_FOLLOWING, `${interfaz}: solicitudes antes que la APK`);
       div.remove();
     }
   } finally { globalThis.fetch = original; }

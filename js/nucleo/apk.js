@@ -52,12 +52,26 @@ export function debeAvisar(instalada, ultima, descartada) {
     && ultima.versionCode > instalada.versionCode && ultima.versionCode !== descartada);
 }
 
+// Una lectura por sesión (y por función de lectura): los repintados del inicio no vuelven a pedir apk.json
+// ni parpadean. Un fallo (null o error) no se guarda, para que un montaje posterior pueda lograrlo.
+const lecturas = new WeakMap();
+function leerUnaVez(leer) {
+  let promesa = lecturas.get(leer);
+  if (!promesa) {
+    promesa = Promise.resolve().then(leer);
+    lecturas.set(leer, promesa);
+    const olvidar = () => { if (lecturas.get(leer) === promesa) lecturas.delete(leer); };
+    promesa.then((r) => { if (r === null || r === undefined) olvidar(); }, olvidar);
+  }
+  return promesa;
+}
+
 // Franja arriba del inicio. Sin la app, sin internet o con apk.json roto no pinta nada ni avisa de errores.
 export function montarAvisoApk(contenedor, ctx, { detectado = ctx?.apk, leer = leerUltimaApk } = {}) {
   if (!detectado?.enApk) return;
   (async () => {
     try {
-      const ultima = await leer();
+      const ultima = await leerUnaVez(leer);
       const descartada = ctx.almacen?.leer(CLAVE_DESCARTADA, null) ?? null;
       if (!debeAvisar(detectado, ultima, descartada)) return;
       const franja = el('div', { clase: 'franja-solicitud franja-apk', role: 'group', 'aria-label': 'Versión nueva de la app' },
