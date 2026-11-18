@@ -4,6 +4,7 @@ import { icono, iconoLinea } from './iconos.js';
 import { miPareja } from './pareja.js';
 import { leerAjustes } from './ajustes.js';
 import { montarAvisoSolicitud } from './solicitudes-ui.js';
+import { montarAvisoApk } from './apk.js';
 import { PORTADA_ORIGINAL, fuentePortada, abrirEditorPortada } from './portada.js';
 
 // Las tres secciones del inicio, en este orden. Cada módulo se coloca con `accesoJuntos.seccion`
@@ -183,6 +184,8 @@ export function pantallaInicio(contenedor, _params, ctx) {
   })) : null;
   // Aviso de un celular nuevo que pide entrar; se lee al abrir y al volver a la app (cada repintado monta una franja nueva; la anterior se suelta sola al salir de la página).
   const solicitudes = el('div', { clase: 'inicio-solicitudes' });
+  // Aviso de una APK nueva (solo dentro de la app instalada); va arriba, antes que la solicitud.
+  const avisoApk = el('div', { clase: 'inicio-solicitudes' });
   contenedor.append(
     el('header', { clase: 'inicio-cabecera' },
       el('a', { clase: 'engranaje', href: '#/ajustes', 'aria-label': 'Ajustes' }, iconoLinea('ajustes', 'engranaje-icono')),
@@ -192,6 +195,7 @@ export function pantallaInicio(contenedor, _params, ctx) {
       }, el('img', { clase: 'inicio-portada', src: fuentePortada(ctx.almacen), alt: '', onerror: (e) => { if (!e.target.src.endsWith(PORTADA_ORIGINAL)) e.target.src = PORTADA_ORIGINAL; } })),
       el('h1', { clase: 'logo' }, 'Okupa'),
       el('p', { clase: 'lema' }, 'Preguntas para conocerse de verdad')),
+    avisoApk,
     solicitudes,
     clasica ? tarjetaJuntos(ctx.almacen, ctx.modulos) : el('div', {}, ctx.almacen && miPareja(ctx.almacen) ? null : enlaceEnlazar()),
     el('div', { clase: 'inicio-tarjetas' }, tarjetas),
@@ -204,6 +208,7 @@ export function pantallaInicio(contenedor, _params, ctx) {
     el('footer', { clase: 'inicio-pie' },
       el('a', { href: '#/acerca' }, 'Acerca de Okupa')),
   );
+  montarAvisoApk(avisoApk, ctx);
   montarAvisoSolicitud(solicitudes, ctx);
 }
 

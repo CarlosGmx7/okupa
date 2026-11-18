@@ -4,7 +4,7 @@ const ESPERADOS = [
   './', 'index.html', 'modulos.json', 'manifest.webmanifest',
   'css/base.css', 'css/componentes.css',
   'js/nucleo/app.js', 'js/nucleo/almacen.js', 'js/nucleo/rutas.js', 'js/nucleo/ui.js', 'js/nucleo/inicio.js',
-  'js/nucleo/nube.js', 'js/nucleo/nube-config.js', 'js/nucleo/pareja.js', 'js/nucleo/esperando.js', 'js/nucleo/pantallas-pareja.js', 'js/nucleo/solicitudes-ui.js', 'js/nucleo/precalentar.js',
+  'js/nucleo/nube.js', 'js/nucleo/nube-config.js', 'js/nucleo/pareja.js', 'js/nucleo/esperando.js', 'js/nucleo/pantallas-pareja.js', 'js/nucleo/solicitudes-ui.js', 'js/nucleo/precalentar.js', 'js/nucleo/apk.js',
   'js/compartido/ingles.js',
   'js/modulos/mapa/modulo.js', 'js/modulos/mapa/pantallas.js', 'js/modulos/mapa/ubicacion.js', 'js/modulos/mapa/ruta.js', 'js/modulos/mapa/motor.js', 'js/modulos/mapa/lugares.js', 'js/modulos/mapa/lugares-ui.js',
   'js/nucleo/portada.js', 'js/nucleo/ajustes.js', 'js/nucleo/tema.js', 'js/nucleo/iconos.js', 'js/nucleo/sonidos.js', 'js/nucleo/pantalla-ajustes.js', 'js/nucleo/avisos.js', 'js/nucleo/notificaciones.js',
@@ -43,6 +43,11 @@ prueba('pwa: PRECACHE incluye todos los archivos de la app', async () => {
   const lista = await listaPrecache();
   const faltan = ESPERADOS.filter((r) => !lista.includes(r));
   igual(faltan, []);
+});
+
+prueba('pwa: data/apk.json nunca está en PRECACHE', async () => {
+  const lista = await listaPrecache();
+  verdadero(!lista.some((r) => r.includes('apk.json')), 'apk.json debe pedirse siempre a la red');
 });
 
 prueba('pwa: cada archivo de PRECACHE existe', async () => {
@@ -102,6 +107,20 @@ prueba('pwa: las librerías externas con versión fija se guardan y no se vuelve
   await pedir(url);
   igual(registro.pedidosRed, [url], 'la segunda vez debe salir de la caché');
   igual(await pedir('https://otra.com/algo.js'), null, 'no intercepta otros dominios');
+});
+
+prueba('pwa: data/apk.json siempre va a la red, no se guarda y sin internet falla sin servir nada viejo', async () => {
+  const url = 'https://ejemplo.github.io/okupa/data/apk.json';
+  const { pedir, registro } = await cargarSW();
+  igual(await (await pedir(url)).text(), 'red');
+  await new Promise((r) => setTimeout(r, 0));
+  await pedir(url);
+  igual(registro.pedidosRed, [url, url], 'cada vez va a la red');
+  igual([...registro.guardado.keys()], [], 'no se guarda en ninguna caché');
+  const sinRed = await cargarSW({ red: async () => { throw new TypeError('sin internet'); } });
+  let fallo = false;
+  try { const r = await sinRed.pedir(url); fallo = !r || r.type === 'error'; } catch { fallo = true; }
+  verdadero(fallo, 'sin internet no debe responder con datos');
 });
 
 prueba('pwa: al activar no borra la caché de librerías', async () => {

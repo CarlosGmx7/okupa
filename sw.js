@@ -22,6 +22,7 @@ const PRECACHE = [
   "js/nucleo/pantallas-pareja.js",
   "js/nucleo/solicitudes-ui.js",
   "js/nucleo/precalentar.js",
+  "js/nucleo/apk.js",
   "js/compartido/ingles.js",
   "js/modulos/mapa/modulo.js",
   "js/modulos/mapa/pantallas.js",
@@ -164,7 +165,10 @@ self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET') return;
   if (LIBRERIAS.some((r) => r.test(req.url))) { e.respondWith(libreria(req)); return; }
-  if (new URL(req.url).origin !== self.location.origin) return;
+  const url = new URL(req.url);
+  if (url.origin !== self.location.origin) return;
+  // El aviso de APK nueva: siempre de la red, nunca de la caché. Sin internet el pedido falla (la app lo calla).
+  if (url.pathname.endsWith('/data/apk.json')) { e.respondWith(fetch(req, { cache: 'no-store' })); return; }
   if (DESARROLLO) {
     e.respondWith(fetch(req).catch(async () => (await desdeCache(req)) || Response.error()));
     return;

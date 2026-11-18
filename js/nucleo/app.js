@@ -15,6 +15,14 @@ import { aplicarTema, aplicarLetra } from './tema.js';
 import { sonidos } from './sonidos.js';
 import { notificacionesDeLaApp, conectarConPareja, escucharRutasDelServiceWorker } from './notificaciones.js';
 
+import { detectarApk } from './apk.js';
+
+// Dentro de la APK: se detecta ya, antes de cualquier cambio de ruta (el referrer solo existe en la primera carga).
+const apk = (() => {
+  try { return detectarApk({ referrer: document.referrer, url: location.href, sesion: globalThis.sessionStorage }); }
+  catch { return { enApk: false, versionCode: null }; }
+})();
+
 const aplicarAjustes = (a) => { aplicarTema(a.tema); aplicarLetra(a.letra); };
 aplicarAjustes(leerAjustes(almacen));
 alCambiarAjustes(aplicarAjustes);
@@ -27,6 +35,7 @@ const vista = document.getElementById('vista');
 const tabla = {};
 const ctx = {
   almacen,
+  apk,
   instalacion: crearInstalacion(),
   modulos: [],
   nube: obtenerNube,

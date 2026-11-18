@@ -133,7 +133,7 @@ prueba('respaldo: combinar une listas por id y gana lo importado', () => {
 });
 
 // v18: la copia no lleva la pareja, el registro de avisos ni la marca de bienvenida.
-const DE_ESTE_CELULAR = ['okupa:pareja:actual', 'okupa:pareja:nombres', 'okupa:dispositivo', 'okupa:dispositivo:borrar', 'okupa:notificaciones', 'okupa:bienvenida', 'okupa:fechas'];
+const DE_ESTE_CELULAR = ['okupa:pareja:actual', 'okupa:pareja:nombres', 'okupa:dispositivo', 'okupa:dispositivo:borrar', 'okupa:notificaciones', 'okupa:bienvenida', 'okupa:fechas', 'okupa:apk:descartada'];
 
 prueba('respaldo: esDeEsteCelular reconoce solo las claves del celular', () => {
   igual(DE_ESTE_CELULAR.map(esDeEsteCelular), DE_ESTE_CELULAR.map(() => true));

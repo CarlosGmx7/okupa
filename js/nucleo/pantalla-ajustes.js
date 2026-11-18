@@ -203,6 +203,7 @@ export function pantallaAjustes(contenedor, _params, ctx) {
           recargar();
         } },
       el('span', { clase: 'fila-ajuste-titulo' }, 'Borrar datos de este celular'))),
+    ctx.apk?.enApk ? el('p', { clase: 'ajustes-pie' }, `App instalada: versión ${ctx.apk.versionCode}`) : null,
     el('p', { clase: 'ajustes-pie' },
       el('a', { href: '#/acerca' }, 'Acerca de Okupa ›'), ' · ',
       el('a', { href: '#/privacidad' }, 'Privacidad ›')),

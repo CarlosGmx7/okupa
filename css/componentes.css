@@ -110,7 +110,7 @@
 .inicio-enlazar-titulo { font-family: var(--serif); font-size: 1.125rem; }
 .inicio-enlazar-detalle { font-size: 0.875rem; color: var(--dorado); }
 
-/* Aviso de un celular nuevo que pide entrar (inicio y «Nuestra pareja») */
+/* Aviso de un celular nuevo que pide entrar (inicio y «Nuestra pareja»); el de la APK nueva (.franja-apk) usa la misma franja */
 .inicio-solicitudes { display: flex; flex-direction: column; gap: 0.625rem; }
 .inicio-solicitudes:not(:empty) { margin-top: 1.125rem; }
 .franja-solicitud {
