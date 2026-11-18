@@ -77,27 +77,32 @@ export async function pasada({ db, mandar, ahora = new Date() }) {
   // 1. Bandeja de avisos de todas las parejas.
   const notas = await db.collectionGroup('avisos').limit(MAX_NOTAS).get();
   for (const n of notas.docs) {
-    const codigo = n.ref.parent.parent?.id;
-    const aviso = n.data();
-    const creadoMs = aviso.creado?.toMillis?.() ?? 0;
-    const pareja = codigo ? await leerPareja(codigo) : null;
-    // Los avisos de solicitud solo los manda el servidor; uno en la bandeja se descarta.
-    if (!pareja || String(aviso.tipo).startsWith('solicitud') || !textoDe(aviso.tipo) || vencido(aviso.tipo, creadoMs, ahora.getTime())) {
+    // Un aviso que falla (red o Firestore) se queda en la bandeja para la próxima pasada y no corta el resto.
+    try {
+      const codigo = n.ref.parent.parent?.id;
+      const aviso = n.data();
+      const creadoMs = aviso.creado?.toMillis?.() ?? 0;
+      const pareja = codigo ? await leerPareja(codigo) : null;
+      // Los avisos de solicitud solo los manda el servidor; uno en la bandeja se descarta.
+      if (!pareja || String(aviso.tipo).startsWith('solicitud') || !textoDe(aviso.tipo) || vencido(aviso.tipo, creadoMs, ahora.getTime())) {
+        await n.ref.delete();
+        resumen.descartados++;
+        continue;
+      }
+      // «¡Entra ya!» solo vale si el anfitrión aún no está en la sala (si ya está jugando, llegaría tarde).
+      const sala = ACEPTO[aviso.tipo] ? await leerSala(codigo, ACEPTO[aviso.tipo], n.id.replace(/^acepto_/, '')) : null;
+      if (ACEPTO[aviso.tipo] && avisoAceptoSobra(sala, ahora.getTime())) {
+        await n.ref.delete();
+        resumen.descartados++;
+        continue;
+      }
+      const { enviar, invalidos } = destinatarios(await dispositivosDe(codigo), pareja, aviso);
+      for (const id of invalidos) await olvidar(id);
+      await enviarA(enviar, { ...textoDe(aviso.tipo, pareja.nombres?.[aviso.de]), tipo: aviso.tipo });
       await n.ref.delete();
-      resumen.descartados++;
-      continue;
+    } catch (e) {
+      console.warn(`Aviso ${n.ref.path} no se pudo procesar: ${e?.code ?? e?.message ?? e}`);
     }
-    // «¡Entra ya!» solo vale si el anfitrión aún no está en la sala (si ya está jugando, llegaría tarde).
-    const sala = ACEPTO[aviso.tipo] ? await leerSala(codigo, ACEPTO[aviso.tipo], n.id.replace(/^acepto_/, '')) : null;
-    if (ACEPTO[aviso.tipo] && avisoAceptoSobra(sala, ahora.getTime())) {
-      await n.ref.delete();
-      resumen.descartados++;
-      continue;
-    }
-    const { enviar, invalidos } = destinatarios(await dispositivosDe(codigo), pareja, aviso);
-    for (const id of invalidos) await olvidar(id);
-    await enviarA(enviar, { ...textoDe(aviso.tipo, pareja.nombres?.[aviso.de]), tipo: aviso.tipo });
-    await n.ref.delete();
   }
 
   // 1b. Solicitudes de celular nuevo: aviso, recordatorio del día 6 y limpieza. Llegan a los dos celulares sin mirar interruptores.

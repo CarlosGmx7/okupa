@@ -355,6 +355,23 @@ test('«aceptó»: si el anfitrión ya está jugando (latido de hace menos de 60
   for (const id of ['q-vivo', 'p-fin', 'p-nada', 'p-viejo']) assert.equal(await existe(`parejas/K7PQ2M/avisos/acepto_${id}`), false, id);
 });
 
+test('un aviso cuya sala no se puede leer no corta la pasada: se queda para la próxima y lo demás sigue', async () => {
+  await sembrar({ 'parejas/K7PQ2M': pareja, 'dispositivos/da': disp('u1', 'a'), 'dispositivos/db': disp('u2', 'b'),
+    'sistema/notificaciones': { ultimaFranja: '2026-11-14T00:45:00.000Z' },
+    'parejas/K7PQ2M/probable/q-malo': { estado: 'jugando', anfitrion: 'a' },
+    'parejas/K7PQ2M/avisos/acepto_q-malo': nota('probable-acepto', 'b'),
+    'parejas/K7PQ2M/avisos/diario_2026-11-13_a': nota('diario', 'a') });
+  const dbRoto = new Proxy(db, { get: (o, k) => (k === 'doc'
+    ? (ruta) => (ruta.endsWith('/probable/q-malo') ? { get: async () => { throw new Error('unavailable'); } } : o.doc(ruta))
+    : typeof o[k] === 'function' ? o[k].bind(o) : o[k]) });
+  const m = mandador();
+  await pasada({ db: dbRoto, mandar: m.mandar, ahora: AHORA });
+  assert.equal(m.enviados.some((e) => e.data.tipo === 'diario'), true);
+  assert.equal(await existe('parejas/K7PQ2M/avisos/acepto_q-malo'), true);
+  assert.equal(await existe('parejas/K7PQ2M/avisos/diario_2026-11-13_a'), false);
+  assert.equal((await db.doc('sistema/notificaciones').get()).data().ultimaFranja, '2026-11-14T01:00:00.000Z');
+});
+
 test('«aceptó»: con el interruptor de Trivia apagado no se manda; vencido a los 30 min se descarta', async () => {
   await sembrar({ ...SALAS_JUGANDO, 'parejas/K7PQ2M': pareja, 'dispositivos/da': disp('u1', 'a', { avisos: { ...avisosOn, trivia: false } }), 'dispositivos/db': disp('u2', 'b'),
     'parejas/K7PQ2M/avisos/acepto_q-abcd': nota('probable-acepto', 'b'),
