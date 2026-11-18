@@ -215,6 +215,7 @@ prueba('pareja: borrarTodo cierra y borra las salas de probable, sus votos y las
   const rutas = ['q-abierta', 'q-cerrada'].flatMap((s) => [0, 1, 2].flatMap((i) => ['a', 'b'].map((l) => `${b}/${s}/votos/${i}_${l}`)));
   for (const r of rutas) await nube.escribir(r, { voto: 'a' });
   await nube.escribir(`parejas/${codigo}/probable_frases/f-1`, { texto: 'hola mundo', creadaMs: 1 });
+  await nube.escribir(`parejas/${codigo}/probable_guardadas/q-abc12`, { a: true });
   // Registro de orden: la sala debe estar cerrada cuando se borran sus votos y ella misma.
   const estados = [];
   const espia = { ...nube, borrar: async (r) => {
@@ -223,7 +224,7 @@ prueba('pareja: borrarTodo cierra y borra las salas de probable, sus votos y las
   } };
   await borrarTodo(espia, alm1, { cargarIdsTarjetas: async () => [] });
   verdadero(estados.length === 7 && estados.every((e) => e === 'cancelada'), JSON.stringify(estados));
-  for (const r of [...rutas, `${b}/q-abierta`, `${b}/q-cerrada`, `parejas/${codigo}/probable_frases/f-1`]) igual(await nube.leer(r), null, r);
+  for (const r of [...rutas, `${b}/q-abierta`, `${b}/q-cerrada`, `parejas/${codigo}/probable_frases/f-1`, `parejas/${codigo}/probable_guardadas/q-abc12`]) igual(await nube.leer(r), null, r);
 });
 
 prueba('pareja: sin conexión se propaga sin-conexion', async () => {

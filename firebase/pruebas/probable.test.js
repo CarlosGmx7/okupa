@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { after, before, beforeEach, describe, it } from 'node:test';
 import { assertFails, assertSucceeds, initializeTestEnvironment } from '@firebase/rules-unit-testing';
-import { collection, deleteDoc, doc, getDoc, getDocs, setDoc, updateDoc } from 'firebase/firestore';
+import { collection, deleteDoc, deleteField, doc, getDoc, getDocs, setDoc, updateDoc } from 'firebase/firestore';
 
 const CODIGO = 'K7PQ2M';
 const RUTA = `parejas/${CODIGO}`;
@@ -265,5 +265,52 @@ describe('probable_frases', () => {
     await assertFails(updateDoc(d('u2', FRASE), { texto: 'otra cosa distinta' }));
     await assertFails(deleteDoc(d('u9', FRASE)));
     await assertSucceeds(deleteDoc(d('u2', FRASE)));
+  });
+});
+
+describe('probable_guardadas', () => {
+  const G = 'probable_guardadas/q-abcd1';
+  const marca = (uid, valor, lugar) => setDoc(d(uid, G), { [lugar]: valor }, { merge: true });
+  it('cada miembro pone solo su letra en true, en cualquier orden', async () => {
+    await assertSucceeds(marca('u1', true, 'a'));
+    await assertSucceeds(marca('u2', true, 'b'));
+    const datos = (await getDoc(d('u1', G))).data();
+    if (datos.a !== true || datos.b !== true) throw new Error(JSON.stringify(datos));
+  });
+  it('si el otro ya la marcó, la propia se agrega sin tocar la suya', async () => {
+    await sembrar({ [`${RUTA}/${G}`]: { b: true } });
+    await assertSucceeds(marca('u1', true, 'a'));
+  });
+  it('no se puede poner la letra del otro', async () => {
+    await assertFails(marca('u1', true, 'b'));
+    await assertFails(marca('u2', true, 'a'));
+    await assertFails(setDoc(d('u1', G), { a: true, b: true }));
+  });
+  it('no se puede quitar ni cambiar la letra del otro', async () => {
+    await sembrar({ [`${RUTA}/${G}`]: { a: true, b: true } });
+    await assertFails(updateDoc(d('u1', G), { b: deleteField() }));
+    await assertFails(updateDoc(d('u2', G), { a: deleteField() }));
+    await assertFails(updateDoc(d('u1', G), { b: false }));
+    await assertFails(setDoc(d('u1', G), { a: true }));
+  });
+  it('solo las claves a y b, y solo en true', async () => {
+    await assertFails(setDoc(d('u1', G), { a: true, c: true }));
+    await assertFails(setDoc(d('u1', G), { c: true }));
+    await assertFails(marca('u1', false, 'a'));
+    await assertFails(marca('u1', 'si', 'a'));
+    await assertFails(setDoc(d('u1', G), {}));
+  });
+  it('rechaza ids malos', async () => {
+    for (const id of ['abc12', 'q-', 'q-ABC', 'x-abcd1'])
+      await assertFails(setDoc(d('u1', `probable_guardadas/${id}`), { a: true }));
+  });
+  it('los miembros leen y borran; un extraño nada', async () => {
+    await sembrar({ [`${RUTA}/${G}`]: { a: true } });
+    await assertSucceeds(getDoc(d('u2', G)));
+    await assertSucceeds(getDoc(d('u1', G)));
+    await assertFails(getDoc(d('u9', G)));
+    await assertFails(marca('u9', true, 'a'));
+    await assertFails(deleteDoc(d('u9', G)));
+    await assertSucceeds(deleteDoc(d('u2', G)));
   });
 });

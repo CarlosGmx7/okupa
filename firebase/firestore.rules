@@ -189,6 +189,22 @@ service cloud.firestore {
           && request.resource.data.texto.size() >= 5 && request.resource.data.texto.size() <= 120;
         allow update: if false;
       }
+      // Rondas guardadas de ¿Quién es más probable?: solo la marca de quién la guardó (la ronda queda en el
+      // celular). Cada uno pone su propia letra en true; nadie toca ni quita la del otro.
+      match /probable_guardadas/{id} {
+        function marcaPropia() {
+          let yo = miLugar(codigo);
+          let otro = yo == 'a' ? 'b' : 'a';
+          let antes = resource == null ? {} : resource.data;
+          let despues = request.resource.data;
+          return despues.keys().hasOnly(['a', 'b'])
+            && yo in despues && despues[yo] == true
+            && (otro in despues) == (otro in antes)
+            && (!(otro in despues) || despues[otro] == antes[otro]);
+        }
+        allow read, delete: if esMiembro(codigo);
+        allow create, update: if esMiembro(codigo) && id.matches('^q-[a-z0-9]{4,30}$') && marcaPropia();
+      }
       // Última ubicación de cada uno: los dos la ven; cada uno escribe o borra solo la suya.
       match /ubicaciones/{lugar} {
         allow read: if esMiembro(codigo);

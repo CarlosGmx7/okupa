@@ -84,6 +84,7 @@ const PRECACHE = [
   "js/modulos/probable/pantallas.js",
   "js/modulos/probable/logica.js",
   "js/modulos/probable/sala.js",
+  "js/modulos/probable/guardadas.js",
   "data/probable/frases.json",
   "js/modulos/ruleta/logica.js",
   "js/modulos/ruleta/pantallas.js",

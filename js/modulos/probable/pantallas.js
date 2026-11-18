@@ -3,6 +3,7 @@ import { el } from '../../nucleo/ui.js';
 import { exigirPareja } from '../../nucleo/pantallas-pareja.js';
 import { guardarEsperando, sigueEsperando } from '../../nucleo/esperando.js';
 import { TEMAS, LARGOS, elegirFrases, opcionesVoto, votaronTodos, coincidieron, resumen } from './logica.js';
+import { rondaParaGuardar, guardarRonda, leerGuardadas, borrarGuardada, marcarGuardada, leerMarcas } from './guardadas.js';
 import {
   crearSala, salaPendiente, unirse, cancelarSala, votar, leerVotos, intentarAvanzar, cerrarSala, leerVistas,
   escucharSala, latir, listarPropias, crearPropia, borrarPropia, ErrorSalaAjena, cancelarSiSigueEsperando, cancelarSiAbierta, rutaSala,
@@ -154,7 +155,8 @@ export function crearPantallasProbable({ cargar, ahora = () => performance.now()
               await pintar();
             }
           }) }, 'Abrir sala'),
-          el('a', { clase: 'boton-texto', href: '#/probable/frases' }, 'Nuestras frases ›')),
+          el('a', { clase: 'boton-texto', href: '#/probable/frases' }, 'Nuestras frases ›'),
+          el('a', { clase: 'boton-texto', href: '#/probable/guardadas' }, 'Rondas guardadas ›')),
         aviso);
     }
 
@@ -366,8 +368,8 @@ export function crearPantallasProbable({ cargar, ahora = () => performance.now()
           : (await cargar()).filter((f) => f.tema === fresca.tema).map((f) => f.id);
         await cerrarSala(nube, pareja, fresca, ids);
         // Todos los votos a la vez: en fila, una ronda de 20 eran 40 viajes a la nube sin nada en pantalla.
-        const votos = await Promise.all(fresca.frases.map((_, i) => i).filter((i) => votaronTodos(fresca, i))
-          .map((i) => leerVotos(nube, pareja, id, i)));
+        const reveladas = fresca.frases.map((_, i) => i).filter((i) => votaronTodos(fresca, i));
+        const votos = await Promise.all(reveladas.map((i) => leerVotos(nube, pareja, id, i)));
         fase = 'final:lista';
         const res = resumen(votos, ['a', 'b']);
         const otra = el('a', { clase: 'boton boton-principal', href: '#/probable' }, 'Otra ronda');
@@ -375,10 +377,13 @@ export function crearPantallasProbable({ cargar, ahora = () => performance.now()
           escena.replaceChildren(vacio(fresca.estado === 'cancelada' ? 'La sala se canceló antes de revelar ninguna frase.' : 'No hubo frases para revelar.', otra));
           return;
         }
+        const porIndice = Object.fromEntries(reveladas.map((i, k) => [i, votos[k]]));
+        const ronda = rondaParaGuardar(fresca, porIndice, pareja.nombres, Date.now());
         escena.replaceChildren(el('div', { clase: 'final-juego' },
           el('h2', { clase: 'titulo-final' }, `Coincidieron en ${res.coincidencias} de ${res.total}`),
           fresca.estado === 'cancelada' ? el('p', { clase: 'subtitulo' }, 'La sala se cortó antes del final.') : null,
           el('ul', { clase: 'resumen-eligieron' }, ['a', 'b'].map((l) => el('li', {}, `Eligieron a ${nombre(l)} ${veces(res.elegido[l])}`))),
+          botonGuardar(ctx, nube, pareja, ronda),
           el('div', { clase: 'enlace-acciones' }, otra, el('a', { clase: 'boton', href: '#/' }, 'Inicio'))));
       })().catch((e) => {
         console.warn('Okupa: no se pudo cerrar la sala', e);
@@ -432,5 +437,87 @@ export function crearPantallasProbable({ cargar, ahora = () => performance.now()
     }
   }
 
-  return { inicio, juego, frases };
+  // «Guardar ronda»: la copia queda en este celular; la marca en la nube es un extra que no bloquea nada.
+  function botonGuardar(ctx, nube, pareja, ronda) {
+    const yaEsta = leerGuardadas(ctx.almacen).some((r) => r.id === ronda.id);
+    const boton = el('button', { clase: 'boton', type: 'button', disabled: yaEsta }, yaEsta ? 'Guardada ✓' : 'Guardar ronda');
+    boton.addEventListener('click', () => {
+      boton.disabled = true;
+      guardarRonda(ctx.almacen, ronda);
+      boton.textContent = 'Guardada ✓';
+      marcarGuardada(nube, pareja, ronda.id).catch((e) => console.warn('Okupa: no se pudo marcar la ronda guardada', e));
+    });
+    return boton;
+  }
+
+  const nombreEleccion = (ronda, v) => (v === 'a' || v === 'b' ? (ronda.nombres?.[v] || 'Tu pareja') : v === 'todos' ? 'Los dos' : 'Sin voto');
+  const temaDe = (id) => TEMAS.find((t) => t.id === id)?.nombre ?? 'Ronda';
+  const fechaDe = (ms) => (Number.isFinite(ms) ? new Date(ms).toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' }) : '');
+
+  async function guardadas(contenedor, _params, ctx) {
+    const zona = el('div', { clase: 'probable' });
+    contenedor.append(el('a', { clase: 'volver', href: '#/probable' }, '← ¿Quién es más probable?'), zona);
+    const r = await preparar(zona, ctx, false);
+    if (!r) return;
+    const { nube, pareja } = r;
+    const otro = otroLugar(pareja.lugar);
+    const nombreOtro = pareja.nombres[otro] || 'Tu pareja';
+    let marcas = {};
+    const lista = el('ul', { clase: 'lista rondas-guardadas' });
+
+    function pintar() {
+      const rondas = leerGuardadas(ctx.almacen);
+      lista.replaceChildren(...(rondas.length === 0
+        ? [el('li', { clase: 'vacio-lista' }, 'Todavía no han guardado ninguna ronda. Al terminar una, toca «Guardar ronda».')]
+        : rondas.map((ronda) => el('li', { clase: 'fila-guardada' },
+          el('a', { clase: 'guardada-enlace', href: `#/probable/guardadas/${ronda.id}` },
+            el('span', { clase: 'guardada-tema' }, `${temaDe(ronda.tema)} · ${fechaDe(ronda.fecha)}`),
+            el('span', { clase: 'guardada-resultado' }, `Coincidieron en ${ronda.coincidencias} de ${ronda.total}`)),
+          marcas[ronda.id]?.[otro] ? el('p', { clase: 'guardada-marca' }, `✓ ${nombreOtro} también la guardó`) : null,
+          el('button', { clase: 'boton boton-peligro', type: 'button', onclick: () => {
+            if (!globalThis.confirm('¿Borrar esta ronda de este celular? Tu pareja conserva la suya.')) return;
+            borrarGuardada(ctx.almacen, ronda.id);
+            pintar();
+          } }, 'Borrar')))));
+    }
+
+    zona.replaceChildren(
+      el('h1', { clase: 'titulo-pantalla' }, 'Rondas guardadas'),
+      el('p', { clase: 'subtitulo' }, 'Quedan en este celular. En la nube solo queda la marca de quién la guardó.'),
+      lista);
+    pintar();
+    try {
+      const ids = leerGuardadas(ctx.almacen).map((x) => x.id);
+      marcas = await leerMarcas(nube, pareja, ids);
+      pintar();
+      // Las rondas cuya marca no llegó a la nube se reintentan al abrir esta pantalla.
+      const faltan = ids.filter((id) => !marcas[id]?.[pareja.lugar]);
+      await Promise.allSettled(faltan.map((id) => marcarGuardada(nube, pareja, id)));
+    } catch (e) {
+      console.warn('Okupa: no se pudieron leer las marcas', e);
+    }
+  }
+
+  async function guardadaDetalle(contenedor, { id }, ctx) {
+    const zona = el('div', { clase: 'probable' });
+    contenedor.append(el('a', { clase: 'volver', href: '#/probable/guardadas' }, '← Rondas guardadas'), zona);
+    const r = await preparar(zona, ctx, false);
+    if (!r) return;
+    const ronda = leerGuardadas(ctx.almacen).find((x) => x.id === id);
+    if (!ronda) {
+      zona.replaceChildren(vacio('Esa ronda no está guardada en este celular.', el('a', { clase: 'boton', href: '#/probable/guardadas' }, 'Ver las guardadas')));
+      return;
+    }
+    zona.replaceChildren(
+      el('h1', { clase: 'titulo-pantalla' }, `${temaDe(ronda.tema)} · ${fechaDe(ronda.fecha)}`),
+      el('p', { clase: 'subtitulo' }, `Coincidieron en ${ronda.coincidencias} de ${ronda.total}`),
+      el('ul', { clase: 'lista' }, ronda.frases.map((f) => el('li', { clase: 'guardada-frase' },
+        el('p', { clase: 'probable-prefijo' }, PREFIJO),
+        el('p', { clase: 'probable-frase' }, f.texto),
+        ['a', 'b'].map((l) => el('p', { clase: 'guardada-voto' },
+          el('span', { clase: 'revelado-nombre' }, ronda.nombres?.[l] || 'Tu pareja'), ' ',
+          el('span', { clase: 'revelado-voto' }, nombreEleccion(ronda, f[l]))))))));
+  }
+
+  return { inicio, juego, frases, guardadas, guardadaDetalle };
 }

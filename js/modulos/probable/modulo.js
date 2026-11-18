@@ -25,5 +25,7 @@ export default {
     '': pantallas.inicio,
     'jugar/:id': pantallas.juego,
     frases: pantallas.frases,
+    guardadas: pantallas.guardadas,
+    'guardadas/:id': pantallas.guardadaDetalle,
   },
 };
