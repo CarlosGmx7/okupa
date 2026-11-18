@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { fechaBogota, franjaDe, franjasPendientes, textoDe, vencido, destinatarios, quiereRecordatorio, fechaEnZona, momentoDeFranja, accionSolicitud, miembrosDe } from './logica.mjs';
+import { fechaBogota, franjaDe, franjasPendientes, textoDe, vencido, destinatarios, quiereRecordatorio, fechaEnZona, momentoDeFranja, accionSolicitud, miembrosDe, avisoAceptoSobra } from './logica.mjs';
 
 test('franjaDe redondea hacia abajo a 15 min en UTC', () => {
   assert.equal(franjaDe(new Date('2026-11-13T01:07:00Z')), '01:00');
@@ -163,6 +163,22 @@ test('destinatarios: «aceptó» no llega a quien entró (de) y respeta el inter
     assert.deepEqual(destinatarios(dispositivos({ trivia: false }), pareja, { tipo, de: 'b' }).enviar, []);
     assert.deepEqual(destinatarios(dispositivos({ trivia: true, probable: false }), pareja, { tipo, de: 'b' }).enviar, [{ id: 'da', token: 'ta' }]);
   }
+});
+
+test('avisoAceptoSobra: sala ausente, no jugando o con el anfitrión latiendo hace menos de 60 s', () => {
+  const ahora = Date.parse('2026-11-14T01:05:00Z');
+  const latido = (segAtras) => ({ toMillis: () => ahora - segAtras * 1000 });
+  const sala = (extra = {}) => ({ estado: 'jugando', anfitrion: 'a', ...extra });
+  assert.equal(avisoAceptoSobra(null, ahora), true);
+  assert.equal(avisoAceptoSobra(undefined, ahora), true);
+  for (const estado of ['esperando', 'terminada', 'cancelada']) assert.equal(avisoAceptoSobra(sala({ estado }), ahora), true, estado);
+  assert.equal(avisoAceptoSobra(sala(), ahora), false);
+  assert.equal(avisoAceptoSobra(sala({ senal: { a: latido(10) } }), ahora), true);
+  assert.equal(avisoAceptoSobra(sala({ senal: { a: latido(59) } }), ahora), true);
+  assert.equal(avisoAceptoSobra(sala({ senal: { a: latido(61) } }), ahora), false);
+  assert.equal(avisoAceptoSobra(sala({ senal: { a: ahora - 5000 } }), ahora), true);
+  // Solo cuenta el latido del anfitrión: el de quien entró no dice que el anfitrión esté dentro.
+  assert.equal(avisoAceptoSobra(sala({ senal: { b: latido(5) } }), ahora), false);
 });
 
 test('franjasPendientes: pasadas cada 5 min dentro de la misma franja no repiten franja', () => {

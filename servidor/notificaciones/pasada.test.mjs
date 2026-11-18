@@ -316,8 +316,14 @@ test('solicitud: rechazada hace menos de 25 h se conserva sin avisar; token inv�
   assert.equal(await existe('dispositivos/db'), false);
 });
 
+// Salas en juego, sin latido reciente del anfitrión: el «aceptó» sí tiene sentido.
+const SALAS_JUGANDO = {
+  'parejas/K7PQ2M/probable/q-abcd': { estado: 'jugando', anfitrion: 'a' },
+  'parejas/K7PQ2M/partidas/p-abc1': { estado: 'jugando', anfitrion: 'a' },
+};
+
 test('«aceptó»: llega solo al anfitrión (no a quien entró), con el nombre de quien entró, y se borra', async () => {
-  await sembrar({ 'parejas/K7PQ2M': pareja, 'dispositivos/da': disp('u1', 'a'), 'dispositivos/db': disp('u2', 'b'),
+  await sembrar({ ...SALAS_JUGANDO, 'parejas/K7PQ2M': pareja, 'dispositivos/da': disp('u1', 'a'), 'dispositivos/db': disp('u2', 'b'),
     'parejas/K7PQ2M/avisos/acepto_q-abcd': nota('probable-acepto', 'b'),
     'parejas/K7PQ2M/avisos/acepto_p-abc1': nota('trivia-acepto', 'b') });
   const m = mandador();
@@ -331,8 +337,26 @@ test('«aceptó»: llega solo al anfitrión (no a quien entró), con el nombre d
   assert.equal(await existe('parejas/K7PQ2M/avisos/acepto_p-abc1'), false);
 });
 
+test('«aceptó»: si el anfitrión ya está jugando (latido de hace menos de 60 s), la sala no existe o no está jugando, se descarta sin mandar', async () => {
+  const latido = (seg) => ({ a: Timestamp.fromMillis(AHORA.getTime() - seg * 1000) });
+  await sembrar({ 'parejas/K7PQ2M': pareja, 'dispositivos/da': disp('u1', 'a'), 'dispositivos/db': disp('u2', 'b'),
+    'parejas/K7PQ2M/probable/q-vivo': { estado: 'jugando', anfitrion: 'a', senal: latido(20) },
+    'parejas/K7PQ2M/avisos/acepto_q-vivo': nota('probable-acepto', 'b'),
+    'parejas/K7PQ2M/partidas/p-fin': { estado: 'terminada', anfitrion: 'a' },
+    'parejas/K7PQ2M/avisos/acepto_p-fin': nota('trivia-acepto', 'b'),
+    'parejas/K7PQ2M/avisos/acepto_p-nada': nota('trivia-acepto', 'b'),
+    'parejas/K7PQ2M/partidas/p-viejo': { estado: 'jugando', anfitrion: 'a', senal: latido(120) },
+    'parejas/K7PQ2M/avisos/acepto_p-viejo': nota('trivia-acepto', 'b') });
+  const m = mandador();
+  const r = await pasada({ db, mandar: m.mandar, ahora: AHORA });
+  assert.equal(m.enviados.length, 1);
+  assert.equal(m.enviados[0].data.tipo, 'trivia-acepto');
+  assert.equal(r.descartados, 3);
+  for (const id of ['q-vivo', 'p-fin', 'p-nada', 'p-viejo']) assert.equal(await existe(`parejas/K7PQ2M/avisos/acepto_${id}`), false, id);
+});
+
 test('«aceptó»: con el interruptor de Trivia apagado no se manda; vencido a los 30 min se descarta', async () => {
-  await sembrar({ 'parejas/K7PQ2M': pareja, 'dispositivos/da': disp('u1', 'a', { avisos: { ...avisosOn, trivia: false } }), 'dispositivos/db': disp('u2', 'b'),
+  await sembrar({ ...SALAS_JUGANDO, 'parejas/K7PQ2M': pareja, 'dispositivos/da': disp('u1', 'a', { avisos: { ...avisosOn, trivia: false } }), 'dispositivos/db': disp('u2', 'b'),
     'parejas/K7PQ2M/avisos/acepto_q-abcd': nota('probable-acepto', 'b'),
     'parejas/K7PQ2M/avisos/acepto_p-abc1': nota('trivia-acepto', 'b', 45) });
   const m = mandador();

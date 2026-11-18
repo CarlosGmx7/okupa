@@ -1,9 +1,11 @@
 // Una pasada de notificaciones: vacía la bandeja de avisos, manda los recordatorios del Diario y los avisos de fechas.
 // `db` es Firestore de firebase-admin; `mandar(mensajes)` envía y responde [{ ok, codigo }] en orden.
-import { fechaBogota, fechaEnZona, momentoDeFranja, franjasPendientes, textoDe, vencido, destinatarios, quiereRecordatorio, registroVigente, accionSolicitud, miembrosDe } from './logica.mjs';
+import { fechaBogota, fechaEnZona, momentoDeFranja, franjasPendientes, textoDe, vencido, destinatarios, quiereRecordatorio, registroVigente, accionSolicitud, miembrosDe, avisoAceptoSobra } from './logica.mjs';
 import { notificacionDelDia } from '../../js/modulos/fechas/calendario.js';
 import { avisosCapsulas, unirAvisos } from '../../js/modulos/capsula/logica.js';
 
+// Dónde vive la sala de cada aviso «aceptó» (el id del aviso es `acepto_<id de la sala>`).
+const ACEPTO = { 'trivia-acepto': 'partidas', 'probable-acepto': 'probable' };
 const MAX_NOTAS = 500;
 const MAX_SOLICITUDES = 200;
 // Solo errores que dicen que el token ya no sirve. 'invalid-argument' no: puede ser un error del mensaje
@@ -42,6 +44,10 @@ export async function pasada({ db, mandar, ahora = new Date() }) {
     }
     return capsulasDe.get(codigo);
   };
+  const leerSala = async (codigo, coleccion, id) => {
+    const foto = await db.doc(`parejas/${codigo}/${coleccion}/${id}`).get();
+    return foto.exists ? foto.data() : null;
+  };
   const dispositivosDe = async (codigo) => {
     if (!dispositivos.has(codigo)) {
       const fotos = await db.collection('dispositivos').where('pareja', '==', codigo).get();
@@ -77,6 +83,13 @@ export async function pasada({ db, mandar, ahora = new Date() }) {
     const pareja = codigo ? await leerPareja(codigo) : null;
     // Los avisos de solicitud solo los manda el servidor; uno en la bandeja se descarta.
     if (!pareja || String(aviso.tipo).startsWith('solicitud') || !textoDe(aviso.tipo) || vencido(aviso.tipo, creadoMs, ahora.getTime())) {
+      await n.ref.delete();
+      resumen.descartados++;
+      continue;
+    }
+    // «¡Entra ya!» solo vale si el anfitrión aún no está en la sala (si ya está jugando, llegaría tarde).
+    const sala = ACEPTO[aviso.tipo] ? await leerSala(codigo, ACEPTO[aviso.tipo], n.id.replace(/^acepto_/, '')) : null;
+    if (ACEPTO[aviso.tipo] && avisoAceptoSobra(sala, ahora.getTime())) {
       await n.ref.delete();
       resumen.descartados++;
       continue;

@@ -103,6 +103,16 @@ export function accionSolicitud(solicitud, parejaDoc, lugar, ahoraMs) {
   return null;
 }
 
+const LATIDO_RECIENTE_MS = 60 * 1000;
+
+// «¡Entra ya!» sobra cuando el anfitrión ya está en la sala: no existe, no está 'jugando' o su latido
+// (`senal` del anfitrión, que el celular escribe cada pocos segundos) es de hace menos de 60 s.
+export function avisoAceptoSobra(sala, ahoraMs) {
+  if (!sala || sala.estado !== 'jugando') return true;
+  const latido = aMs(sala.senal?.[sala.anfitrion]);
+  return latido !== null && ahoraMs - latido < LATIDO_RECIENTE_MS;
+}
+
 export function quiereRecordatorio(dispositivo, hoy, yaRespondio) {
   return dispositivo?.avisos?.recordatorio !== false && dispositivo?.ultimoRecordatorio !== hoy && !yaRespondio;
 }
