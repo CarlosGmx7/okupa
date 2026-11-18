@@ -16,7 +16,10 @@ App para parejas (PWA y APK Android): Preguntas, Trivia, ¿Quién es más probab
 - No hace falta token de depuración: el computador usa la app publicada; las pruebas locales usan emuladores (App Check apagado).
 - Publicado (2026-11-17): v23 «Ruleta de citas» (`sw.js` = `okupa-v23`), con el visto bueno de Carlos. En un solo celular, sin nube: presupuesto (Sin plata / Algo medio hasta ~$80.000 / Darnos un gusto) + En casa / Salir → plan de un banco de 255 (`data/ruleta/planes.json`); recuerda en `okupa:ruleta` la elección y los planes ya vistos por combinación. Verificado: `pruebas.html` 734/0, prueba a mano en las 3 interfaces, 6 combinaciones, 375 px y 360×640.
 - Menores aparcados de la Ruleta: planes atados a una hora del día (32), mucho alcohol en casa·grande, sin respaldo de `svh` para WebViews viejos, un giro abandonado cuenta el plan como visto, solapes cas-gra-002≈001 y cas-gra-038≈032.
-- Pendiente de Carlos de antes: subir la APK 1.0.0 a Releases (tag `v1.0.0`), guardar `android.keystore` en Drive, probar en los dos celulares una ronda de Probable, un aviso de las 8:00 y una carta.
+- v24 lista en la rama `v24-probable` (worktree `../okupa-v24`): rondas guardadas de Probable (copia en el celular `okupa:probable:guardadas` + marca en `parejas/{c}/probable_guardadas`), aviso «X aceptó tu juego. ¡Entra ya!» (solo si el anfitrión no está ya en la sala), avisos cada 5 min, franja «hay una APK nueva» (solo en la APK; `data/apk.json`; guía `docs/guia-apk-nueva.md`) y 200 frases por tema en Probable (picantes directas, pedido de Carlos). Verificado el 2026-11-17: `pruebas.html` 782/0, reglas+servidor 229/0. Orden para publicar: **Carlos pega las reglas primero** (son aditivas), luego merge+push.
+- Límites conocidos: GitHub corre el cron «cuando puede» y lo apaga si el repo pasa 60 días sin cambios (Actions → Notificaciones → Enable workflow). La franja de APK no sale si la app se abrió desde una notificación; Ajustes muestra «App instalada: versión N» dentro de la APK para comprobar la detección.
+- Menores aparcados de la v24: ideas temáticas parecidas en algunas frases, masculino genérico en frases, borrar una ronda guardada no quita la marca en la nube, las rondas guardadas piden tener pareja, «Descargar» abre `releases/latest` (no el archivo directo).
+- Carlos hizo sus pendientes (2026-11-17): APK 1.0.0 en Releases, `android.keystore` en Drive y pruebas en los dos celulares.
 - Menores aparcados para la próxima versión: «Cancelar solicitud» tras el aviso no explica que sigue hasta 24 h; el aviso inicial puede repetirse si falla un envío; Rechazar sobre una solicitud que ya no existe dice «Revisa la conexión»; la espera repinta solo por sondeo de 60 s; spec de v22 aún dice v3 y 8 días.
 ## Archivos clave
 - `js/nucleo/pareja.js`: pareja, solicitudes, aprobar/rechazar/entrar.
@@ -26,15 +29,16 @@ App para parejas (PWA y APK Android): Preguntas, Trivia, ¿Quién es más probab
 - `js/nucleo/inicio.js`: las 3 interfaces del inicio.
 - `firebase/firestore.rules` + `firebase/pruebas/`: reglas y sus pruebas.
 - `servidor/notificaciones/`: envío de avisos (`logica.mjs`, `pasada.mjs`).
-- `sw.js` (`CACHE` = `okupa-v23`, `PRECACHE`), `privacidad.html`, `docs/guia-app-check.md`.
+- `sw.js` (`CACHE` = `okupa-v24`, `PRECACHE`; `data/apk.json` siempre a la red), `privacidad.html`, `docs/guia-app-check.md`, `docs/guia-apk-nueva.md`.
+- `js/modulos/probable/guardadas.js`, `js/nucleo/apk.js`, `data/probable/frases.json` (1.000 frases).
 - `js/modulos/ruleta/` + `data/ruleta/planes.json`: la Ruleta de citas.
 - `docs/superpowers/specs|plans/`: diseño y plan de cada versión.
 - `../okupa-apk/` y `C:\bubblewrap\`: APK (`android.keystore` nunca a git).
 ## Próximo paso
-Preguntarle a Carlos cuál sigue y hacerlo con su brainstorming, en rama y worktree nuevos (`v24-…`, `../okupa-v24`): resumen de una ronda de Probable guardado en el celular (y si el otro también lo guardó); aviso «ya aceptaron tu juego» (avisos cada 15 min, sala caduca a los 30); 200 frases por tema en Probable (investigar Reddit y redes); aviso «hay una APK nueva».
+Publicar la v24: Carlos pega `firebase/firestore.rules` en Firebase, luego merge de `v24-probable` a `main` y push, y comprobar que Pages sirva `okupa-v24`. No queda ningún pedido de Carlos pendiente; lo siguiente lo decide él (ideas: los menores aparcados de cada versión).
 ## Cómo verificar
-- App: en la carpeta de la rama, `python herramientas/servidor.py 8123` (launch `okupa-v23`); abrir http://127.0.0.1:8123/pruebas.html → «0 fallaron» (734).
-- Reglas: en `firebase/`, `node emuladores.mjs exec "node --test pruebas/ ../servidor/notificaciones/pasada.test.mjs ../servidor/notificaciones/logica.test.mjs"` (209) y cerrar el java del puerto 8085.
+- App: en la carpeta de la rama, `python herramientas/servidor.py 8124` (launch `okupa-v24`); abrir http://127.0.0.1:8124/pruebas.html → «0 fallaron» (782).
+- Reglas: en `firebase/`, `node emuladores.mjs exec "node --test pruebas/ ../servidor/notificaciones/pasada.test.mjs ../servidor/notificaciones/logica.test.mjs"` (229) y cerrar el java del puerto 8085.
 - Publicado: `https://carlosgmx7.github.io/okupa/sw.js` muestra la `CACHE` actual.
 ## Cuidado con
 - En cada cambio: subir `CACHE`, archivos nuevos en `PRECACHE` y `pruebas/pwa.prueba.js`, pruebas nuevas en `pruebas.html`. Si cambian las reglas, Carlos las pega al publicar.
