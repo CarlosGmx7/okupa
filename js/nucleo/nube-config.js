@@ -19,7 +19,7 @@ export const CLAVE_RECAPTCHA = '6Lfb8SQuAAAAAPc9sBHcf6eBTpdrwGMyY84Bhi1r';
 
 // Relevo de Cloudflare que despierta al servidor de notificaciones al crear o aceptar un juego
 // (docs/guia-relevo.md). No es secreta. Con null, las invitaciones llegan con el turno de cada 5 min.
-export const RELEVO = null;
+export const RELEVO = 'https://okupa-relevo.okupa-app.workers.dev/';
 
 // Clave pública de notificaciones web (Firebase → Configuración → Cloud Messaging → Certificados web push).
 // No es secreta. Mientras sea null, Ajustes dice que las notificaciones aún no están configuradas.
