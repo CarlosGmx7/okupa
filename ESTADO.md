@@ -16,6 +16,7 @@ App para parejas (PWA y APK Android): Preguntas, Trivia, ¿Quién es más probab
 - Funciona y está publicado: v24 (`sw.js` = `okupa-v24`, `main` = `01c121a`), con las reglas de v24 pegadas y App Check exigido. Incluye v22 (cambio de celular con aprobación), v23 (Ruleta de citas, 255 planes, sin nube) y v24 (rondas guardadas de Probable, aviso «aceptó tu juego», franja «hay una APK nueva», 1.000 frases de Probable con picantes directas a pedido de Carlos). Verificado: `pruebas.html` 782/0, reglas+servidor 229/0, Pages sirve okupa-v24 con las 1.000 frases y `data/apk.json` (versión 1).
 - Carlos hizo sus pendientes: APK 1.0.0 en Releases, `android.keystore` en Drive, pruebas en los dos celulares.
 - Sin comprobar en celular: que Ajustes muestre «App instalada: versión 1» dentro de la APK (si no, la franja de APK nueva nunca saldría).
+- Notificaciones (2026-11-20): solo llegaban las del Diario. Causa: GitHub corrió el cron 3-4 veces al día (27 corridas del 13 al 20 nov), y las invitaciones de Trivia/Probable/«aceptó» vencen a los 30 min y se botaban. Arreglo elegido por Carlos: cron-job.org dispara `workflow_dispatch` cada 5 min (`docs/guia-cron-job.md`). Pendiente de Carlos: crear el token fino (Actions: Read and write, solo `okupa`) y el cronjob; luego comprobar en la API pública que hay corridas `workflow_dispatch` cada ~5 min y que llega una invitación.
 - Límites: GitHub corre el cron «cuando puede» y lo apaga si el repo pasa 60 días sin cambios (Actions → Notificaciones → Enable workflow). La franja de APK no sale si la app se abrió desde una notificación.
 - Menores aparcados:
   - v22: «Cancelar solicitud» tras el aviso no explica que sigue hasta 24 h; el aviso inicial puede repetirse si falla un envío; Rechazar sobre una solicitud que ya no existe dice «Revisa la conexión»; la espera repinta por sondeo de 60 s.
@@ -30,7 +31,7 @@ App para parejas (PWA y APK Android): Preguntas, Trivia, ¿Quién es más probab
 - `firebase/firestore.rules` + `firebase/pruebas/`: reglas y sus pruebas.
 - `servidor/notificaciones/` + `.github/workflows/notificaciones.yml`: envío de avisos.
 - `sw.js` (`CACHE`, `PRECACHE`; `data/apk.json` siempre a la red), `privacidad.html`.
-- `docs/guia-app-check.md`, `docs/guia-apk-nueva.md`, `docs/superpowers/specs|plans/`.
+- `docs/guia-app-check.md`, `docs/guia-apk-nueva.md`, `docs/guia-cron-job.md`, `docs/superpowers/specs|plans/`.
 - `../okupa-apk/` y `C:\bubblewrap\`: APK (`android.keystore` nunca a git).
 ## Próximo paso
 Preguntarle a Carlos (con opciones) qué sigue. Propuesta por defecto: una v25 de pulido con los menores aparcados que más se notan (entrar a una sala cancelada, planes de la Ruleta atados a la hora, frases repetidas), en rama `v25-…` y worktree `../okupa-v25`.
