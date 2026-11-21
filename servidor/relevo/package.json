@@ -1,0 +1,8 @@
+{
+  "name": "okupa-relevo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test relevo.test.mjs"
+  }
+}
