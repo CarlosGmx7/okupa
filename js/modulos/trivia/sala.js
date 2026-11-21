@@ -40,6 +40,8 @@ export async function partidaPendiente(nube, pareja) {
   return abiertas[0] || null;
 }
 
+export const leerPartida = (nube, pareja, id) => nube.leer(rutaPartida(pareja, id));
+
 export const cancelarSala = (nube, pareja, id) =>
   nube.escribir(rutaPartida(pareja, id), { estado: 'cancelada' }, { combinar: true });
 

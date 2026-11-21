@@ -163,3 +163,45 @@ prueba('trivia pantallas: con 5 días del diario, la partida trae 2 de «¿Cuán
   verdadero(conoces.every((p) => p.para.a.texto.includes('Sofi') && p.para.b.texto.includes('Carlos')), JSON.stringify(conoces));
   salir();
 });
+// Tocar la notificación de invitación abre trivia/unirme/<id>: entra solo, sin tocar «Unirme».
+async function tocarInvitacion(cel, id) {
+  const reemplazos = [];
+  const ctx = { ...cel.ctx, reemplazar: (r) => reemplazos.push(r) };
+  await cel.pantallas.unirme(cel.div, { id }, ctx);
+  return reemplazos;
+}
+
+prueba('trivia pantallas: tocar la invitación entra directo a la partida', async () => {
+  const { a, b } = await pareja();
+  const id = await crearSala(a.nube, a.pareja, { preguntas: preguntas() });
+  const reemplazos = await tocarInvitacion(b, id);
+  igual(reemplazos, [`trivia/jugar/${id}`]);
+  igual((await b.nube.leer(`parejas/${b.pareja.codigo}/partidas/${id}`)).estado, 'jugando');
+  igual(textoEsperando(b.ctx.almacen, b.pareja, 'trivia'), null);
+  salir();
+});
+
+prueba('trivia pantallas: tocar una invitación cancelada lo dice y ofrece volver a la Trivia', async () => {
+  const { a, b } = await pareja();
+  const id = await crearSala(a.nube, a.pareja, { preguntas: preguntas() });
+  await cancelarSala(a.nube, a.pareja, id);
+  const reemplazos = await tocarInvitacion(b, id);
+  igual(reemplazos, []);
+  verdadero(b.div.textContent.includes('Esa partida ya terminó o se canceló.'), b.div.textContent);
+  verdadero(b.div.querySelector('a[href="#/trivia"]'), 'falta el enlace a la Trivia');
+  salir();
+});
+
+prueba('trivia pantallas: tocar la invitación sin conexión lo dice y deja reintentar', async () => {
+  const { b } = await pareja();
+  // Solo falla leer la partida: lo demás (la pareja) carga normal.
+  const sinPartidas = new Proxy(b.nube, {
+    get: (n, k) => (k === 'leer' ? (ruta, ...r) => (ruta.includes('/partidas/') ? Promise.reject(new Error('sin red')) : n.leer(ruta, ...r))
+      : typeof n[k] === 'function' ? n[k].bind(n) : n[k]),
+  });
+  const ctx = { ...b.ctx, nube: async () => sinPartidas, reemplazar: () => {} };
+  await b.pantallas.unirme(b.div, { id: 'p-x' }, ctx);
+  verdadero(b.div.textContent.includes('Se perdió la conexión'), b.div.textContent);
+  verdadero(boton(b.div, 'Reintentar'));
+  salir();
+});

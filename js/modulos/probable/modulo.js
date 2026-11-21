@@ -24,6 +24,7 @@ export default {
   rutas: {
     '': pantallas.inicio,
     'jugar/:id': pantallas.juego,
+    'unirme/:id': pantallas.unirme,
     frases: pantallas.frases,
     guardadas: pantallas.guardadas,
     'guardadas/:id': pantallas.guardadaDetalle,

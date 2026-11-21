@@ -28,5 +28,6 @@ export default {
   rutas: {
     '': pantallas.sala,
     'jugar/:id': pantallas.juego,
+    'unirme/:id': pantallas.unirme,
   },
 };

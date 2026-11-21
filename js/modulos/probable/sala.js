@@ -51,6 +51,8 @@ export async function crearSala(nube, pareja, { tema, frases, id = nuevoId() }) 
   return id;
 }
 
+export const leerSala = (nube, pareja, id) => nube.leer(rutaSala(pareja.codigo, id));
+
 export async function salaPendiente(nube, pareja) {
   const uso = await nube.leer(rutaUso(pareja.codigo));
   if (!uso?.probableAbierta) return null;

@@ -606,3 +606,37 @@ prueba('probable pantallas: mientras carga el resumen lo dice, y lee los votos a
   verdadero(estado.maximo >= 10, `los 10 votos se leen a la vez (máximo a la vez: ${estado.maximo})`);
   salir();
 });
+
+// Tocar la notificación de invitación abre probable/unirme/<id>: entra solo, sin tocar «Unirme».
+async function tocarInvitacionProbable(cel, id) {
+  const reemplazos = [];
+  const ctx = { ...cel.ctx, reemplazar: (r) => reemplazos.push(r) };
+  await cel.pantallas.unirme(cel.div, { id }, ctx);
+  return reemplazos;
+}
+const FRASES = BANCO.slice(0, 5).map(({ id: i, texto }) => ({ id: i, texto }));
+
+prueba('probable pantallas: tocar la invitación entra directo a la sala', async () => {
+  const { a, b } = await parejaProbable();
+  const id = await crearSala(a.nube, a.pareja, { tema: 'divertidas', frases: FRASES });
+  const reemplazos = await tocarInvitacionProbable(b, id);
+  igual(reemplazos, [`probable/jugar/${id}`]);
+  igual((await b.nube.leer(rutaSala(b.pareja.codigo, id))).estado, 'jugando');
+  igual(textoEsperando(b.ctx.almacen, b.pareja, 'probable'), null);
+  salir();
+});
+
+prueba('probable pantallas: tocar una invitación cancelada o de hace más de 30 min lo dice', async () => {
+  const { a, b } = await parejaProbable();
+  const id = await crearSala(a.nube, a.pareja, { tema: 'divertidas', frases: FRASES });
+  await cancelarSala(a.nube, a.pareja, id);
+  igual(await tocarInvitacionProbable(b, id), []);
+  verdadero(b.div.textContent.includes('Esa partida ya terminó o se canceló.'), b.div.textContent);
+  verdadero(b.div.querySelector('a[href="#/probable"]'), 'falta el enlace al juego');
+  const vieja = await crearSala(a.nube, a.pareja, { tema: 'divertidas', frases: FRASES, id: 'q-vieja' });
+  await a.nube.escribir(rutaSala(a.pareja.codigo, vieja), { creadaMs: Date.now() - 31 * 60 * 1000 }, { combinar: true });
+  b.div.replaceChildren();
+  igual(await tocarInvitacionProbable(b, vieja), []);
+  verdadero(b.div.textContent.includes('Esa partida ya terminó o se canceló.'), b.div.textContent);
+  salir();
+});

@@ -6,8 +6,9 @@ import { TEMAS, LARGOS, elegirFrases, opcionesVoto, votaronTodos, coincidieron, 
 import { rondaParaGuardar, guardarRonda, leerGuardadas, borrarGuardada, marcarGuardada, leerMarcas, recordarMarcas } from './guardadas.js';
 import {
   crearSala, salaPendiente, unirse, cancelarSala, votar, leerVotos, intentarAvanzar, cerrarSala, leerVistas,
-  escucharSala, latir, listarPropias, crearPropia, borrarPropia, ErrorSalaAjena, cancelarSiSigueEsperando, cancelarSiAbierta, rutaSala,
+  escucharSala, latir, listarPropias, crearPropia, borrarPropia, ErrorSalaAjena, cancelarSiSigueEsperando, cancelarSiAbierta, rutaSala, leerSala,
 } from './sala.js';
+import { entrarASala } from '../../nucleo/entrar-sala.js';
 
 const MS_SIN_SENAL = 20000;
 const PREFIJO = '¿Quién es más probable que…';
@@ -530,5 +531,33 @@ export function crearPantallasProbable({ cargar, ahora = () => performance.now()
           el('span', { clase: 'revelado-voto' }, nombreEleccion(ronda, f[l]))))))));
   }
 
-  return { inicio, juego, frases, guardadas, guardadaDetalle };
+  // La notificación de invitación abre aquí: une a quien la toca y lo lleva directo a la sala.
+  // Una sala que lleva esperando más de 30 min ya no cuenta (el inicio la cierra igual).
+  async function unirme(contenedor, { id }, ctx) {
+    const zona = el('div', { clase: 'probable' });
+    contenedor.append(el('a', { clase: 'volver', href: '#/' }, '← Inicio'), zona);
+    const r = await exigirPareja(zona, ctx);
+    if (!r) return;
+    const { nube, pareja } = r;
+    zona.replaceChildren(el('p', { clase: 'subtitulo', role: 'status' }, 'Entrando a la sala…'));
+    let resultado;
+    try {
+      resultado = await entrarASala({ leer: () => leerSala(nube, pareja, id), unirse: () => unirse(nube, pareja, id), yo: pareja.lugar, caduca: true });
+    } catch (e) {
+      console.warn('Okupa: no se pudo entrar a la sala', e);
+      zona.replaceChildren(vacio('Se perdió la conexión',
+        el('button', { clase: 'boton boton-principal', type: 'button', onclick: () => ctx.refrescar() }, 'Reintentar')));
+      return;
+    }
+    if (resultado === 'jugar') {
+      guardarEsperando(ctx.almacen, pareja.codigo, 'probable', null);
+      // Reemplaza la entrada: volver atrás no debe pasar otra vez por aquí.
+      ctx.reemplazar(`probable/jugar/${id}`);
+      return;
+    }
+    zona.replaceChildren(vacio('Esa partida ya terminó o se canceló.',
+      el('a', { clase: 'boton boton-principal', href: '#/probable' }, 'Ir a ¿Quién es más probable?')));
+  }
+
+  return { inicio, juego, frases, guardadas, guardadaDetalle, unirme };
 }

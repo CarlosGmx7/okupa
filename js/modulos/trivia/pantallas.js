@@ -9,8 +9,9 @@ import { preguntasConoces, insertarConoces } from './conoces.js';
 import { MS_PREGUNTA, MS_GRACIA, MS_REVELADO, ambosRespondieron, resultadoPregunta, puntaje, ganador, preguntaDe } from './partida.js';
 import {
   crearSala, partidaPendiente, cancelarSala, unirse, enviarRespuesta, intentarAvanzar, escucharPartida, latir,
-  cerrarPartida, leerUso, rutaPartidas,
+  cerrarPartida, leerUso, rutaPartidas, leerPartida,
 } from './sala.js';
+import { entrarASala } from '../../nucleo/entrar-sala.js';
 
 const MS_DESCONEXION = 15000;
 const MS_URGENTE = 5000;
@@ -355,5 +356,32 @@ export function crearPantallasTrivia({ cargar, ahora = () => performance.now(), 
     }
   }
 
-  return { sala, juego };
+  // La notificación de invitación abre aquí: une a quien la toca y lo lleva directo a la partida.
+  async function unirme(contenedor, { id }, ctx) {
+    const zona = el('div', { clase: 'trivia' });
+    contenedor.append(el('a', { clase: 'volver', href: '#/' }, '← Inicio'), zona);
+    const r = await exigirPareja(zona, ctx);
+    if (!r) return;
+    const { nube, pareja } = r;
+    zona.replaceChildren(el('p', { clase: 'subtitulo', role: 'status' }, 'Entrando a la partida…'));
+    let resultado;
+    try {
+      resultado = await entrarASala({ leer: () => leerPartida(nube, pareja, id), unirse: () => unirse(nube, pareja, id), yo: pareja.lugar });
+    } catch (e) {
+      console.warn('Okupa: no se pudo entrar a la partida', e);
+      zona.replaceChildren(vacio('Se perdió la conexión',
+        el('button', { clase: 'boton boton-principal', type: 'button', onclick: () => ctx.refrescar() }, 'Reintentar')));
+      return;
+    }
+    if (resultado === 'jugar') {
+      guardarEsperando(ctx.almacen, pareja.codigo, 'trivia', null);
+      // Reemplaza la entrada: volver atrás no debe pasar otra vez por aquí.
+      ctx.reemplazar(`trivia/jugar/${id}`);
+      return;
+    }
+    zona.replaceChildren(vacio('Esa partida ya terminó o se canceló.',
+      el('a', { clase: 'boton boton-principal', href: '#/trivia' }, 'Ir a la Trivia')));
+  }
+
+  return { sala, juego, unirme };
 }

@@ -44,6 +44,11 @@ const ctx = {
   nube: obtenerNube,
   notificaciones,
   ir(ruta) { location.hash = `#/${ruta}`; },
+  // Como ir, pero sin dejar la pantalla actual en el historial (atrás no vuelve a ella).
+  reemplazar(ruta) {
+    history.replaceState(null, '', `#/${ruta}`);
+    pintar();
+  },
   // Repinta la misma pantalla sin transición y sin perder dónde iba el scroll.
   refrescar() { pintar({ mismaPantalla: true }); },
 };
