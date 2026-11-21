@@ -1,6 +1,18 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { fechaBogota, franjaDe, franjasPendientes, textoDe, vencido, destinatarios, quiereRecordatorio, fechaEnZona, momentoDeFranja, accionSolicitud, miembrosDe, avisoAceptoSobra } from './logica.mjs';
+import { fechaBogota, franjaDe, franjasPendientes, textoDe, vencido, destinatarios, quiereRecordatorio, fechaEnZona, momentoDeFranja, accionSolicitud, miembrosDe, avisoAceptoSobra, rutaDe } from './logica.mjs';
+
+test('rutaDe: la invitación lleva a unirse a esa sala y el «aceptó» a la partida', () => {
+  assert.equal(rutaDe('trivia', 'trivia_p-abc1'), '#/trivia/unirme/p-abc1');
+  assert.equal(rutaDe('probable', 'probable_q-abcd'), '#/probable/unirme/q-abcd');
+  assert.equal(rutaDe('trivia-acepto', 'acepto_p-abc1'), '#/trivia/jugar/p-abc1');
+  assert.equal(rutaDe('probable-acepto', 'acepto_q-abcd'), '#/probable/jugar/q-abcd');
+  assert.equal(rutaDe('trivia', 'trivia_a b/c'), '#/trivia/unirme/a%20b%2Fc');
+  assert.equal(rutaDe('diario', 'diario_2026-11-13_a'), null);
+  assert.equal(rutaDe('trivia', 'raro'), null);
+  assert.equal(rutaDe('trivia', 'trivia_'), null);
+  assert.equal(rutaDe('trivia-acepto', 'trivia_p-1'), null);
+});
 
 test('franjaDe redondea hacia abajo a 15 min en UTC', () => {
   assert.equal(franjaDe(new Date('2026-11-13T01:07:00Z')), '01:00');

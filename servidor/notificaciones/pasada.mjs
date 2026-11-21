@@ -1,6 +1,6 @@
 // Una pasada de notificaciones: vacía la bandeja de avisos, manda los recordatorios del Diario y los avisos de fechas.
 // `db` es Firestore de firebase-admin; `mandar(mensajes)` envía y responde [{ ok, codigo }] en orden.
-import { fechaBogota, fechaEnZona, momentoDeFranja, franjasPendientes, textoDe, vencido, destinatarios, quiereRecordatorio, registroVigente, accionSolicitud, miembrosDe, avisoAceptoSobra } from './logica.mjs';
+import { fechaBogota, fechaEnZona, momentoDeFranja, franjasPendientes, textoDe, vencido, destinatarios, quiereRecordatorio, registroVigente, accionSolicitud, miembrosDe, avisoAceptoSobra, rutaDe } from './logica.mjs';
 import { notificacionDelDia } from '../../js/modulos/fechas/calendario.js';
 import { avisosCapsulas, unirAvisos } from '../../js/modulos/capsula/logica.js';
 
@@ -98,7 +98,8 @@ export async function pasada({ db, mandar, ahora = new Date() }) {
       }
       const { enviar, invalidos } = destinatarios(await dispositivosDe(codigo), pareja, aviso);
       for (const id of invalidos) await olvidar(id);
-      await enviarA(enviar, { ...textoDe(aviso.tipo, pareja.nombres?.[aviso.de]), tipo: aviso.tipo });
+      const texto = textoDe(aviso.tipo, pareja.nombres?.[aviso.de]);
+      await enviarA(enviar, { ...texto, ruta: rutaDe(aviso.tipo, n.id) ?? texto.ruta, tipo: aviso.tipo });
       await n.ref.delete();
     } catch (e) {
       console.warn(`Aviso ${n.ref.path} no se pudo procesar: ${e?.code ?? e?.message ?? e}`);

@@ -51,7 +51,7 @@ test('manda la invitación de probable solo a b y la borra', async () => {
     'parejas/K7PQ2M/avisos/probable_q-abcd': nota('probable', 'a') });
   const m = mandador();
   const r = await pasada({ db, mandar: m.mandar, ahora: AHORA });
-  assert.deepEqual(m.enviados, [{ token: 't-b', data: { titulo: 'Carlos te invita a jugar ¿Quién es más probable? 🤔', texto: 'Te está esperando para jugar.', ruta: '#/probable', tipo: 'probable' } }]);
+  assert.deepEqual(m.enviados, [{ token: 't-b', data: { titulo: 'Carlos te invita a jugar ¿Quién es más probable? 🤔', texto: 'Te está esperando para jugar.', ruta: '#/probable/unirme/q-abcd', tipo: 'probable' } }]);
   assert.equal(r.enviados, 1);
   assert.equal(await existe('parejas/K7PQ2M/avisos/probable_q-abcd'), false);
 });
@@ -330,8 +330,8 @@ test('«aceptó»: llega solo al anfitrión (no a quien entró), con el nombre d
   const r = await pasada({ db, mandar: m.mandar, ahora: AHORA });
   const datos = (ruta, tipo) => ({ token: 't-a', data: { titulo: 'Okupa', texto: 'Yuli aceptó tu juego. ¡Entra ya!', ruta, tipo } });
   assert.equal(m.enviados.length, 2);
-  assert.deepEqual(m.enviados.find((e) => e.data.tipo === 'probable-acepto'), datos('#/probable', 'probable-acepto'));
-  assert.deepEqual(m.enviados.find((e) => e.data.tipo === 'trivia-acepto'), datos('#/trivia', 'trivia-acepto'));
+  assert.deepEqual(m.enviados.find((e) => e.data.tipo === 'probable-acepto'), datos('#/probable/jugar/q-abcd', 'probable-acepto'));
+  assert.deepEqual(m.enviados.find((e) => e.data.tipo === 'trivia-acepto'), datos('#/trivia/jugar/p-abc1', 'trivia-acepto'));
   assert.equal(r.enviados, 2);
   assert.equal(await existe('parejas/K7PQ2M/avisos/acepto_q-abcd'), false);
   assert.equal(await existe('parejas/K7PQ2M/avisos/acepto_p-abc1'), false);

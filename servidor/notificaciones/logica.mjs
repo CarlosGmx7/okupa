@@ -57,6 +57,19 @@ export function textoDe(tipo, nombre) {
   return TEXTOS[tipo] ? TEXTOS[tipo](nombre || 'Tu pareja') : null;
 }
 
+// Ruta con la sala del aviso (el id del aviso la trae): la invitación entra a esa sala y el «aceptó» a la partida.
+const RUTA_SALA = {
+  trivia: [/^trivia_(.+)$/, '#/trivia/unirme/'],
+  probable: [/^probable_(.+)$/, '#/probable/unirme/'],
+  'trivia-acepto': [/^acepto_(.+)$/, '#/trivia/jugar/'],
+  'probable-acepto': [/^acepto_(.+)$/, '#/probable/jugar/'],
+};
+export function rutaDe(tipo, idAviso) {
+  const [patron, base] = RUTA_SALA[tipo] ?? [];
+  const sala = patron && String(idAviso).match(patron)?.[1];
+  return sala ? `${base}${encodeURIComponent(sala)}` : null;
+}
+
 export function vencido(tipo, creadoMs, ahoraMs) {
   return ahoraMs - creadoMs > (VIGENCIA_MS[tipo] ?? VIGENCIA_GENERAL_MS);
 }
