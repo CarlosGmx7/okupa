@@ -205,3 +205,21 @@ prueba('trivia pantallas: tocar la invitación sin conexión lo dice y deja rein
   verdadero(boton(b.div, 'Reintentar'));
   salir();
 });
+prueba('trivia pantallas: si se va mientras entra, no lo lleva a la partida', async () => {
+  const { a, b } = await pareja();
+  const id = await crearSala(a.nube, a.pareja, { preguntas: preguntas() });
+  // La lectura de la partida tarda: mientras tanto toca «← Inicio».
+  const lenta = new Proxy(b.nube, {
+    get: (n, k) => (k === 'leer' ? async (ruta, ...r) => { if (ruta.includes('/partidas/')) await esperar(60); return n.leer(ruta, ...r); }
+      : typeof n[k] === 'function' ? n[k].bind(n) : n[k]),
+  });
+  const reemplazos = [];
+  const antes = location.hash;
+  const entrando = b.pantallas.unirme(b.div, { id }, { ...b.ctx, nube: async () => lenta, reemplazar: (r) => reemplazos.push(r) });
+  await esperar(10);
+  history.replaceState(null, '', '#/otra-pantalla');
+  await entrando;
+  history.replaceState(null, '', antes || location.pathname);
+  igual(reemplazos, []);
+  salir();
+});

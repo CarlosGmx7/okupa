@@ -1,4 +1,4 @@
-# Estado de Okupa — 2026-11-20
+# Estado de Okupa — 2026-11-21
 ## Objetivo
 App para parejas (PWA y APK Android): Preguntas, Trivia, ¿Quién es más probable?, Diario, Match, Mapa, Fechas, Cápsula, Ruleta de citas y Ajustes. Publicada en https://carlosgmx7.github.io/okupa/ (repo público CarlosGmx7/okupa, rama `main`). Meta: aguantar muchas parejas y, más adelante, grupos de 3 o más.
 ## Decisiones tomadas
@@ -16,7 +16,11 @@ App para parejas (PWA y APK Android): Preguntas, Trivia, ¿Quién es más probab
 - Funciona y está publicado: v24 (`sw.js` = `okupa-v24`, `main` = `01c121a`), con las reglas de v24 pegadas y App Check exigido. Incluye v22 (cambio de celular con aprobación), v23 (Ruleta de citas, 255 planes, sin nube) y v24 (rondas guardadas de Probable, aviso «aceptó tu juego», franja «hay una APK nueva», 1.000 frases de Probable con picantes directas a pedido de Carlos). Verificado: `pruebas.html` 782/0, reglas+servidor 229/0, Pages sirve okupa-v24 con las 1.000 frases y `data/apk.json` (versión 1).
 - Carlos hizo sus pendientes: APK 1.0.0 en Releases, `android.keystore` en Drive, pruebas en los dos celulares.
 - Sin comprobar en celular: que Ajustes muestre «App instalada: versión 1» dentro de la APK (si no, la franja de APK nueva nunca saldría).
-- Notificaciones (2026-11-20): solo llegaban las del Diario. Causa: GitHub corrió el cron 3-4 veces al día (27 corridas del 13 al 20 nov), y las invitaciones de Trivia/Probable/«aceptó» vencen a los 30 min y se botaban. Arreglo elegido por Carlos: cron-job.org dispara `workflow_dispatch` cada 5 min (`docs/guia-cron-job.md`). Pendiente de Carlos: crear el token fino (Actions: Read and write, solo `okupa`) y el cronjob; luego comprobar en la API pública que hay corridas `workflow_dispatch` cada ~5 min y que llega una invitación.
+- Notificaciones (2026-11-20): solo llegaban las del Diario. Causa: GitHub corrió el cron 3-4 veces al día (27 corridas del 13 al 20 nov), y las invitaciones de Trivia/Probable/«aceptó» vencen a los 30 min y se botaban. Arreglo elegido por Carlos: cron-job.org dispara `workflow_dispatch` cada 5 min (`docs/guia-cron-job.md`). HECHO el 2026-11-21: Carlos creó el token `okupa-cron` y el cronjob (timeout 30 s); comprobado: corridas `workflow_dispatch` 05:01, 05:05, 05:10, 05:15, 05:20 UTC, ~20 s cada una.
+- v25 LISTA en rama `v25-invitaciones` (worktree `../okupa-v25`), SIN publicar: invitaciones al instante. Al crear sala de Trivia/Probable o aceptar, `avisar()` despierta un relevo de Cloudflare (`servidor/relevo/relevo.js`) que dispara `workflow_dispatch` (~30 s). La notificación lleva la sala: `#/trivia|probable/unirme/<id>` entra solo (`js/nucleo/entrar-sala.js`); «aceptó» → `jugar/<id>`. Verificado: `pruebas.html` 801/0, reglas+servidor 230/0, relevo 9/9; revisión final hecha (corregidos: freno ante ráfagas y no saltar a la partida si la persona ya se fue).
+  - Pendiente de Carlos: subir el Worker y el token `okupa-relevo` (`docs/guia-relevo.md`) y pasar la URL. Luego Claude la pone en `RELEVO` (`nube-config.js`), prueba el 405 y, con visto bueno, publica (merge+push a `main`). No hay reglas nuevas.
+  - Decisiones: el mensaje de sala que ya no está sale en la pantalla `unirme` con botón al juego; el relevo solo se protege con Origin + freno por instancia (repo público: minutos gratis; si alguien abusa, agregar regla de límite en Cloudflare o validar App Check en el Worker).
+  - Menores aparcados v25: un error de permisos en `unirme` muestra «Se perdió la conexión» (Reintentar no sirve); una invitación de hace días abre una sala que quedó `jugando` sin terminar; con la app abierta, tocar la notificación puede reemplazar la entrada del historial (de antes).
 - Límites: GitHub corre el cron «cuando puede» y lo apaga si el repo pasa 60 días sin cambios (Actions → Notificaciones → Enable workflow). La franja de APK no sale si la app se abrió desde una notificación.
 - Menores aparcados:
   - v22: «Cancelar solicitud» tras el aviso no explica que sigue hasta 24 h; el aviso inicial puede repetirse si falla un envío; Rechazar sobre una solicitud que ya no existe dice «Revisa la conexión»; la espera repinta por sondeo de 60 s.
@@ -29,15 +33,17 @@ App para parejas (PWA y APK Android): Preguntas, Trivia, ¿Quién es más probab
 - `js/modulos/probable/` + `data/probable/frases.json`: ¿Quién es más probable? y rondas guardadas.
 - `js/modulos/ruleta/` + `data/ruleta/planes.json`: la Ruleta de citas.
 - `firebase/firestore.rules` + `firebase/pruebas/`: reglas y sus pruebas.
-- `servidor/notificaciones/` + `.github/workflows/notificaciones.yml`: envío de avisos.
+- `servidor/notificaciones/` + `.github/workflows/notificaciones.yml`: envío de avisos; `servidor/relevo/`: Worker de Cloudflare (pegar en el panel; un solo export).
+- `js/nucleo/avisos.js` (`usarRelevo`) y `js/nucleo/entrar-sala.js`: relevo y entrar a sala desde la notificación.
 - `sw.js` (`CACHE`, `PRECACHE`; `data/apk.json` siempre a la red), `privacidad.html`.
-- `docs/guia-app-check.md`, `docs/guia-apk-nueva.md`, `docs/guia-cron-job.md`, `docs/superpowers/specs|plans/`.
+- `docs/guia-app-check.md`, `docs/guia-apk-nueva.md`, `docs/guia-cron-job.md`, `docs/guia-relevo.md`, `docs/superpowers/specs|plans/`.
 - `../okupa-apk/` y `C:\bubblewrap\`: APK (`android.keystore` nunca a git).
 ## Próximo paso
-Preguntarle a Carlos (con opciones) qué sigue. Propuesta por defecto: una v25 de pulido con los menores aparcados que más se notan (entrar a una sala cancelada, planes de la Ruleta atados a la hora, frases repetidas), en rama `v25-…` y worktree `../okupa-v25`.
+Guiar a Carlos con `docs/guia-relevo.md` (paso a paso, con opciones), poner la URL en `RELEVO`, verificar y publicar la v25 con su visto bueno. Después: probar en los dos celulares que la invitación llega en ~30 s y entra directo. Luego, una v26 de pulido con los menores aparcados.
 ## Cómo verificar
-- App: en la carpeta de la rama, `python herramientas/servidor.py <puerto>`; abrir http://127.0.0.1:<puerto>/pruebas.html → «0 fallaron» (782).
-- Reglas: en `firebase/`, `node emuladores.mjs exec "node --test pruebas/ ../servidor/notificaciones/pasada.test.mjs ../servidor/notificaciones/logica.test.mjs"` (229) y cerrar el java del puerto 8085.
+- App: en la carpeta de la rama, `python herramientas/servidor.py <puerto>`; abrir http://127.0.0.1:<puerto>/pruebas.html → «0 fallaron» (801). Servidor local de la v25: preview `okupa-v25` (puerto 8125, en `Reverso/.claude/launch.json`).
+- Reglas: en `firebase/`, `node emuladores.mjs exec "node --test pruebas/ ../servidor/notificaciones/pasada.test.mjs ../servidor/notificaciones/logica.test.mjs"` (230) y cerrar el java del puerto 8085.
+- Relevo: en `servidor/relevo/`, `node --test relevo.test.mjs` (9).
 - Publicado: `https://carlosgmx7.github.io/okupa/sw.js` muestra la `CACHE` actual.
 ## Cuidado con
 - En cada cambio: subir `CACHE`, archivos nuevos en `PRECACHE` y `pruebas/pwa.prueba.js`, pruebas nuevas en `pruebas.html`.

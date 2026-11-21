@@ -1,7 +1,10 @@
 // Pruebas del relevo de Cloudflare. Correr con `node --test servidor/relevo/relevo.test.mjs`.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { crearRelevo } from './relevo.js';
+import relevoWorker from './relevo.js';
+
+// Solo el export por defecto: el editor de Cloudflare toma cada export con nombre como otra entrada.
+const { crearRelevo } = relevoWorker;
 
 const BUENO = 'https://carlosgmx7.github.io';
 const GITHUB = 'https://api.github.com/repos/CarlosGmx7/okupa/actions/workflows/notificaciones.yml/dispatches';
@@ -77,4 +80,23 @@ test('sin token → 500 sin llamar a GitHub', async () => {
   const { relevo, llamadas } = armar();
   assert.equal((await relevo(pedido(), {})).status, 500);
   assert.equal(llamadas.length, 0);
+});
+
+test('ráfaga: pedidos que llegan mientras GitHub responde no disparan de más', async () => {
+  const llamadas = [];
+  let soltar;
+  const relevo = crearRelevo({ buscar: (url) => { llamadas.push(url); return new Promise((r) => { soltar = () => r(new Response(null, { status: 204 })); }); } });
+  const primero = relevo(pedido(), ENV);
+  const otros = [relevo(pedido(), ENV), relevo(pedido(), ENV)];
+  await new Promise((r) => setTimeout(r, 0));
+  soltar();
+  const estados = (await Promise.all([primero, ...otros])).map((r) => r.status);
+  assert.deepEqual(estados, [204, 204, 204]);
+  assert.equal(llamadas.length, 1);
+});
+
+test('el módulo solo tiene el export por defecto, con fetch', async () => {
+  const modulo = await import('./relevo.js');
+  assert.deepEqual(Object.keys(modulo), ['default']);
+  assert.equal(typeof modulo.default.fetch, 'function');
 });

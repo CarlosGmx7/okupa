@@ -8,7 +8,7 @@ const ORIGEN = 'https://carlosgmx7.github.io';
 const FRENO_MS = 15000;
 const GITHUB = 'https://api.github.com/repos/CarlosGmx7/okupa/actions/workflows/notificaciones.yml/dispatches';
 
-export function crearRelevo({ ahora = () => Date.now(), buscar = (...a) => fetch(...a) } = {}) {
+function crearRelevo({ ahora = () => Date.now(), buscar = (...a) => fetch(...a) } = {}) {
   let ultimo = -Infinity;
   return async function atender(request, env) {
     if (request.method !== 'POST') return new Response(null, { status: 405 });
@@ -16,6 +16,14 @@ export function crearRelevo({ ahora = () => Date.now(), buscar = (...a) => fetch
     if (!env?.GITHUB_TOKEN) return new Response(null, { status: 500 });
     // Un disparo cada 15 s basta: GitHub deja una corrida en marcha y una en cola, y cada una manda toda la bandeja.
     if (ahora() - ultimo < FRENO_MS) return new Response(null, { status: 204 });
+    // Se arma antes de llamar: los pedidos que llegan mientras GitHub responde no disparan otra vez.
+    const anterior = ultimo;
+    ultimo = ahora();
+    const fallo = (motivo) => {
+      console.warn(motivo);
+      ultimo = anterior; // si GitHub falló, el siguiente pedido puede intentar de nuevo
+      return new Response(null, { status: 502 });
+    };
     try {
       const r = await buscar(GITHUB, {
         method: 'POST',
@@ -27,18 +35,15 @@ export function crearRelevo({ ahora = () => Date.now(), buscar = (...a) => fetch
         },
         body: JSON.stringify({ ref: 'main' }),
       });
-      if (!r.ok) {
-        console.warn(`GitHub respondió ${r.status}`);
-        return new Response(null, { status: 502 });
-      }
+      if (!r.ok) return fallo(`GitHub respondió ${r.status}`);
     } catch (e) {
-      console.warn(`No se pudo llamar a GitHub: ${e?.message ?? e}`);
-      return new Response(null, { status: 502 });
+      return fallo(`No se pudo llamar a GitHub: ${e?.message ?? e}`);
     }
-    ultimo = ahora();
     return new Response(null, { status: 204 });
   };
 }
 
+// Un solo export: el editor de Cloudflare toma cada export con nombre como otra entrada del Worker.
+// `crearRelevo` va dentro solo para las pruebas.
 const atender = crearRelevo();
-export default { fetch: (request, env) => atender(request, env) };
+export default { fetch: (request, env) => atender(request, env), crearRelevo };

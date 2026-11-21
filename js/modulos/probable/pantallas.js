@@ -534,6 +534,7 @@ export function crearPantallasProbable({ cargar, ahora = () => performance.now()
   // La notificación de invitación abre aquí: une a quien la toca y lo lleva directo a la sala.
   // Una sala que lleva esperando más de 30 min ya no cuenta (el inicio la cierra igual).
   async function unirme(contenedor, { id }, ctx) {
+    const aqui = location.hash; // si la persona se va mientras entra, no se la lleva a la partida
     const zona = el('div', { clase: 'probable' });
     contenedor.append(el('a', { clase: 'volver', href: '#/' }, '← Inicio'), zona);
     const r = await exigirPareja(zona, ctx);
@@ -549,6 +550,7 @@ export function crearPantallasProbable({ cargar, ahora = () => performance.now()
         el('button', { clase: 'boton boton-principal', type: 'button', onclick: () => ctx.refrescar() }, 'Reintentar')));
       return;
     }
+    if (location.hash !== aqui) return;
     if (resultado === 'jugar') {
       guardarEsperando(ctx.almacen, pareja.codigo, 'probable', null);
       // Reemplaza la entrada: volver atrás no debe pasar otra vez por aquí.
