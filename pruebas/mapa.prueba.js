@@ -4,7 +4,7 @@ import { almacenEnMemoria } from './pareja.prueba.js';
 import { crearPareja, unirse } from '../js/nucleo/pareja.js';
 import {
   redondearAproximada, distanciaKm, minutosMoto, minutosSinRuta, formatearDistancia, haceCuanto, avatarDe,
-  guardarUbicacion, leerUbicaciones, buscarUbicacion, textoPrecision, ESPERA_GPS_MS, LIMITE_GPS_MS,
+  guardarUbicacion, leerUbicaciones, buscarUbicacion, textoPrecision, AFINAR_MS, LIMITE_UBICACION_MS,
 } from '../js/modulos/mapa/ubicacion.js';
 import { calcularRuta } from '../js/modulos/mapa/ruta.js';
 
@@ -97,76 +97,103 @@ function relojFalso() {
 }
 const posicion = (lat, lng, accuracy) => ({ coords: { latitude: lat, longitude: lng, accuracy } });
 
-prueba('mapa: pide GPS sin posiciones viejas y se queda con la primera lectura precisa', async () => {
+const ok = async (promesa) => promesa;
+async function codigoDeError(promesa) {
+  try { await promesa; return 'no falló'; } catch (e) { return e.code; }
+}
+
+prueba('mapa: primero pide la lectura rápida de siempre; si ya es precisa, no prende el GPS', async () => {
+  const geo = geoFalsa();
+  const promesa = buscarUbicacion(geo, relojFalso());
+  igual(geo.opcionesUnaVez, { enableHighAccuracy: false, timeout: 12000, maximumAge: 60000 });
+  geo.unaVez.ok(posicion(4.7112, -74.0722, 20.4));
+  igual(await ok(promesa), { lat: 4.7112, lng: -74.0722, precision: 20 });
+  igual(geo.opciones, null, 'no debe prender el GPS');
+});
+
+prueba('mapa: con una lectura rápida imprecisa, afina con el GPS y se queda con la mejor', async () => {
   const geo = geoFalsa();
   const reloj = relojFalso();
   const promesa = buscarUbicacion(geo, reloj);
+  geo.unaVez.ok(posicion(4.70, -74.08, 800));
   igual([geo.opciones.enableHighAccuracy, geo.opciones.maximumAge], [true, 0]);
-  geo.ok(posicion(4.7112, -74.0722, 12.4));
-  igual(await promesa, { lat: 4.7112, lng: -74.0722, precision: 12 });
+  geo.ok(posicion(4.7112, -74.0722, 45));
+  geo.ok(posicion(4.72, -74.06, 300));
+  reloj.saltar(AFINAR_MS);
+  igual(await promesa, { lat: 4.7112, lng: -74.0722, precision: 45 });
   igual(geo.cortadas, [7], 'debe dejar de escuchar el GPS');
 });
 
-prueba('mapa: si no llega una lectura precisa, tras la espera usa la mejor que tenga', async () => {
+prueba('mapa: si el GPS da una lectura precisa al afinar, termina enseguida', async () => {
   const geo = geoFalsa();
-  const reloj = relojFalso();
-  const promesa = buscarUbicacion(geo, reloj);
-  geo.ok(posicion(4.70, -74.08, 800));
-  geo.ok(posicion(4.7112, -74.0722, 45));
-  geo.ok(posicion(4.72, -74.06, 300));
-  reloj.saltar(ESPERA_GPS_MS);
-  igual(await promesa, { lat: 4.7112, lng: -74.0722, precision: 45 });
+  const promesa = buscarUbicacion(geo, relojFalso());
+  geo.unaVez.ok(posicion(4.70, -74.08, 500));
+  geo.ok(posicion(4.7112, -74.0722, 12));
+  igual(await promesa, { lat: 4.7112, lng: -74.0722, precision: 12 });
   igual(geo.cortadas, [7]);
 });
 
-prueba('mapa: sin ninguna lectura en la espera, sigue buscando y acepta la primera que llegue', async () => {
+prueba('mapa: si el GPS falla al afinar, se queda con la lectura rápida', async () => {
+  const geo = geoFalsa();
+  const promesa = buscarUbicacion(geo, relojFalso());
+  geo.unaVez.ok(posicion(4.70, -74.08, 500));
+  geo.error({ code: 3 });
+  igual(await promesa, { lat: 4.70, lng: -74.08, precision: 500 });
+});
+
+prueba('mapa: sin permiso de ubicación falla de una vez, sin prender el GPS', async () => {
+  const geo = geoFalsa();
+  const promesa = buscarUbicacion(geo, relojFalso());
+  geo.unaVez.error({ code: 1 });
+  igual(await codigoDeError(promesa), 1);
+  igual(geo.opciones, null);
+});
+
+prueba('mapa: si la lectura rápida no responde, busca con el GPS y usa la mejor', async () => {
   const geo = geoFalsa();
   const reloj = relojFalso();
   const promesa = buscarUbicacion(geo, reloj);
-  reloj.saltar(ESPERA_GPS_MS);
+  geo.unaVez.error({ code: 3 });
+  igual(geo.opciones.enableHighAccuracy, true);
   geo.ok(posicion(4.7112, -74.0722, 150));
+  reloj.saltar(AFINAR_MS);
   igual(await promesa, { lat: 4.7112, lng: -74.0722, precision: 150 });
 });
 
-prueba('mapa: sin permiso de ubicación falla de una vez, sin plan B', async () => {
+prueba('mapa: sin lectura rápida ni GPS, falla con el error del GPS', async () => {
   const geo = geoFalsa();
   const promesa = buscarUbicacion(geo, relojFalso());
-  geo.error({ code: 1 });
-  let codigo = null;
-  try { await promesa; } catch (e) { codigo = e.code; }
-  igual(codigo, 1);
-  igual(geo.unaVez, null);
-  igual(geo.cortadas, [7]);
-});
-
-prueba('mapa: si el GPS no responde, el plan B es la ubicación por redes', async () => {
-  const geo = geoFalsa();
-  const promesa = buscarUbicacion(geo, relojFalso());
-  geo.error({ code: 3 });
-  igual(geo.opcionesUnaVez.enableHighAccuracy, false);
-  geo.unaVez.ok(posicion(4.71, -74.07, 1200));
-  igual(await promesa, { lat: 4.71, lng: -74.07, precision: 1200 });
-});
-
-prueba('mapa: si el GPS se corta con una lectura ya recibida, usa esa', async () => {
-  const geo = geoFalsa();
-  const promesa = buscarUbicacion(geo, relojFalso());
-  geo.ok(posicion(4.7112, -74.0722, 90));
+  geo.unaVez.error({ code: 2 });
   geo.error({ code: 2 });
-  igual(await promesa, { lat: 4.7112, lng: -74.0722, precision: 90 });
-  igual(geo.unaVez, null);
+  igual(await codigoDeError(promesa), 2);
 });
 
-prueba('mapa: sin GPS ni redes, falla con el error del plan B', async () => {
+prueba('mapa: nunca se queda buscando: al límite total usa lo que tenga o falla', async () => {
+  // El celular nunca contesta nada.
+  const mudo = geoFalsa();
+  const reloj = relojFalso();
+  const promesa = buscarUbicacion(mudo, reloj);
+  reloj.saltar(LIMITE_UBICACION_MS);
+  igual(await codigoDeError(promesa), 3);
+  // Sin lectura rápida, el GPS dio una lectura tarde pero antes del límite.
+  const geo = geoFalsa();
+  const reloj2 = relojFalso();
+  const promesa2 = buscarUbicacion(geo, reloj2);
+  geo.unaVez.error({ code: 3 });
+  reloj2.saltar(AFINAR_MS);
+  geo.ok(posicion(4.7112, -74.0722, 400));
+  reloj2.saltar(LIMITE_UBICACION_MS);
+  igual(await promesa2, { lat: 4.7112, lng: -74.0722, precision: 400 });
+});
+
+prueba('mapa: una respuesta que llega después de terminar no cambia nada', async () => {
   const geo = geoFalsa();
   const reloj = relojFalso();
   const promesa = buscarUbicacion(geo, reloj);
-  reloj.saltar(ESPERA_GPS_MS);
-  reloj.saltar(LIMITE_GPS_MS);
-  geo.unaVez.error({ code: 2 });
-  let codigo = null;
-  try { await promesa; } catch (e) { codigo = e.code; }
-  igual(codigo, 2);
+  reloj.saltar(LIMITE_UBICACION_MS);
+  igual(await codigoDeError(promesa), 3);
+  geo.unaVez.ok(posicion(4.7, -74.0, 10)); // tarde: no debe lanzar ni prender el GPS
+  igual(geo.opciones, null);
 });
 
 prueba('mapa: sin geolocalización en el navegador, falla', async () => {

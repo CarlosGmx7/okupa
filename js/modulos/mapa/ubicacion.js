@@ -44,48 +44,62 @@ export function avatarDe(nombre) {
   return AVATARES.includes(primera) ? `iconos/mapa/${primera}.png` : null;
 }
 
-const PRECISION_BUENA_M = 30; // con esto ya se distingue la cuadra: no hace falta esperar más
+const PRECISION_BUENA_M = 30; // con esto ya se distingue la cuadra: no hace falta afinar más
 const PRECISION_VISIBLE_M = 100; // peor que esto se le cuenta a la pareja
-export const ESPERA_GPS_MS = 10000; // cuánto se le da al GPS para afinar antes de usar la mejor lectura
-export const LIMITE_GPS_MS = 25000; // sin ninguna lectura en este tiempo, se pasa a la ubicación por redes
-const ESPERA_REDES_MS = 10000;
+// La lectura rápida de siempre (la que funcionaba): por redes o GPS, la que el celular tenga, de hasta 1 min atrás.
+const RAPIDA = { enableHighAccuracy: false, timeout: 12000, maximumAge: 60000 };
+export const AFINAR_MS = 8000; // cuánto se le da al GPS para mejorar la lectura
+export const LIMITE_UBICACION_MS = 30000; // nunca se busca más que esto, conteste o no el celular
 const SIN_PERMISO = 1;
+const SIN_RESPUESTA = 3;
 
-// Busca la ubicación con GPS y sin posiciones viejas: escucha varias lecturas y se queda con la más
-// precisa. Si el GPS no da nada (bajo techo, apagado), el plan B es la ubicación por redes.
+// Busca la ubicación en dos pasos: primero la lectura rápida; si no es precisa (o no llega), el GPS la
+// afina unos segundos y se usa la mejor. Con un tope total: nunca se queda «buscando» para siempre.
 export function buscarUbicacion(geo = globalThis.navigator?.geolocation, { poner = setTimeout, quitar = clearTimeout } = {}) {
   return new Promise((listo, fallo) => {
     if (!geo) { fallo(new Error('sin-geolocalizacion')); return; }
     const punto = (p) => ({ lat: p.coords.latitude, lng: p.coords.longitude, precision: Math.round(p.coords.accuracy) });
     let mejor = null;
     let cerrado = false;
-    let esperoDeMas = false;
-    const relojes = [];
     let escucha = null;
+    const relojes = [];
     const cerrar = () => {
       cerrado = true;
       relojes.forEach(quitar);
       if (escucha !== null) geo.clearWatch(escucha);
     };
-    const terminar = () => { cerrar(); listo(mejor); };
-    const porRedes = () => {
-      cerrar();
-      geo.getCurrentPosition((p) => listo(punto(p)), fallo,
-        { enableHighAccuracy: false, timeout: ESPERA_REDES_MS, maximumAge: 300000 });
-    };
-    escucha = geo.watchPosition((p) => {
+    const terminar = (error) => {
       if (cerrado) return;
+      cerrar();
+      if (mejor) listo(mejor); else fallo(error ?? Object.assign(new Error('sin-respuesta'), { code: SIN_RESPUESTA }));
+    };
+    const anotar = (p) => {
       const nuevo = punto(p);
       if (!mejor || nuevo.precision < mejor.precision) mejor = nuevo;
-      if (mejor.precision <= PRECISION_BUENA_M || esperoDeMas) terminar();
+    };
+    // Paso 2: escuchar el GPS unos segundos. Sin lectura al terminar, se sigue esperando hasta el tope total.
+    const afinar = () => {
+      escucha = geo.watchPosition((p) => {
+        if (cerrado) return;
+        anotar(p);
+        if (mejor.precision <= PRECISION_BUENA_M || afinado) terminar();
+      }, (e) => { if (!cerrado) terminar(e); },
+      { enableHighAccuracy: true, maximumAge: 0, timeout: LIMITE_UBICACION_MS });
+      if (cerrado) { geo.clearWatch(escucha); return; } // respondió antes de devolver el id
+      relojes.push(poner(() => { if (mejor) terminar(); else afinado = true; }, AFINAR_MS));
+    };
+    let afinado = false;
+    relojes.push(poner(() => terminar(), LIMITE_UBICACION_MS));
+    // Paso 1: la lectura rápida.
+    geo.getCurrentPosition((p) => {
+      if (cerrado) return;
+      anotar(p);
+      if (mejor.precision <= PRECISION_BUENA_M) terminar(); else afinar();
     }, (e) => {
       if (cerrado) return;
       if (e?.code === SIN_PERMISO) { cerrar(); fallo(e); return; }
-      if (mejor) terminar(); else porRedes();
-    }, { enableHighAccuracy: true, maximumAge: 0, timeout: LIMITE_GPS_MS });
-    if (cerrado) { geo.clearWatch(escucha); return; } // respondió antes de devolver el id
-    relojes.push(poner(() => { if (cerrado) return; if (mejor) terminar(); else esperoDeMas = true; }, ESPERA_GPS_MS));
-    relojes.push(poner(() => { if (!cerrado) porRedes(); }, LIMITE_GPS_MS));
+      afinar();
+    }, RAPIDA);
   });
 }
 
