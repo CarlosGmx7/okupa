@@ -1,6 +1,6 @@
 import { prueba, igual, verdadero } from './corredor.js';
 import { crearMundoFalso } from './nube-falsa.js';
-import { idAviso, avisar } from '../js/nucleo/avisos.js';
+import { idAviso, avisar, usarRelevo, relevoDesde } from '../js/nucleo/avisos.js';
 import { crearSala } from '../js/modulos/trivia/sala.js';
 import { crearSala as crearSalaProbable } from '../js/modulos/probable/sala.js';
 import { crearLugar, guardarVersion } from '../js/modulos/mapa/lugares.js';
@@ -94,3 +94,46 @@ prueba('avisos: si la nota falla, lo principal igual se guarda', async () => {
   igual(await enviar(nube, PAREJA, '2026-11-13', 'gustos', { items: [] }), true);
   igual(notas(mundo), []);
 });
+
+// Relevo: despierta al servidor para que las invitaciones de juego lleguen en segundos.
+async function conRelevo(fn, relevo) {
+  const llamadas = [];
+  usarRelevo(relevo ?? (() => { llamadas.push(1); return Promise.resolve(); }));
+  try { await fn(llamadas); } finally { usarRelevo(null); }
+}
+
+prueba('avisos: los avisos de juego despiertan al relevo; diario y mapa no', () => conRelevo(async (llamadas) => {
+  const nube = crearMundoFalso().nube('u1');
+  for (const tipo of ['trivia', 'probable', 'trivia-acepto', 'probable-acepto']) await avisar(nube, PAREJA, tipo, `${tipo}_x`);
+  igual(llamadas.length, 4);
+  await avisar(nube, PAREJA, 'diario', 'diario_2026-11-13_a');
+  await avisar(nube, PAREJA, 'mapa', 'mapa_l_a_nuevo');
+  igual(llamadas.length, 4);
+}));
+
+prueba('avisos: si la nota no se pudo escribir, no despierta al relevo', () => conRelevo(async (llamadas) => {
+  const nube = sinBandeja(crearMundoFalso().nube('u1'));
+  igual(await avisar(nube, PAREJA, 'trivia', 'trivia_p-1'), false);
+  igual(llamadas.length, 0);
+}));
+
+prueba('avisos: un relevo que lanza, rechaza o nunca responde no estorba', async () => {
+  const nube = crearMundoFalso().nube('u1');
+  await conRelevo(async () => igual(await avisar(nube, PAREJA, 'trivia', 'trivia_p-1'), true), () => { throw new Error('mal'); });
+  await conRelevo(async () => igual(await avisar(nube, PAREJA, 'trivia', 'trivia_p-2'), true), () => Promise.reject(new Error('sin red')));
+  await conRelevo(async () => igual(await avisar(nube, PAREJA, 'trivia', 'trivia_p-3'), true), () => new Promise(() => {}));
+});
+
+prueba('avisos: relevoDesde arma el pedido sin cuerpo y sin esperar respuesta', async () => {
+  igual(relevoDesde(null), null);
+  igual(relevoDesde(''), null);
+  const pedidos = [];
+  await relevoDesde('https://x.workers.dev', async (...a) => { pedidos.push(a); })();
+  igual(pedidos, [['https://x.workers.dev', { method: 'POST', mode: 'no-cors', keepalive: true }]]);
+});
+
+prueba('avisos: crear una sala de Trivia despierta al relevo una vez', () => conRelevo(async (llamadas) => {
+  const mundo = crearMundoFalso();
+  await crearSala(mundo.nube('u1'), PAREJA, { preguntas: [], id: 'p-rel' });
+  igual(llamadas.length, 1);
+}));

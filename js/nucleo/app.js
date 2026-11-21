@@ -16,6 +16,8 @@ import { sonidos } from './sonidos.js';
 import { notificacionesDeLaApp, conectarConPareja, escucharRutasDelServiceWorker } from './notificaciones.js';
 
 import { detectarApk } from './apk.js';
+import { usarRelevo, relevoDesde } from './avisos.js';
+import { RELEVO } from './nube-config.js';
 
 // Dentro de la APK: se detecta ya, antes de cualquier cambio de ruta (el referrer solo existe en la primera carga).
 const apk = (() => {
@@ -29,6 +31,7 @@ alCambiarAjustes(aplicarAjustes);
 sonidos.instalarToque();
 const notificaciones = notificacionesDeLaApp(almacen);
 conectarConPareja(notificaciones);
+usarRelevo(relevoDesde(RELEVO));
 escucharRutasDelServiceWorker(navigator.serviceWorker, (ruta) => { location.hash = ruta; });
 
 const vista = document.getElementById('vista');
